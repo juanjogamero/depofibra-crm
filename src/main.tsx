@@ -9,6 +9,7 @@ import './sidebar-reference.css';
 import './sidebar-motion.css';
 import './dashboard-reference.css';
 import './typography.css';
+import './dashboard-clean.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
