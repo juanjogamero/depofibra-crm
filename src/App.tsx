@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
   CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Search, Bell,
-  ChevronDown, Menu, X, ArrowRight, Plus, Factory, ShieldCheck,
+  ChevronDown, Menu, X, ArrowRight, Plus, Factory,
   Command, HelpCircle, CheckCheck, BellRing, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { useCrm } from './store';
@@ -102,7 +102,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
         </div>)}
       </div>
       <div className="sidebar-bottom">
-        <div className="sidebar-note"><span className="status-light"/><div><strong>Entorno de pruebas</strong><small>Datos ficticios · sin servidor</small></div></div>
+        <div className="sidebar-note"><span className="status-light"/><div><strong>En desarrollo</strong><small>Datos locales · VPS pendiente</small></div></div>
         
       </div>
     </aside>
@@ -146,7 +146,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
           <div className="dropdown-title">Resultados de búsqueda</div>
           {results.length ? results.map(r=><button key={r.to} onClick={()=>{navigate(r.to);setSearchOpen(false);setQ('')}} className="search-result">
             <span className="search-result-icon"><Search size={15}/></span><span><b>{r.name}</b><small>{r.type} · {r.sub}</small></span><ArrowRight size={15}/>
-          </button>) : <p className="dropdown-empty">No hay resultados en los datos de demostración.</p>}
+          </button>) : <p className="dropdown-empty">No hay resultados.</p>}
         </div>}
       </div>
       <div className="notice-wrapper">
@@ -158,8 +158,8 @@ function Header({ onMenu }: { onMenu: () => void }) {
         </div>}
       </div>
       <span className="topbar-divider"/>
-      <div className="profile-menu"><span className={'avatar '+(role==='fabrica'?'avatar-factory':'')}>{role==='fabrica'?'F':'D'}</span><div className="profile-copy"><strong>{role==='fabrica'?'Oficina de Fábrica':'Dirección'}</strong><small>Perfil de demostración</small></div><ChevronDown size={15}/>
-        <select aria-label="Cambiar perfil de demostración" value={role} onChange={e=>{setRole(e.target.value as 'direccion'|'fabrica');navigate(e.target.value==='fabrica'?'/fabrica':'/')}}><option value="direccion">Dirección</option><option value="fabrica">Oficina de Fábrica</option></select>
+      <div className="profile-menu"><span className={'avatar '+(role==='fabrica'?'avatar-factory':'')}>{role==='fabrica'?'F':'D'}</span><div className="profile-copy"><strong>{role==='fabrica'?'Oficina de Fábrica':'Dirección'}</strong><small>Vista en desarrollo</small></div><ChevronDown size={15}/>
+        <select aria-label="Cambiar vista de perfil (simulada)" value={role} onChange={e=>{setRole(e.target.value as 'direccion'|'fabrica');navigate(e.target.value==='fabrica'?'/fabrica':'/')}}><option value="direccion">Dirección</option><option value="fabrica">Oficina de Fábrica</option></select>
       </div>
     </div>
   </header>;
@@ -189,10 +189,9 @@ export default function App() {
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
     <div className="app-body">
       <Header onMenu={()=>setOpen(true)}/>
-      <div className="demo-ribbon"><ShieldCheck size={13}/> DEMO INTERACTIVA <span>·</span> Datos ficticios y guardados solo en este navegador <span>·</span> {role==='fabrica'?'Perfil Fábrica simulado':'Sin conexión a servidores'}</div>
       <main className="app-main" id="main-content"><AppRoutes/></main>
     </div>
     <BottomBar/>
-    <div className="help-chip" title="Prototipo funcional sin backend"><HelpCircle size={16}/></div>
+    <div className="help-chip" title="Interfaz en desarrollo · conexión al VPS pendiente"><HelpCircle size={16}/></div>
   </div>;
 }
