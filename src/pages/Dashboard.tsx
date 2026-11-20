@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, CalendarClock,
-  CheckCircle2, FileText, Inbox, PackageCheck, Plus,
-  TrendingUp, UsersRound
+  CheckCircle2, FileText, Inbox, Plus, UsersRound
 } from 'lucide-react';
 import { useCrm } from '../store';
 import { dayDiff, dateText, today } from '../domain';
@@ -59,7 +58,7 @@ function StatCard({
   title, value, helper, icon: Icon, tone, to, delta
 }: {
   title: string; value: string | number; helper: string; icon: typeof Inbox;
-  tone: 'blue' | 'teal' | 'indigo' | 'sky'; to: string; delta?: React.ReactNode;
+  tone: 'blue' | 'teal' | 'indigo' | 'sky'; to: string; delta?: ReactNode;
 }) {
   return <Link to={to} className={'dash-ref-stat dash-ref-stat-'+tone}>
     <span className="dash-ref-stat-accent" aria-hidden="true"/>
