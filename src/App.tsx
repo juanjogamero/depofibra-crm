@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
   CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Search, Bell,
   ChevronDown, Menu, X, ArrowRight, Plus, Factory, ShieldCheck,
-  Command, HelpCircle, CheckCheck, BellRing, PanelLeftClose, PanelLeftOpen
+  Command, HelpCircle, CheckCheck, BellRing, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { useCrm } from './store';
 import { AppRoutes } from './views';
@@ -14,10 +14,10 @@ type NavItem = { label: string; path: string; icon: IconType; badge?: number };
 type Group = { caption: string; links: NavItem[] };
 
 function Brand() {
-  return <div className="brand">
-    <div className="brand-mark">D</div>
-    <div className="brand-text"><strong>DEPOFIBRA</strong><small>GESTIÓN COMERCIAL</small></div>
-  </div>;
+  return <NavLink className="brand" to="/" aria-label="Depofibra CRM — Ir al inicio">
+    <img className="brand-logo" src="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal.png?v=20261113" srcSet="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal@2x.png?v=20261113 2x" width={512} height={84} alt="Depofibra" decoding="async" />
+    <img className="brand-compact-logo" src="https://depofibra.com/images/depofibra_brand_assets/favicon-depofibra-humo-v6-192.png" alt="" width={36} height={36} decoding="async" />
+  </NavLink>;
 }
 function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void }) {
   const { role, data } = useCrm();
@@ -46,7 +46,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
   return <>
     {mobileOpen && <button className="nav-backdrop" aria-label="Cerrar navegación" onClick={onClose}/>}
     <aside className={'sidebar sidebar-reference '+(mobileOpen?'is-open ':'')+(collapsed?'is-collapsed':'')}>
-      <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<PanelLeftOpen size={17}/>:<PanelLeftClose size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
+      <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<ChevronsRight size={17}/>:<ChevronsLeft size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
       <div className="nav-scroll">
         {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
           {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
