@@ -81,5 +81,5 @@ export const mockData: CrmState = {
     { id: 'PR-005', name: 'Fosa séptica estanca', family: 'Fosas sépticas', capacity: 'A determinar', price: 0, active: true },
     { id: 'PR-006', name: 'Cuba suelta para remolque', family: 'Cubas y cisternas', capacity: '8.000 L', price: 0, active: true },
   ],
-  transport: { smallRate: 1.1, largeRate: 1.4, buffer: 20, distanceLimit: 300, specialExtra: 150 }
+  transport: { smallRate: 0, largeRate: 0, buffer: 0, distanceLimit: 300, specialExtra: 0 }
 };
