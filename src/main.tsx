@@ -5,6 +5,7 @@ import { CrmProvider } from './store';
 import App from './App';
 import './styles.css';
 import './corporate.css';
+import './sidebar-reference.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
