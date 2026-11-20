@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
@@ -21,6 +21,36 @@ function Brand() {
 }
 function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void }) {
   const { role, data } = useCrm();
+  const location = useLocation();
+  const navRef = useRef<HTMLDivElement>(null);
+  const [activePosition, setActivePosition] = useState<{ y: number; height: number } | null>(null);
+
+  // Medimos la opción seleccionada y movemos una única pastilla entre enlaces.
+  // Esto evita el parpadeo de dos fondos al cambiar de página.
+  useLayoutEffect(() => {
+    const container = navRef.current;
+    const activeLink = container?.querySelector<HTMLElement>('.nav-link.active');
+    if (!container || !activeLink) {
+      setActivePosition(null);
+      return;
+    }
+    const update = () => {
+      const linkRect = activeLink.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const next = {
+        y: Math.round(linkRect.top - containerRect.top + container.scrollTop),
+        height: Math.round(linkRect.height),
+      };
+      setActivePosition(previous =>
+        previous?.y === next.y && previous.height === next.height ? previous : next
+      );
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    observer.observe(activeLink);
+    return () => observer.disconnect();
+  }, [location.pathname, collapsed, role]);
   const pending = data.opportunities.filter(o => !['Aceptada','Perdida'].includes(o.status)).length;
   const groups: Group[] = role === 'fabrica'
     ? [{ caption:'ÁREA DEL FABRICANTE', links:[{label:'Mis pedidos',path:'/fabrica',icon:Factory},{label:'Pedidos',path:'/pedidos',icon:PackageCheck}] }]
@@ -44,10 +74,25 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
       ]}
     ];
   return <>
-    {mobileOpen && <button className="nav-backdrop" aria-label="Cerrar navegación" onClick={onClose}/>}
+    <button
+      type="button"
+      className={'nav-backdrop '+(mobileOpen?'is-visible':'')}
+      aria-label="Cerrar navegación"
+      aria-hidden={!mobileOpen}
+      tabIndex={mobileOpen?0:-1}
+      onClick={onClose}
+    />
     <aside className={'sidebar sidebar-reference '+(mobileOpen?'is-open ':'')+(collapsed?'is-collapsed':'')}>
       <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<ChevronsRight size={17}/>:<ChevronsLeft size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
-      <div className="nav-scroll">
+      <div ref={navRef} className={'nav-scroll '+(activePosition?'has-active-indicator':'')}>
+        <div
+          className="nav-selection-indicator"
+          aria-hidden="true"
+          style={activePosition?{
+            transform:'translate3d(0, '+activePosition.y+'px, 0)',
+            height:activePosition.height
+          }:undefined}
+        />
         {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
           <div className="nav-caption">{g.caption}</div>
           {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
