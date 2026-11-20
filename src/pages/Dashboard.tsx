@@ -1,275 +1,283 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowDownRight, ArrowRight, ArrowUpRight, CalendarClock,
-  CheckCircle2, FileText, Inbox, Plus, UsersRound
+  ArrowRight, CalendarDays, Check, ChevronDown, Download, Inbox,
+  MoreHorizontal, PackageCheck, UsersRound
 } from 'lucide-react';
 import { useCrm } from '../store';
-import { dayDiff, dateText, today } from '../domain';
-import { Initials, Status } from '../ui';
+import { dateText, dayDiff, today, type Opportunity, type Task } from '../domain';
+import { Initials } from '../ui';
 
-type Bucket = { label: string; value: number };
-type Filter = 'Todas' | 'Pendientes' | 'Cerradas';
-type Period = 'semanas' | 'meses';
-type SimpleOpportunity = { createdAt: string };
+type InboxTab = 'Pendientes' | 'En seguimiento' | 'Presupuestadas' | 'Cerradas';
+type ChartPeriod = '8 semanas' | '6 meses';
+type DonutPeriod = 'Todas' | 'Últimos 30 días';
+type Sample = { label: string; leads: number; tasks: number };
+const tabs: InboxTab[] = ['Pendientes', 'En seguimiento', 'Presupuestadas', 'Cerradas'];
+const closed = (o: Opportunity) => o.status === 'Aceptada' || o.status === 'Perdida';
 
-/** Últimas ocho ventanas móviles de siete días (incluida la semana actual). */
-function weeklyBuckets(items: SimpleOpportunity[]): Bucket[] {
-  const now = new Date(today() + 'T12:00:00').getTime();
-  const oneDay = 86400000;
-  return Array.from({ length: 8 }, (_, index) => {
-    const age = (7 - index) * 7;
-    const start = new Date(now - (age + 6) * oneDay);
-    return {
-      label: start.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', ''),
-      value: items.filter(o => {
-        const days = dayDiff(o.createdAt);
-        return days >= age && days < age + 7;
-      }).length
-    };
-  });
+function matchTab(o: Opportunity, tab: InboxTab): boolean {
+  if (tab === 'Pendientes') return !closed(o);
+  if (tab === 'En seguimiento') return o.status === 'Seguimiento';
+  if (tab === 'Presupuestadas') return o.status === 'Presupuesto enviado';
+  return closed(o);
 }
 
-function monthlyBuckets(items: SimpleOpportunity[]): Bucket[] {
-  const now = new Date();
-  return Array.from({ length: 6 }, (_, index) => {
-    const month = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
-    const key = month.getFullYear() + '-' + String(month.getMonth() + 1).padStart(2, '0');
-    return {
-      label: month.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
-      value: items.filter(o => o.createdAt.startsWith(key)).length
-    };
-  });
+function csvEscape(value: string): string {
+  const sanitized = /^[\s]*[=+@\-]/.test(value) ? "'" + value : value;
+  return '"' + sanitized.replace(/"/g, '""') + '"';
 }
 
-function Delta({ current, previous }: { current: number; previous: number }) {
-  if (previous === 0) {
-    return <span className="dash-delta dash-delta-neutral">Sin comparación anterior</span>;
-  }
-  const variation = Math.round(((current - previous) / previous) * 100);
-  const isPositive = variation >= 0;
-  return <span className={'dash-delta '+(isPositive?'dash-delta-positive':'dash-delta-negative')}>
-    {isPositive ? <ArrowUpRight size={13}/> : <ArrowDownRight size={13}/>}
-    {isPositive?'+':''}{variation} % respecto a la semana anterior
-  </span>;
-}
-
-function StatCard({
-  title, value, helper, icon: Icon, tone, to, delta
-}: {
-  title: string; value: string | number; helper: string; icon: typeof Inbox;
-  tone: 'blue' | 'teal' | 'indigo' | 'sky'; to: string; delta?: ReactNode;
-}) {
-  return <Link to={to} className={'dash-ref-stat dash-ref-stat-'+tone}>
-    <span className="dash-ref-stat-accent" aria-hidden="true"/>
-    <div className="dash-ref-stat-top">
-      <span>{title}</span>
-      <span className="dash-ref-stat-icon"><Icon size={18} strokeWidth={1.85}/></span>
-    </div>
-    <strong className="dash-ref-stat-value">{value}</strong>
-    <div className="dash-ref-stat-foot">{delta || <span>{helper}</span>}</div>
-  </Link>;
-}
-
-function StatusDonut({
-  newItems, inProgress, closed
-}: { newItems:number; inProgress:number; closed:number }) {
-  const segments = [
-    { name:'Nuevas', value:newItems, color:'#3156af' },
-    { name:'En gestión', value:inProgress, color:'#002d59' },
-    { name:'Cerradas', value:closed, color:'#e4e9f1' }
+function downloadLeads(items: Opportunity[]) {
+  const data = [
+    ['Referencia', 'Solicitante', 'Canal', 'Producto', 'Destino', 'Próxima acción', 'Fecha', 'Estado'],
+    ...items.map(o => [o.id, o.name, o.channel, o.product, o.destination, o.nextAction, o.nextDate, o.status])
   ];
-  const total = segments.reduce((s, x) => s + x.value, 0);
-  const circumference = 2 * Math.PI * 73;
-  let offset = 0;
-  return <div className="dash-ref-donut-layout">
-    <div className="dash-ref-donut-figure" role="img" aria-label={'Distribución de '+total+' oportunidades: '+segments.map(s=>s.name+' '+s.value).join(', ')}>
-      <svg viewBox="0 0 200 200" aria-hidden="true">
-        <circle cx="100" cy="100" r="73" fill="none" stroke="#edf0f5" strokeWidth="25"/>
-        {total > 0 && segments.filter(s => s.value > 0).map(s => {
-          const length = circumference * s.value / total;
-          const segmentOffset = offset;
-          offset += length;
-          return <circle key={s.name} cx="100" cy="100" r="73" fill="none"
-            stroke={s.color} strokeWidth="25"
-            strokeDasharray={length+' '+(circumference-length)}
-            strokeDashoffset={-segmentOffset}
-            transform="rotate(-90 100 100)" />;
-        })}
-      </svg>
-      <div className="dash-ref-donut-centre">
-        <strong>{total}</strong>
-        <span>consultas</span>
-      </div>
-    </div>
-    <div className="dash-ref-donut-legend">
-      {segments.map(s => <div className="dash-ref-legend-row" key={s.name}>
-        <div className="dash-ref-legend-name"><i style={{background:s.color}}/>{s.name}</div>
-        <strong>{s.value}</strong>
-      </div>)}
-    </div>
+  const csv = '\uFEFF' + data.map(row => row.map(value => csvEscape(String(value))).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'depofibra-solicitudes-demo.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function age(o: Opportunity): number {
+  return Math.max(0, dayDiff(o.createdAt));
+}
+
+function AttentionTable({ items }: { items: Opportunity[] }) {
+  if (!items.length) {
+    return <div className="vek-empty">No hay solicitudes en esta fase. Puedes consultar el resto en Oportunidades.</div>;
+  }
+  return <div className="vek-table-scroll">
+    <table className="vek-table">
+      <thead><tr>
+        <th scope="col">Solicitante</th>
+        <th scope="col">Canal</th>
+        <th scope="col">Próxima acción</th>
+        <th scope="col">Fecha</th>
+        <th scope="col">Antigüedad</th>
+      </tr></thead>
+      <tbody>{items.map(o => {
+        const days = age(o);
+        const pct = Math.min(100, (days / 20) * 100);
+        const overdue = Boolean(o.nextDate && o.nextDate <= today());
+        return <tr key={o.id}>
+          <td><Link className="vek-name" to={'/oportunidades/' + o.id} title={o.name}>{o.name}</Link></td>
+          <td><span className="vek-channel"><span className={'vek-channel-dot vek-channel-' + o.channel.toLowerCase()}/>{o.channel}</span></td>
+          <td className="vek-action"><span title={o.nextAction || 'Sin acción asignada'}>{o.nextAction || 'Pendiente de definir'}</span></td>
+          <td><span className={overdue ? 'vek-date vek-date-due' : 'vek-date'}>{o.nextDate ? dateText(o.nextDate) : 'Sin fecha'}</span></td>
+          <td>
+            <div className="vek-progress" title={days + ' días desde la solicitud. Aviso de revisión a partir de 15–20 días.'}>
+              <span className="vek-progress-track"><span className={days >= 15 ? 'vek-progress-fill is-old' : 'vek-progress-fill'} style={{width: pct + '%'}}/></span>
+              <span>{days} d</span>
+            </div>
+          </td>
+        </tr>;
+      })}</tbody>
+    </table>
   </div>;
 }
 
-function TrendsChart({ data, period }: { data:Bucket[]; period:Period }) {
-  const left=39, right=690, top=18, bottom=206;
-  const largest=Math.max(1,...data.map(x=>x.value));
-  const scaleMax=Math.max(3,Math.ceil(largest*1.2));
-  const points=data.map((d,index)=>({
-    ...d,
-    x:left+((right-left)*index/Math.max(1,data.length-1)),
-    y:bottom-(d.value/scaleMax)*(bottom-top)
+function OpportunityDonut({ items, customers }: { items: Opportunity[]; customers: number }) {
+  const segments = [
+    {name:'Sin responder', value:items.filter(o => o.status === 'Nueva').length, color:'#002d59'},
+    {name:'En gestión', value:items.filter(o => ['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length, color:'#1874c9'},
+    {name:'Presupuestadas', value:items.filter(o => o.status === 'Presupuesto enviado').length, color:'#7cc4ea'},
+    {name:'Cerradas', value:items.filter(closed).length, color:'#cbd8e6'}
+  ];
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  const length = 2 * Math.PI * 74;
+  let used = 0;
+  return <>
+    <div className="vek-donut-content">
+      <div className="vek-donut" role="img" aria-label={'Oportunidades: ' + segments.map(s=>s.name + ', ' + s.value).join('; ')}>
+        <svg viewBox="0 0 210 210" aria-hidden="true">
+          <circle cx="105" cy="105" r="74" stroke="#edf1f6" strokeWidth="29" fill="none"/>
+          {total > 0 && segments.filter(s => s.value > 0).map(s => {
+            const stroke = s.value / total * length;
+            const start = used;
+            used += stroke;
+            return <circle key={s.name} cx="105" cy="105" r="74" stroke={s.color} strokeWidth="29" fill="none"
+              transform="rotate(-90 105 105)" strokeDasharray={stroke + ' ' + (length-stroke)}
+              strokeDashoffset={-start} />;
+          })}
+        </svg>
+      </div>
+      <div className="vek-donut-legend">
+        {segments.map(s=><div key={s.name} className="vek-legend-line"><i style={{backgroundColor:s.color}}/><span>{s.name}</span><strong>{s.value}</strong></div>)}
+      </div>
+    </div>
+    <div className="vek-donut-foot">
+      <div><span className="vek-foot-icon"><Inbox size={19}/></span><span><strong>{total}</strong><small>Oportunidades</small></span></div>
+      <div><span className="vek-foot-icon"><UsersRound size={19}/></span><span><strong>{customers}</strong><small>Clientes compradores</small></span></div>
+    </div>
+  </>;
+}
+
+function timeSeries(opportunities: Opportunity[], tasks: Task[], period: ChartPeriod): Sample[] {
+  if (period === '6 meses') {
+    const now = new Date(today() + 'T12:00:00');
+    return Array.from({length:6}, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5-i), 1);
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      return {
+        label:d.toLocaleDateString('es-ES',{month:'short'}).replace('.',''),
+        leads:opportunities.filter(o=>o.createdAt.startsWith(key)).length,
+        tasks:tasks.filter(t=>t.due.startsWith(key)).length
+      };
+    });
+  }
+  return Array.from({length:8},(_,i)=>{
+    const start=(7-i)*7;
+    const d=new Date(today()+'T12:00:00');
+    d.setDate(d.getDate()-(start+6));
+    const label=d.toLocaleDateString('es-ES',{day:'numeric',month:'short'}).replace('.','');
+    return {label,
+      leads:opportunities.filter(o=>dayDiff(o.createdAt)>=start && dayDiff(o.createdAt)<start+7).length,
+      tasks:tasks.filter(t=>dayDiff(t.due)>=start && dayDiff(t.due)<start+7).length
+    };
+  });
+}
+
+/** Curva suavizada sin depender de una biblioteca externa de gráficos. */
+function smoothPath(coords: {x:number; y:number}[]): string {
+  if (!coords.length) return '';
+  if (coords.length === 1) return 'M '+coords[0].x+' '+coords[0].y;
+  return coords.reduce((path,point,i) => {
+    if (i === 0) return 'M '+point.x+' '+point.y;
+    const previous=coords[i-1];
+    const before=coords[i-2] || previous;
+    const after=coords[i+1] || point;
+    const cp1x=previous.x+(point.x-before.x)/6;
+    const cp1y=previous.y+(point.y-before.y)/6;
+    const cp2x=point.x-(after.x-previous.x)/6;
+    const cp2y=point.y-(after.y-previous.y)/6;
+    return path+' C '+cp1x.toFixed(2)+' '+cp1y.toFixed(2)+' '+cp2x.toFixed(2)+' '+cp2y.toFixed(2)+' '+point.x+' '+point.y;
+  },'');
+}
+
+function EvolutionChart({ samples }: { samples: Sample[] }) {
+  const max=Math.max(3,...samples.flatMap(s=>[s.leads,s.tasks]));
+  const left=14,right=676,top=24,bottom=203;
+  const positions=samples.map((d,i)=>({
+    x:left+(right-left)*i/Math.max(samples.length-1,1),
+    leads:bottom-d.leads/max*(bottom-top),
+    tasks:bottom-d.tasks/max*(bottom-top),
+    label:d.label,
+    leadsValue:d.leads,
+    tasksValue:d.tasks
   }));
-  const line=points.map((p,index)=>(index===0?'M ':'L ')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
-  const area=line+' L '+right+' '+bottom+' L '+left+' '+bottom+' Z';
-  const ticks=[0,1,2,3,4];
-  const total=data.reduce((sum,x)=>sum+x.value,0);
-  return <div className="dash-ref-trend-wrapper">
-    <svg className="dash-ref-trend-svg" viewBox="0 0 720 250" preserveAspectRatio="none" role="img"
-      aria-label={'Consultas '+(period==='semanas'?'semanales':'mensuales')+': '+data.map(x=>x.label+' '+x.value).join('; ')}>
-      <defs>
-        <linearGradient id="dash-ref-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#5e7ccd" stopOpacity=".23"/>
-          <stop offset="100%" stopColor="#5e7ccd" stopOpacity=".025"/>
-        </linearGradient>
-      </defs>
-      {ticks.map(tick=>{
-        const y=bottom-tick/4*(bottom-top);
-        return <g key={tick}>
-          <line x1={left} y1={y} x2={right} y2={y} stroke="#e8ecf3" strokeWidth="1"/>
-          <text x="30" y={y+4} textAnchor="end" fill="#9aa5b4" fontSize="11">{Math.round(tick/4*scaleMax)}</text>
-        </g>;
+  const leadsPath=smoothPath(positions.map(p=>({x:p.x,y:p.leads})));
+  const tasksPath=smoothPath(positions.map(p=>({x:p.x,y:p.tasks})));
+  return <div className="vek-chart">
+    <svg viewBox="0 0 690 240" preserveAspectRatio="none" role="img"
+      aria-label={'Evolución comercial: '+samples.map(s=>s.label+': '+s.leads+' consultas y '+s.tasks+' tareas').join('; ')}>
+      {Array.from({length:5},(_,i)=>{
+        const y=top+(bottom-top)*i/4;
+        return <line key={i} x1={left} x2={right} y1={y} y2={y} className="vek-gridline"/>;
       })}
-      {points.map((p,index)=><line key={'grid-'+index} x1={p.x} y1={top} x2={p.x} y2={bottom} stroke="#f0f2f6" strokeWidth="1"/>)}
-      <path d={area} fill="url(#dash-ref-area)"/>
-      <path d={line} fill="none" stroke="#3158aa" strokeWidth="2.8"
-        strokeLinecap="round" strokeLinejoin="round"/>
-      {points.map((p,index)=><g key={index}>
-        <circle cx={p.x} cy={p.y} r="5" fill="#fff" stroke="#3158aa" strokeWidth="2.5">
-          <title>{p.label}: {p.value} consultas</title>
-        </circle>
-        <text x={p.x} y="235" textAnchor="middle" fontSize="11" fill="#8b97a7">{p.label}</text>
+      <path d={leadsPath} className="vek-line vek-line-navy"/>
+      <path d={tasksPath} className="vek-line vek-line-teal"/>
+      {positions.map(p=><g key={p.label}>
+        <circle cx={p.x} cy={p.leads} r="4.8" className="vek-line-dot"><title>{p.label}: {p.leadsValue} consultas</title></circle>
+        <circle cx={p.x} cy={p.tasks} r="3.6" className="vek-line-dot-teal"><title>{p.label}: {p.tasksValue} tareas</title></circle>
+        <text x={p.x} y="231" textAnchor="middle" className="vek-axis-label">{p.label}</text>
       </g>)}
     </svg>
-    <div className="dash-ref-chart-foot">
-      <span><i className="dash-ref-series-dot"/> Consultas registradas</span>
-      <strong>{total} en el período</strong>
-    </div>
+  </div>;
+}
+
+function AgendaPreview({ tasks }: { tasks: Task[] }) {
+  const visible=tasks.filter(t=>!t.done).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,4);
+  return <div className="vek-agenda-list">
+    {visible.length===0 ? <div className="vek-empty">No tienes tareas pendientes para mostrar.</div> :
+      visible.map(t=><Link className="vek-agenda-item" key={t.id} to="/agenda" title={'Abrir agenda: '+t.title}>
+        <span className="vek-agenda-avatar"><CalendarDays size={17}/></span>
+        <span className="vek-agenda-main"><strong>{t.title}</strong><small>{t.context}</small></span>
+        <span className="vek-agenda-due"><strong>{t.due ? dateText(t.due) : 'Sin fecha'}</strong><small className={t.due<today()?'is-overdue':t.due===today()?'is-today':''}>{t.due<today()?'Vencida':t.due===today()?'Hoy':'Programada'}</small></span>
+        <MoreHorizontal size={17} className="vek-agenda-more"/>
+      </Link>)}
   </div>;
 }
 
 export default function Dashboard() {
-  const { data }=useCrm();
-  const [period,setPeriod]=useState<Period>('semanas');
-  const [filter,setFilter]=useState<Filter>('Todas');
-
-  const open=data.opportunities.filter(o=>!['Aceptada','Perdida'].includes(o.status));
-  const newCount=data.opportunities.filter(o=>o.status==='Nueva').length;
-  const forQuote=data.opportunities.filter(o=>o.status==='Por presupuestar').length;
-  const urgentLeads=open.filter(o=>o.nextDate && o.nextDate<=today()).length;
-  const activeOrders=data.orders.filter(o=>o.factory!=='Entregado').length;
-  const finished=data.opportunities.filter(o=>['Aceptada','Perdida'].includes(o.status)).length;
-  const week=data.opportunities.filter(o=>dayDiff(o.createdAt)>=0 && dayDiff(o.createdAt)<7).length;
-  const previousWeek=data.opportunities.filter(o=>dayDiff(o.createdAt)>=7 && dayDiff(o.createdAt)<14).length;
-  const overdueTasks=data.tasks.filter(t=>!t.done && t.due<=today()).length;
-  const dataChart=period==='semanas'?weeklyBuckets(data.opportunities):monthlyBuckets(data.opportunities);
-
-  const filtered=data.opportunities
-    .filter(o=>filter==='Todas'||(filter==='Pendientes'?!['Aceptada','Perdida'].includes(o.status):['Aceptada','Perdida'].includes(o.status)))
-    .sort((a,b)=>b.createdAt.localeCompare(a.createdAt)||b.id.localeCompare(a.id))
+  const {data}=useCrm();
+  const [tab,setTab]=useState<InboxTab>('Pendientes');
+  const [donutPeriod,setDonutPeriod]=useState<DonutPeriod>('Todas');
+  const [chartPeriod,setChartPeriod]=useState<ChartPeriod>('8 semanas');
+  const open=data.opportunities.filter(o=>!closed(o));
+  const visible=open.length;
+  const tableItems=data.opportunities
+    .filter(o=>matchTab(o,tab))
+    .sort((a,b)=>{
+      const dueA=a.nextDate || '9999-12-31';
+      const dueB=b.nextDate || '9999-12-31';
+      return dueA.localeCompare(dueB) || a.createdAt.localeCompare(b.createdAt);
+    })
     .slice(0,4);
+  const donutData=donutPeriod==='Todas'?data.opportunities:data.opportunities.filter(o=>dayDiff(o.createdAt)>=0 && dayDiff(o.createdAt)<30);
+  const samples=timeSeries(data.opportunities,data.tasks,chartPeriod);
 
-  return <div className="page page-dashboard dashboard-reference">
-    <div className="dash-ref-heading">
-      <div>
-        <h1>Resumen de actividad</h1>
-        <p>Lo nuevo, lo pendiente y la evolución de tus consultas.</p>
-      </div>
-      <div className="dash-ref-heading-actions">
-        <span className="dash-ref-today"><CalendarClock size={15}/>{new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long'})}</span>
-        <Link to="/oportunidades/nueva" className="btn btn-primary"><Plus size={16}/>Nueva solicitud</Link>
-      </div>
-    </div>
-
-    <div className="dash-ref-stats">
-      <StatCard title="Consultas esta semana" value={week} helper="Solicitudes recibidas"
-        icon={Inbox} tone="indigo" to="/oportunidades" delta={<Delta current={week} previous={previousWeek}/>}/>
-      <StatCard title="Sin responder" value={newCount} helper="Nuevas solicitudes pendientes"
-        icon={UsersRound} tone="teal" to="/oportunidades"/>
-      <StatCard title="Por presupuestar" value={forQuote} helper="Esperando precio comercial"
-        icon={FileText} tone="blue" to="/presupuestos"/>
-      <StatCard title="Seguimientos urgentes" value={urgentLeads} helper={overdueTasks+' tarea(s) vencidas o de hoy'}
-        icon={CalendarClock} tone="sky" to="/agenda"/>
-    </div>
-
-    <div className="dash-ref-middle">
-      <section className="dash-ref-panel dash-ref-status-panel">
-        <div className="dash-ref-panel-head">
-          <h2>Estado de las solicitudes</h2>
-          <Link to="/oportunidades" title="Ver todas las oportunidades" aria-label="Ver todas las oportunidades" className="dash-ref-more">•••</Link>
-        </div>
-        <StatusDonut newItems={newCount} inProgress={open.length-newCount} closed={finished}/>
-      </section>
-      <section className="dash-ref-panel dash-ref-trends-panel">
-        <div className="dash-ref-panel-head">
-          <h2>Evolución comercial</h2>
-          <div className="dash-ref-panel-actions">
-            <label className="dash-ref-period-label">
-              <span className="sr-only">Período del gráfico</span>
-              <select value={period} onChange={e=>setPeriod(e.target.value as Period)} aria-label="Período del gráfico">
-                <option value="semanas">Últimas 8 semanas</option>
-                <option value="meses">Últimos 6 meses</option>
-              </select>
-            </label>
-            <Link to="/resultados" title="Abrir resultados" aria-label="Abrir resultados" className="dash-ref-more">•••</Link>
+  return <div className="page page-dashboard dashboard-vektora">
+    <div className="vek-grid">
+      <section className="vek-card vek-attention">
+        <div className="vek-card-header">
+          <div><h2>Clientes pendientes de respuesta</h2><p>{visible} consultas abiertas · Prioriza las más antiguas</p></div>
+          <div className="vek-card-actions">
+            <button type="button" className="vek-button vek-button-light" onClick={()=>downloadLeads(tableItems)}><Download size={14}/> Exportar</button>
+            <Link className="vek-button vek-button-primary" to="/oportunidades">Ver todos</Link>
           </div>
         </div>
-        <TrendsChart data={dataChart} period={period}/>
+        <div className="vek-tabs" role="tablist" aria-label="Fase de las oportunidades">
+          {tabs.map(t=><button key={t} type="button" role="tab" aria-selected={tab===t} className={tab===t?'vek-tab active':'vek-tab'} onClick={()=>setTab(t)}>{t}</button>)}
+        </div>
+        <AttentionTable items={tableItems}/>
+      </section>
+
+      <section className="vek-card vek-statistics">
+        <div className="vek-card-header">
+          <h2>Estado de oportunidades</h2>
+          <label className="vek-select-wrap">
+            <span className="sr-only">Período del gráfico circular</span>
+            <select value={donutPeriod} onChange={e=>setDonutPeriod(e.target.value as DonutPeriod)} aria-label="Período del estado de oportunidades">
+              <option value="Todas">Todas</option><option value="Últimos 30 días">Últimos 30 días</option>
+            </select>
+            <ChevronDown size={13}/>
+          </label>
+        </div>
+        <OpportunityDonut items={donutData} customers={data.customers.length}/>
+      </section>
+
+      <section className="vek-card vek-evolution">
+        <div className="vek-card-header">
+          <h2>Evolución comercial</h2>
+          <div className="vek-chart-controls">
+            <span className="vek-chart-legend"><i className="navy"/>Consultas</span>
+            <span className="vek-chart-legend"><i className="teal"/>Tareas programadas</span>
+            <label className="vek-select-wrap"><span className="sr-only">Período de evolución</span>
+              <select value={chartPeriod} onChange={e=>setChartPeriod(e.target.value as ChartPeriod)} aria-label="Período de evolución comercial">
+                <option value="8 semanas">8 semanas</option><option value="6 meses">6 meses</option>
+              </select><ChevronDown size={13}/>
+            </label>
+          </div>
+        </div>
+        <EvolutionChart samples={samples}/>
+      </section>
+
+      <section className="vek-card vek-agenda">
+        <div className="vek-card-header">
+          <div><h2>Agenda y calendario</h2><p>Llamadas y acciones próximas</p></div>
+          <Link className="vek-button vek-button-primary" to="/agenda">Ver agenda <ArrowRight size={13}/></Link>
+        </div>
+        <AgendaPreview tasks={data.tasks}/>
+        <div className="vek-agenda-footer">
+          <span><Check size={13}/>{data.tasks.filter(t=>t.done).length} completadas</span>
+          <span><PackageCheck size={13}/>{data.orders.filter(o=>o.factory!=='Entregado').length} pedidos en curso</span>
+        </div>
       </section>
     </div>
-
-    <section className="dash-ref-panel dash-ref-table-panel">
-      <div className="dash-ref-panel-head">
-        <div>
-          <h2>Solicitudes recientes</h2>
-          <span className="dash-ref-table-hint">Últimas consultas registradas</span>
-        </div>
-        <div className="dash-ref-panel-actions">
-          <label className="dash-ref-filter-label">
-            <span className="sr-only">Filtrar solicitudes</span>
-            <select value={filter} onChange={e=>setFilter(e.target.value as Filter)} aria-label="Filtrar solicitudes">
-              <option value="Todas">Todas</option>
-              <option value="Pendientes">Pendientes</option>
-              <option value="Cerradas">Cerradas</option>
-            </select>
-          </label>
-          <Link className="dash-ref-see-all" to="/oportunidades">Ver todas <ArrowRight size={14}/></Link>
-        </div>
-      </div>
-      <div className="dash-ref-table-wrap">
-        <table className="dash-ref-table">
-          <thead><tr>
-            <th scope="col">Referencia</th><th scope="col">Solicitante</th>
-            <th scope="col">Producto</th><th scope="col">Canal</th>
-            <th scope="col">Fecha</th><th scope="col">Estado</th><th scope="col">Ficha</th>
-          </tr></thead>
-          <tbody>{filtered.map(o=><tr key={o.id}>
-            <td className="dash-ref-id">{o.id}</td>
-            <td><Link className="dash-ref-person" to={'/oportunidades/'+o.id}><Initials name={o.name}/><span>{o.name}</span></Link></td>
-            <td className="dash-ref-product">{o.product}<small>{o.capacity}</small></td>
-            <td>{o.channel}</td>
-            <td className="dash-ref-date">{dateText(o.createdAt)}</td>
-            <td><Status value={o.status}/></td>
-            <td><Link className="dash-ref-row-action" to={'/oportunidades/'+o.id} aria-label={'Abrir '+o.name}>Ver <ArrowRight size={13}/></Link></td>
-          </tr>)}
-          {filtered.length===0&&<tr><td colSpan={7} className="dash-ref-table-empty">No hay solicitudes que coincidan con este filtro.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-      <div className="dash-ref-table-bottom">
-        <span>Mostrando {filtered.length} de {data.opportunities.length} solicitudes · Demo</span>
-        <span><CheckCircle2 size={13}/> Datos ficticios · Sin conexión al servidor</span>
-      </div>
-    </section>
   </div>;
 }

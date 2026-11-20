@@ -1,567 +1,637 @@
-/* Dashboard Depofibra — composición basada directamente en la captura
-   enviada por Dirección: 4 KPIs, donut a la izquierda, gráfica a la derecha
-   y tabla corporativa a lo ancho. No se aplican estilos a otras páginas. */
+/* DEPOFIBRA CRM · Dashboard replicado de la referencia Vektora aportada
+ * por Dirección. 2x2: solicitudes, donut, evolución y agenda.
+ * Esta hoja SOLO afecta a Inicio. Sin cambios en otros módulos o sidebar.
+ * Paleta: #002d59 / #01488e / #eaf2fb. */
 
-.page-dashboard.dashboard-reference {
-  --dashboard-border: #e8ecf2;
-  --dashboard-text: #202d40;
-  --dashboard-secondary: #8995a6;
-  display: grid;
-  grid-template-rows: auto 120px minmax(235px,1fr) minmax(245px,1.06fr);
-  gap: 15px;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 18px 26px 21px;
-  background: #f5f7fc;
-  overflow: hidden;
+.page.page-dashboard.dashboard-vektora {
+  width:100%;
+  max-width:none;
+  height:100%;
+  min-height:0;
+  margin:0;
+  padding:18px 20px 20px;
+  background:#eff6fc;
+  overflow:hidden;
+  animation:none;
 }
+.dashboard-vektora .vek-grid {
+  height:100%;
+  min-height:0;
+  min-width:0;
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  grid-template-rows:minmax(0,1.14fr) minmax(0,.86fr);
+  gap:16px;
+}
+.dashboard-vektora .vek-card {
+  background:#fff;
+  border:1px solid #e7edf4;
+  border-radius:13px;
+  box-shadow:0 2px 10px #12345b08;
+  min-height:0;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.dashboard-vektora .vek-attention { grid-column:span 8; }
+.dashboard-vektora .vek-statistics { grid-column:span 4; }
+.dashboard-vektora .vek-evolution,
+.dashboard-vektora .vek-agenda { grid-column:span 6; }
 
-/* Bienvenida ligera, sin duplicar componentes decorativos. */
-.dashboard-reference .dash-ref-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 43px;
+.dashboard-vektora .vek-card-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:66px;
+  padding:19px 20px 13px;
+  flex:0 0 auto;
 }
-.dashboard-reference .dash-ref-heading h1 {
-  color: #233043;
-  font-family: "Plus Jakarta Sans",Inter,sans-serif;
-  font-weight: 750;
-  font-size: 18px;
-  letter-spacing: -.35px;
-  margin: 0 0 4px;
+.dashboard-vektora .vek-card-header h2 {
+  color:#183556;
+  font-family:"Plus Jakarta Sans",Inter,sans-serif;
+  font-size:14px;
+  font-weight:750;
+  line-height:1.35;
+  letter-spacing:-.2px;
+  margin:0;
 }
-.dashboard-reference .dash-ref-heading p {
-  color: #8b98a8;
-  font-size: 11.5px;
-  margin: 0;
+.dashboard-vektora .vek-card-header p {
+  color:#8a9bad;
+  font-size:10.5px;
+  margin:5px 0 0;
 }
-.dashboard-reference .dash-ref-heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 0 0 auto;
+.dashboard-vektora .vek-card-actions,
+.dashboard-vektora .vek-chart-controls {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
 }
-.dashboard-reference .dash-ref-heading-actions .btn {
-  min-height: 35px;
-  padding: 8px 12px;
-  font-size: 11px;
+.dashboard-vektora .vek-button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:31px;
+  border-radius:6px;
+  border:1px solid transparent;
+  padding:6px 11px;
+  font-size:11px;
+  font-weight:650;
+  white-space:nowrap;
+  line-height:1;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
 }
-.dashboard-reference .dash-ref-today {
-  color: #7d8a9a;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  white-space: nowrap;
+.dashboard-vektora .vek-button-light {
+  color:#3f607f;
+  background:#f9fbfd;
+  border-color:#e3eaf2;
 }
-.dashboard-reference .dash-ref-today svg { color: #95a2b3; }
+.dashboard-vektora .vek-button-light:hover { background:#edf5fc; }
+.dashboard-vektora .vek-button-primary {
+  color:#fff;
+  background:#01488e;
+  border-color:#01488e;
+}
+.dashboard-vektora .vek-button-primary:hover { background:#00396f; }
 
-/* Fila superior: KPI con barra de color fina como en la referencia. */
-.dashboard-reference .dash-ref-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 14px;
-  min-height: 0;
+/* Primer panel: tabla y tabs con la misma composición que la referencia. */
+.dashboard-vektora .vek-tabs {
+  display:flex;
+  flex:0 0 auto;
+  gap:0;
+  margin:0 20px;
+  border-bottom:1px solid #e7ecf3;
+  min-width:0;
+  overflow-x:auto;
+  scrollbar-width:none;
 }
-.dashboard-reference .dash-ref-stat {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-  height: 100%;
-  padding: 17px 14px 14px 33px;
-  background: #fff;
-  border: 1px solid #edf0f5;
-  border-radius: 5px;
-  box-shadow: 0 1px 4px #1c335005;
-  transition: border-color .16s ease, box-shadow .16s ease;
+.dashboard-vektora .vek-tabs::-webkit-scrollbar { display:none; }
+.dashboard-vektora .vek-tab {
+  flex:1 0 auto;
+  min-width:0;
+  padding:12px 9px 11px;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:#8190a2;
+  font-family:Inter,sans-serif;
+  font-size:11px;
+  font-weight:550;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:color .15s,border-color .15s;
 }
-.dashboard-reference .dash-ref-stat:hover {
-  border-color: #d8e2ef;
-  box-shadow: 0 3px 10px #1d38500b;
+.dashboard-vektora .vek-tab:hover { color:#01488e; }
+.dashboard-vektora .vek-tab.active {
+  color:#01488e;
+  border-bottom-color:#01488e;
+  font-weight:750;
 }
-.dashboard-reference .dash-ref-stat-accent {
-  position: absolute;
-  top: 23px;
-  bottom: 38px;
-  left: 17px;
-  width: 4px;
-  border-radius: 4px;
-  background: #4865c1;
+.dashboard-vektora .vek-table-scroll {
+  flex:1;
+  min-height:0;
+  overflow:auto;
+  scrollbar-width:thin;
+  scrollbar-color:#d8e3ee transparent;
 }
-.dashboard-reference .dash-ref-stat-teal .dash-ref-stat-accent { background: #78b5ae; }
-.dashboard-reference .dash-ref-stat-blue .dash-ref-stat-accent { background: #01488e; }
-.dashboard-reference .dash-ref-stat-sky .dash-ref-stat-accent { background: #75a9da; }
-.dashboard-reference .dash-ref-stat-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  color: #8a97a7;
-  font-size: 12px;
-  font-weight: 500;
+.dashboard-vektora .vek-table {
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  min-width:610px;
 }
-.dashboard-reference .dash-ref-stat-top > span:first-child {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.dashboard-vektora .vek-table th {
+  background:#f8fafc;
+  color:#536981;
+  font-size:10px;
+  font-weight:700;
+  text-align:left;
+  white-space:nowrap;
+  padding:10px 13px;
+  border-bottom:1px solid #e8edf4;
 }
-.dashboard-reference .dash-ref-stat-icon {
-  flex: 0 0 30px;
-  height: 30px;
-  width: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 4px;
-  color: #4265b5;
-  background: #eff2fc;
+.dashboard-vektora .vek-table th:first-child { padding-left:22px; width:25%; }
+.dashboard-vektora .vek-table th:nth-child(2) { width:15%; }
+.dashboard-vektora .vek-table th:nth-child(3) { width:27%; }
+.dashboard-vektora .vek-table th:nth-child(4) { width:17%; }
+.dashboard-vektora .vek-table th:nth-child(5) { width:16%; }
+.dashboard-vektora .vek-table td {
+  border-bottom:1px solid #edf1f5;
+  padding:12px 13px;
+  color:#53667d;
+  font-size:11px;
+  line-height:1.25;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.dashboard-reference .dash-ref-stat-teal .dash-ref-stat-icon { color:#3f9995;background:#eaf6f4; }
-.dashboard-reference .dash-ref-stat-blue .dash-ref-stat-icon { color:#01488e;background:#eaf2fb; }
-.dashboard-reference .dash-ref-stat-sky .dash-ref-stat-icon { color:#4387c7;background:#eef5fc; }
-.dashboard-reference .dash-ref-stat-value {
-  display: block;
-  margin: 4px 0 1px;
-  color: #263145;
-  font-size: 26px;
-  font-weight: 650;
-  letter-spacing: -.8px;
-  line-height: 1;
+.dashboard-vektora .vek-table tr:last-child td { border-bottom:0; }
+.dashboard-vektora .vek-table tbody tr:hover { background:#f8fbfe; }
+.dashboard-vektora .vek-table td:first-child { padding-left:22px; }
+.dashboard-vektora .vek-name {
+  color:#2b415b;
+  font-weight:650;
+  display:block;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.dashboard-reference .dash-ref-stat-foot {
-  min-height: 14px;
-  color: #94a0ad;
-  font-size: 10.5px;
-  line-height: 1.3;
+.dashboard-vektora .vek-name:hover { color:#01488e; text-decoration:underline; }
+.dashboard-vektora .vek-channel {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
 }
-.dashboard-reference .dash-delta {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.dashboard-vektora .vek-channel-dot {
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  flex:0 0 8px;
+  background:#86a6c7;
 }
-.dashboard-reference .dash-delta-positive { color: #4c9f7c; }
-.dashboard-reference .dash-delta-negative { color: #cf7472; }
-.dashboard-reference .dash-delta-neutral { color: #91a0b1; }
-
-/* Segundo nivel: panel circular + evolución lineal. */
-.dashboard-reference .dash-ref-middle {
-  display: grid;
-  grid-template-columns: minmax(300px,.79fr) minmax(0,1.23fr);
-  gap: 15px;
-  min-height: 0;
+.dashboard-vektora .vek-channel-whatsapp { background:#2eae7c; }
+.dashboard-vektora .vek-channel-web { background:#2788da; }
+.dashboard-vektora .vek-channel-teléfono { background:#5270b1; }
+.dashboard-vektora .vek-channel-facebook { background:#5186ce; }
+.dashboard-vektora .vek-channel-wallapop { background:#4fa38e; }
+.dashboard-vektora .vek-action span {
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
 }
-.dashboard-reference .dash-ref-panel {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--dashboard-border);
-  border-radius: 5px;
-  background: #ffffff;
-  box-shadow: 0 1px 5px #152d4804;
+.dashboard-vektora .vek-date { color:#7b8c9f; }
+.dashboard-vektora .vek-date-due { color:#a16b27; }
+.dashboard-vektora .vek-progress {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  color:#536a83;
+  font-size:10px;
+  font-weight:650;
 }
-.dashboard-reference .dash-ref-panel-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  min-height: 55px;
-  padding: 15px 20px 7px;
+.dashboard-vektora .vek-progress-track {
+  display:block;
+  background:#e8edf3;
+  border-radius:20px;
+  height:5px;
+  overflow:hidden;
+  flex:1;
+  min-width:24px;
 }
-.dashboard-reference .dash-ref-panel-head h2 {
-  margin: 0;
-  font-family: Inter,Arial,sans-serif;
-  color: #778496;
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: 0;
+.dashboard-vektora .vek-progress-fill {
+  display:block;
+  background:#0a6bb5;
+  height:100%;
+  min-width:0;
+  border-radius:20px;
 }
-.dashboard-reference .dash-ref-panel-actions {
-  display: flex;
-  align-items: center;
-  gap: 13px;
+.dashboard-vektora .vek-progress-fill.is-old { background:#d19b4c; }
+.dashboard-vektora .vek-progress > span:last-child {
+  text-align:right;
+  flex:0 0 23px;
 }
-.dashboard-reference .dash-ref-more {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 27px;
-  height: 25px;
-  padding-bottom: 7px;
-  color: #9eacb9;
-  font-size: 16px;
-  letter-spacing: 1px;
-  line-height: 1;
-  border-radius: 4px;
-}
-.dashboard-reference .dash-ref-more:hover { color:#01488e; background:#eef4fa; }
-.dashboard-reference .dash-ref-panel-actions select {
-  width: 100%;
-  height: 32px;
-  padding: 5px 22px 5px 10px;
-  border: 1px solid #e9edf3;
-  border-radius: 4px;
-  color: #758397;
-  font-size: 11px;
-  background: #fff;
-}
-.dashboard-reference .dash-ref-panel-actions select:hover { border-color:#ccd9e9; }
-.dashboard-reference .dash-ref-donut-layout {
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  flex: 1;
-  gap: 13px;
-  padding: 0 17px 13px;
-  min-height: 0;
-}
-.dashboard-reference .dash-ref-donut-figure {
-  position: relative;
-  width: min(60%,222px);
-  min-width: 165px;
-  max-width: 225px;
-  aspect-ratio: 1;
-  flex: 0 1 215px;
-}
-.dashboard-reference .dash-ref-donut-figure svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.dashboard-reference .dash-ref-donut-centre {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none;
-}
-.dashboard-reference .dash-ref-donut-centre strong {
-  color: #253147;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.15;
-}
-.dashboard-reference .dash-ref-donut-centre span {
-  color: #9aa6b3;
-  font-size: 12px;
-  margin-top: 5px;
-}
-.dashboard-reference .dash-ref-donut-legend {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 125px;
-  min-width: 116px;
-  max-width: 170px;
-  gap: 15px;
-}
-.dashboard-reference .dash-ref-legend-row {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.dashboard-reference .dash-ref-legend-name {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: #929faf;
-  font-size: 11px;
-}
-.dashboard-reference .dash-ref-legend-name i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex: 0 0 10px;
-}
-.dashboard-reference .dash-ref-legend-row strong {
-  padding-left: 18px;
-  color: #263146;
-  font-size: 22px;
-  font-weight: 650;
-  line-height: 1;
+.dashboard-vektora .vek-empty {
+  color:#718398;
+  font-size:12px;
+  padding:22px;
+  line-height:1.5;
 }
 
-/* Gráfico lineal: ejes finos, área translúcida, puntos blancos. */
-.dashboard-reference .dash-ref-trend-wrapper {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-  padding: 0 20px 12px;
+/* Panel superior derecho: donut sencillo, leyenda y dos contadores. */
+.dashboard-vektora .vek-statistics .vek-card-header {
+  padding-left:19px;
+  padding-right:19px;
 }
-.dashboard-reference .dash-ref-trend-svg {
-  display: block;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  width: 100%;
-  overflow: visible;
+.dashboard-vektora .vek-select-wrap {
+  position:relative;
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
 }
-.dashboard-reference .dash-ref-chart-foot {
-  min-height: 21px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 25px;
-  color: #8d9aac;
-  font-size: 10.5px;
+.dashboard-vektora .vek-select-wrap select {
+  cursor:pointer;
+  appearance:none;
+  border:1px solid #e2eaf3;
+  background:#f7f9fc;
+  border-radius:6px;
+  color:#6a7d92;
+  font-size:10.5px;
+  padding:7px 24px 7px 10px;
+  min-height:30px;
+  line-height:1;
 }
-.dashboard-reference .dash-ref-chart-foot > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+.dashboard-vektora .vek-select-wrap select:focus-visible { outline:2px solid #74a5d2; }
+.dashboard-vektora .vek-select-wrap svg {
+  pointer-events:none;
+  position:absolute;
+  right:7px;
+  color:#7d8ea1;
 }
-.dashboard-reference .dash-ref-chart-foot strong {
-  font-weight: 600;
-  color: #647589;
+.dashboard-vektora .vek-donut-content {
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  padding:0 17px 7px;
 }
-.dashboard-reference .dash-ref-series-dot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  background: #3158aa;
-  border-radius: 50%;
+.dashboard-vektora .vek-donut {
+  flex:0 1 55%;
+  max-width:205px;
+  min-width:110px;
+  min-height:0;
+}
+.dashboard-vektora .vek-donut svg {
+  width:100%;
+  height:auto;
+  display:block;
+}
+.dashboard-vektora .vek-donut-legend {
+  display:flex;
+  flex:1 1 45%;
+  min-width:100px;
+  flex-direction:column;
+  gap:13px;
+}
+.dashboard-vektora .vek-legend-line {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:10.3px;
+  line-height:1.3;
+  color:#6c8198;
+}
+.dashboard-vektora .vek-legend-line i {
+  width:9px;
+  height:9px;
+  flex:0 0 9px;
+  border-radius:50%;
+}
+.dashboard-vektora .vek-legend-line span {
+  min-width:0;
+  flex:1 1 auto;
+}
+.dashboard-vektora .vek-legend-line strong {
+  flex:0 0 auto;
+  color:#2c445e;
+  font-weight:750;
+  font-size:10.5px;
+}
+.dashboard-vektora .vek-donut-foot {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  border-top:1px solid #edf1f6;
+  padding:12px 18px 16px;
+  flex:0 0 auto;
+}
+.dashboard-vektora .vek-donut-foot>div {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.dashboard-vektora .vek-foot-icon {
+  display:grid;
+  flex:0 0 33px;
+  width:33px;
+  height:33px;
+  border-radius:7px;
+  place-items:center;
+  color:#2c6199;
+  background:#eef5fc;
+}
+.dashboard-vektora .vek-donut-foot>div>span:last-child {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.dashboard-vektora .vek-donut-foot strong {
+  font-size:21px;
+  color:#243a54;
+  line-height:1.05;
+}
+.dashboard-vektora .vek-donut-foot small {
+  font-size:9.5px;
+  color:#8595a6;
+  margin-top:4px;
+  white-space:normal;
 }
 
-/* Panel inferior: tabla de solicitudes en vez de facturas ficticias. */
-.dashboard-reference .dash-ref-table-panel {
-  min-height: 0;
+/* Panel inferior izquierdo: curvas suaves como la referencia. */
+.dashboard-vektora .vek-evolution .vek-card-header {
+  padding-bottom:4px;
 }
-.dashboard-reference .dash-ref-table-panel .dash-ref-panel-head {
-  min-height: 58px;
-  padding: 12px 21px 8px;
+.dashboard-vektora .vek-chart-controls { gap:10px; }
+.dashboard-vektora .vek-chart-legend {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  white-space:nowrap;
+  font-size:10px;
+  color:#6f8094;
 }
-.dashboard-reference .dash-ref-table-hint {
-  display: block;
-  margin-top: 5px;
-  color: #a0abb9;
-  font-size: 10.5px;
+.dashboard-vektora .vek-chart-legend i {
+  display:block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
 }
-.dashboard-reference .dash-ref-see-all {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #01488e;
-  white-space: nowrap;
-  font-size: 11px;
-  font-weight: 600;
+.dashboard-vektora .vek-chart-legend .navy { background:#002d59; }
+.dashboard-vektora .vek-chart-legend .teal { background:#1593d0; }
+.dashboard-vektora .vek-chart {
+  flex:1 1 auto;
+  min-height:0;
+  padding:0 19px 18px;
+  display:flex;
+  align-items:stretch;
 }
-.dashboard-reference .dash-ref-see-all:hover { text-decoration:underline; }
-.dashboard-reference .dash-ref-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #dbe2ec transparent;
+.dashboard-vektora .vek-chart svg {
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:visible;
 }
-.dashboard-reference .dash-ref-table {
-  border-collapse: collapse;
-  width: 100%;
-  table-layout: fixed;
+.dashboard-vektora .vek-gridline {
+  stroke:#e8edf3;
+  stroke-width:1;
+  vector-effect:non-scaling-stroke;
 }
-.dashboard-reference .dash-ref-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: 10px 12px;
-  border-bottom: 1px solid #e7ebf1;
-  background: #fff;
-  text-align: left;
-  color: #99a4b2;
-  font-size: 10.5px;
-  font-weight: 600;
-  white-space: nowrap;
+.dashboard-vektora .vek-line {
+  fill:none;
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
 }
-.dashboard-reference .dash-ref-table thead th:first-child { padding-left: 22px; width: 91px; }
-.dashboard-reference .dash-ref-table thead th:nth-child(2) { width: 23%; }
-.dashboard-reference .dash-ref-table thead th:nth-child(3) { width: 25%; }
-.dashboard-reference .dash-ref-table thead th:nth-child(4) { width: 12%; }
-.dashboard-reference .dash-ref-table thead th:nth-child(5) { width: 13%; }
-.dashboard-reference .dash-ref-table thead th:nth-child(6) { width: 16%; }
-.dashboard-reference .dash-ref-table thead th:last-child { width: 64px; }
-.dashboard-reference .dash-ref-table tbody tr:hover { background: #f8fafd; }
-.dashboard-reference .dash-ref-table td {
-  padding: 9px 12px;
-  border-bottom: 1px solid #eef1f5;
-  color: #667387;
-  font-size: 11.6px;
-  line-height: 1.25;
-  vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.dashboard-vektora .vek-line-navy { stroke:#002d59; }
+.dashboard-vektora .vek-line-teal { stroke:#1593d0; }
+.dashboard-vektora .vek-line-dot {
+  fill:#fff;
+  stroke:#002d59;
+  stroke-width:2.2;
 }
-.dashboard-reference .dash-ref-table tr:last-child td { border-bottom: 0; }
-.dashboard-reference .dash-ref-table td:first-child { padding-left: 22px; }
-.dashboard-reference .dash-ref-id { color: #5f718a; font-weight: 650; }
-.dashboard-reference .dash-ref-person {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #465972;
-  font-weight: 650;
-  min-width: 0;
+.dashboard-vektora .vek-line-dot-teal {
+  fill:#fff;
+  stroke:#1593d0;
+  stroke-width:2;
 }
-.dashboard-reference .dash-ref-person:hover { color: #01488e; }
-.dashboard-reference .dash-ref-person .initials {
-  width: 27px;
-  height: 27px;
-  min-width: 27px;
-  flex-basis: 27px;
-  font-size: 9.5px;
-  border-radius: 50%;
+.dashboard-vektora .vek-axis-label {
+  font:11px Inter,sans-serif;
+  fill:#8f9eae;
 }
-.dashboard-reference .dash-ref-person span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.dashboard-reference .dash-ref-product {
-  color: #4f6178;
-}
-.dashboard-reference .dash-ref-product small {
-  display: block;
-  color: #a0aab8;
-  font-size: 10px;
-  margin-top: 3px;
-}
-.dashboard-reference .dash-ref-table .pill {
-  font-size: 10px;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dashboard-reference .dash-ref-table .pill-dot { width:5px;height:5px;flex:0 0 5px; }
-.dashboard-reference .dash-ref-row-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: #01488e;
-  font-size: 11px;
-  font-weight: 650;
-}
-.dashboard-reference .dash-ref-row-action:hover { text-decoration: underline; }
-.dashboard-reference .dash-ref-table-empty {
-  padding: 25px !important;
-  text-align: center;
-  color: #9ca8b6;
-}
-.dashboard-reference .dash-ref-table-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 20px;
-  min-height: 29px;
-  border-top: 1px solid #edf0f4;
-  color: #9ba6b4;
-  font-size: 9.8px;
-}
-.dashboard-reference .dash-ref-table-bottom > span:last-child {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.dashboard-reference .dash-ref-table-bottom svg { color: #86a999; }
 
-/* Sólo en la home: saludo al estilo de la referencia dentro de topbar. */
-.dashboard-top-welcome {
-  color: #263246;
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -.35px;
+/* Panel inferior derecho: registros del calendario y próximas llamadas. */
+.dashboard-vektora .vek-agenda .vek-card-header { padding-bottom:5px; }
+.dashboard-vektora .vek-agenda-list {
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  padding:2px 18px 4px;
+  scrollbar-width:thin;
 }
-.dashboard-top-wave { font-size: 16px; margin-left: 4px; }
+.dashboard-vektora .vek-agenda-item {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding:12px 0;
+  border-bottom:1px solid #edf1f6;
+  transition:background .14s;
+}
+.dashboard-vektora .vek-agenda-item:last-child { border-bottom:0; }
+.dashboard-vektora .vek-agenda-item:hover { background:#f9fcff; }
+.dashboard-vektora .vek-agenda-avatar {
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#eaf2fa;
+  color:#2a689f;
+}
+.dashboard-vektora .vek-agenda-main {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-width:0;
+  gap:4px;
+}
+.dashboard-vektora .vek-agenda-main strong {
+  color:#2a4058;
+  font-size:11.5px;
+  font-weight:700;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.dashboard-vektora .vek-agenda-main small {
+  color:#98a7b6;
+  font-size:10px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.dashboard-vektora .vek-agenda-due {
+  display:flex;
+  flex:0 0 95px;
+  flex-direction:column;
+  gap:5px;
+  text-align:right;
+  color:#465b73;
+}
+.dashboard-vektora .vek-agenda-due strong { font-size:10px; font-weight:600; }
+.dashboard-vektora .vek-agenda-due small { font-size:9.5px; color:#8aa1b5; }
+.dashboard-vektora .vek-agenda-due small.is-overdue { color:#b45e49; }
+.dashboard-vektora .vek-agenda-due small.is-today { color:#2d876b; }
+.dashboard-vektora .vek-agenda-more {
+  color:#9daec0;
+  flex:0 0 17px;
+}
+.dashboard-vektora .vek-agenda-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:11px;
+  padding:8px 19px 12px;
+  border-top:1px solid #edf1f6;
+  color:#8296a8;
+  font-size:9.8px;
+  flex:0 0 auto;
+}
+.dashboard-vektora .vek-agenda-footer span {
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
 
-@media (max-width: 1190px) {
-  .page-dashboard.dashboard-reference {
-    grid-template-rows: auto 115px minmax(215px,1fr) minmax(215px,1fr);
-    padding: 18px 17px 18px;
-    gap: 12px;
+/* La barra superior de Inicio comparte distribución con la referencia.
+   No se alteran las cabeceras de los demás módulos. */
+.app-body:has(.dashboard-vektora) .topbar {
+  background:#f6faff;
+  border-bottom-color:#e9f0f7;
+}
+.app-body:has(.dashboard-vektora) .topbar-start { flex:0 0 auto; }
+.app-body:has(.dashboard-vektora) .topbar-end { margin-left:34px; flex:1; }
+.app-body:has(.dashboard-vektora) .topbar-end .notice-wrapper { margin-left:auto; }
+.app-body:has(.dashboard-vektora) .global-search {
+  background:#fff;
+  border-color:#e8eff6;
+}
+.app-body:has(.dashboard-vektora) .breadcrumb strong.vek-topbar-title {
+  color:#213752;
+  font-family:"Plus Jakarta Sans",Inter,sans-serif;
+  font-size:19px;
+  letter-spacing:-.3px;
+  font-weight:750;
+}
+
+@media(max-width:1380px) {
+  .page.page-dashboard.dashboard-vektora { padding:16px; }
+  .dashboard-vektora .vek-grid { gap:12px; grid-template-columns:repeat(12,minmax(0,1fr)); }
+  .dashboard-vektora .vek-attention { grid-column:span 8; }
+  .dashboard-vektora .vek-statistics { grid-column:span 4; }
+  .dashboard-vektora .vek-evolution,
+  .dashboard-vektora .vek-agenda { grid-column:span 6; }
+  .dashboard-vektora .vek-card-header { padding:15px 14px 11px; }
+  .dashboard-vektora .vek-tabs { margin:0 14px; }
+  .dashboard-vektora .vek-donut-content { padding:0 10px 5px; gap:4px; }
+  .dashboard-vektora .vek-donut-foot { padding:10px 12px 12px; }
+  .dashboard-vektora .vek-legend-line { font-size:9.5px; gap:5px; }
+  .dashboard-vektora .vek-chart-controls { gap:6px; }
+  .dashboard-vektora .vek-table th, .dashboard-vektora .vek-table td { padding-left:9px; padding-right:9px; }
+  .dashboard-vektora .vek-table th:first-child, .dashboard-vektora .vek-table td:first-child { padding-left:15px; }
+}
+
+@media(max-width:1100px) and (min-width:851px) {
+  .dashboard-vektora .vek-grid {
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    grid-template-rows:minmax(0,1.1fr) minmax(0,.9fr);
   }
-  .dashboard-reference .dash-ref-stats { gap: 9px; }
-  .dashboard-reference .dash-ref-stat { padding: 14px 10px 12px 27px; }
-  .dashboard-reference .dash-ref-stat-accent { left: 13px; }
-  .dashboard-reference .dash-ref-stat-top { font-size: 10.5px; }
-  .dashboard-reference .dash-ref-stat-value { font-size: 24px; }
-  .dashboard-reference .dash-ref-donut-figure { min-width: 130px; }
-  .dashboard-reference .dash-ref-donut-layout { padding: 0 11px 13px; gap: 8px; }
-  .dashboard-reference .dash-ref-donut-legend { min-width: 95px; }
-  .dashboard-reference .dash-ref-trend-wrapper { padding: 0 13px 10px; }
-  .dashboard-reference .dash-ref-table { min-width: 790px; }
+  .dashboard-vektora .vek-attention { grid-column:span 8; }
+  .dashboard-vektora .vek-statistics { grid-column:span 4; }
+  .dashboard-vektora .vek-donut-content { flex-direction:column; }
+  .dashboard-vektora .vek-donut { width:128px; max-width:128px; }
+  .dashboard-vektora .vek-donut-legend { width:100%;flex-direction:row;flex-wrap:wrap;gap:7px;justify-content:center; }
+  .dashboard-vektora .vek-legend-line { min-width:60px; }
+  .dashboard-vektora .vek-legend-line strong { display:none; }
+  .dashboard-vektora .vek-donut-foot { gap:4px; }
+  .dashboard-vektora .vek-foot-icon { display:none; }
+  .dashboard-vektora .vek-chart-legend { font-size:9px; }
 }
 
-@media (max-height: 805px) and (min-width: 841px) {
-  .page-dashboard.dashboard-reference {
-    grid-template-rows: auto 104px minmax(188px,1fr) minmax(194px,1fr);
-    gap: 10px;
-    padding-top: 12px;
-    padding-bottom: 12px;
+@media (max-height:760px) and (min-width:851px) {
+  .page.page-dashboard.dashboard-vektora {
+    height:auto;
+    min-height:690px;
+    overflow:visible;
   }
-  .dashboard-reference .dash-ref-heading { min-height: 35px; }
-  .dashboard-reference .dash-ref-stat { padding-top: 10px; padding-bottom: 9px; }
-  .dashboard-reference .dash-ref-stat-accent { top:15px; bottom:28px; }
-  .dashboard-reference .dash-ref-panel-head { min-height: 43px; padding-top: 8px; }
-  .dashboard-reference .dash-ref-stat-value { font-size:23px; }
-}
-
-@media (max-width: 900px) {
-  .page-dashboard.dashboard-reference {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
-    gap: 12px;
+  .dashboard-vektora .vek-grid {
+    height:655px;
+    grid-template-rows:minmax(325px,1.1fr) minmax(270px,.9fr);
   }
-  .dashboard-reference .dash-ref-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .dashboard-reference .dash-ref-stat { min-height: 115px; }
-  .dashboard-reference .dash-ref-middle { grid-template-columns: 1fr; }
-  .dashboard-reference .dash-ref-panel { min-height: 245px; }
-  .dashboard-reference .dash-ref-trends-panel { min-height: 285px; }
-  .dashboard-reference .dash-ref-table-panel { min-height: 310px; }
-  .dashboard-reference .dash-ref-table-wrap { min-height: 185px; }
-  .dashboard-reference .dash-ref-donut-figure { width:185px; }
 }
 
-@media (max-width: 600px) {
-  .page-dashboard.dashboard-reference { padding: 18px 12px 28px; }
-  .dashboard-reference .dash-ref-heading { align-items: flex-start; }
-  .dashboard-reference .dash-ref-heading h1 { font-size: 17px; }
-  .dashboard-reference .dash-ref-heading p { font-size: 11px; }
-  .dashboard-reference .dash-ref-today { display:none; }
-  .dashboard-reference .dash-ref-heading-actions .btn {
-    padding: 8px 10px;
-    font-size: 10.5px;
+@media(max-width:850px) {
+  .page.page-dashboard.dashboard-vektora {
+    height:auto;
+    overflow:visible;
+    min-height:100%;
   }
-  .dashboard-reference .dash-ref-stats { gap: 9px; }
-  .dashboard-reference .dash-ref-stat { min-height: 116px; }
-  .dashboard-reference .dash-ref-stat-top { font-size: 10px; }
-  .dashboard-reference .dash-ref-stat-value { font-size: 23px; }
-  .dashboard-reference .dash-ref-stat-foot { font-size: 9.5px; }
-  .dashboard-reference .dash-ref-stat-icon { width: 26px; height: 26px; flex-basis: 26px; }
-  .dashboard-reference .dash-ref-donut-figure { width: 168px; min-width: 142px; }
-  .dashboard-reference .dash-ref-donut-legend { min-width: 105px; }
-  .dashboard-reference .dash-ref-legend-row strong { font-size: 19px; }
-  .dashboard-reference .dash-ref-panel-head { padding: 12px 13px 7px; }
-  .dashboard-reference .dash-ref-trend-wrapper { padding: 0 10px 10px; }
-  .dashboard-reference .dash-ref-chart-foot { gap: 10px; font-size: 9.5px; }
-  .dashboard-reference .dash-ref-table-panel { min-height: 300px; }
-  .dashboard-reference .dash-ref-table-wrap { overflow-x: auto; }
-  .dashboard-reference .dash-ref-table { min-width: 790px; }
-  .dashboard-reference .dash-ref-table-bottom span:last-child { display:none; }
-  .dashboard-top-welcome { font-size: 12.5px; }
+  .dashboard-vektora .vek-grid {
+    height:auto;
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    gap:12px;
+  }
+  .dashboard-vektora .vek-card { grid-column:1/-1; }
+  .dashboard-vektora .vek-attention { min-height:320px; }
+  .dashboard-vektora .vek-statistics { min-height:260px; }
+  .dashboard-vektora .vek-evolution { min-height:285px; }
+  .dashboard-vektora .vek-agenda { min-height:300px; }
+  .dashboard-vektora .vek-chart { min-height:205px; }
+  .dashboard-vektora .vek-donut { max-width:195px; }
+  .dashboard-vektora .vek-agenda-list { overflow:visible; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .dashboard-reference .dash-ref-stat { transition: none; }
+@media(max-width:500px) {
+  .page.page-dashboard.dashboard-vektora { padding:12px 10px 26px; }
+  .dashboard-vektora .vek-card-header { padding:14px 12px 11px; gap:8px; }
+  .dashboard-vektora .vek-card-header h2 { font-size:12.5px; }
+  .dashboard-vektora .vek-card-header p { font-size:10px; }
+  .dashboard-vektora .vek-button { padding:6px 9px; font-size:10px; min-height:30px; }
+  .dashboard-vektora .vek-tabs { margin:0 10px; }
+  .dashboard-vektora .vek-tab { padding:11px 10px; font-size:10px; }
+  .dashboard-vektora .vek-table { min-width:620px; }
+  .dashboard-vektora .vek-attention { min-height:330px; }
+  .dashboard-vektora .vek-donut-content { gap:8px; padding:0 8px 9px; }
+  .dashboard-vektora .vek-donut { width:44%; min-width:110px; }
+  .dashboard-vektora .vek-donut-legend { min-width:110px; }
+  .dashboard-vektora .vek-legend-line { font-size:9.5px; }
+  .dashboard-vektora .vek-donut-foot { gap:5px; padding:10px 12px 12px; }
+  .dashboard-vektora .vek-foot-icon { width:28px;height:28px;flex-basis:28px; }
+  .dashboard-vektora .vek-donut-foot strong { font-size:18px; }
+  .dashboard-vektora .vek-donut-foot small { font-size:9px; }
+  .dashboard-vektora .vek-evolution .vek-card-header { flex-wrap:wrap; }
+  .dashboard-vektora .vek-chart-controls { width:100%; justify-content:space-between; }
+  .dashboard-vektora .vek-chart { padding:0 12px 16px; }
+  .dashboard-vektora .vek-agenda-item { gap:8px; }
+  .dashboard-vektora .vek-agenda-due { flex-basis:80px; }
+  .dashboard-vektora .vek-agenda-more { display:none; }
+  .dashboard-vektora .vek-agenda-footer { padding:9px 12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .dashboard-vektora .vek-button, .dashboard-vektora .vek-tab,
+  .dashboard-vektora .vek-agenda-item { transition:none; }
 }
