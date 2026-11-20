@@ -1,0 +1,175 @@
+/* Interacciones discretas del menú lateral.
+   Sólo movimiento funcional: selección, plegado y cajón móvil.
+   Duraciones cortas y preferencia reduced-motion respetada. */
+
+.sidebar.sidebar-reference {
+  transition:
+    width 280ms cubic-bezier(.2,.8,.2,1),
+    flex-basis 280ms cubic-bezier(.2,.8,.2,1);
+}
+
+.sidebar-reference .sidebar-top {
+  transition: min-height 260ms ease, padding 260ms ease;
+}
+.sidebar-reference .nav-scroll {
+  position: relative;
+  transition: padding 260ms ease;
+}
+.sidebar-reference .nav-group {
+  position: relative;
+  z-index: 1;
+}
+
+/* La misma pastilla blanca se desliza hasta la opción seleccionada.
+   Los enlaces quedan por encima para conservar foco, hover y clic. */
+.sidebar-reference .nav-selection-indicator {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  top: 0;
+  left: 15px;
+  width: calc(100% - 15px);
+  height: 42px;
+  border-radius: 23px 0 0 23px;
+  background: #fff;
+  opacity: 0;
+  transform: translate3d(0,0,0);
+  transition:
+    transform 300ms cubic-bezier(.22,1,.36,1),
+    left 280ms cubic-bezier(.2,.8,.2,1),
+    width 280ms cubic-bezier(.2,.8,.2,1),
+    height 180ms ease,
+    opacity 140ms ease;
+}
+.sidebar-reference .nav-scroll.has-active-indicator .nav-selection-indicator {
+  opacity: 1;
+}
+.sidebar-reference .nav-scroll.has-active-indicator .nav-link.active,
+.sidebar-reference .nav-scroll.has-active-indicator .nav-link.active:hover {
+  background: transparent;
+}
+.sidebar-reference .nav-link {
+  width: 100%;
+  transition:
+    background-color 170ms ease,
+    color 170ms ease,
+    width 260ms cubic-bezier(.2,.8,.2,1),
+    padding 260ms cubic-bezier(.2,.8,.2,1);
+}
+.sidebar-reference .nav-link svg {
+  transition: color 170ms ease, transform 170ms ease;
+}
+.sidebar-reference .nav-link:not(.active):hover svg {
+  transform: translateX(2px);
+}
+.sidebar-reference .nav-link.active svg {
+  transform: none;
+}
+.sidebar-reference .nav-count {
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+/* Elementos de texto y marca se contraen gradualmente, no desaparecen de golpe. */
+.sidebar-reference .nav-link > span:not(.nav-count) {
+  display: block;
+  max-width: 180px;
+  opacity: 1;
+  transition: max-width 210ms ease, opacity 150ms ease;
+}
+.sidebar-reference .nav-caption {
+  overflow: hidden;
+  max-height: 24px;
+  opacity: 1;
+  transition:
+    max-height 190ms ease,
+    opacity 140ms ease,
+    margin-bottom 190ms ease;
+}
+.sidebar-reference .brand {
+  position: relative;
+  overflow: hidden;
+  transition: width 260ms ease, min-height 260ms ease;
+}
+.sidebar-reference .brand-logo {
+  display: block;
+  opacity: 1;
+  transition: opacity 140ms ease;
+}
+.sidebar-reference .brand-compact-logo {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 170ms ease;
+}
+.sidebar-reference.is-collapsed .brand-logo {
+  display: block;
+  opacity: 0;
+}
+.sidebar-reference.is-collapsed .brand-compact-logo {
+  display: block;
+  opacity: 1;
+}
+
+@media (min-width: 841px) {
+  .sidebar-reference.is-collapsed .nav-selection-indicator {
+    left: 10px;
+    width: calc(100% - 10px);
+  }
+  .sidebar-reference.is-collapsed .nav-link > span:not(.nav-count) {
+    display: block;
+    flex: 0 0 0;
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sidebar-reference.is-collapsed .nav-caption {
+    display: block;
+    max-height: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 840px) {
+  /* Aparición lateral suave en vez de salto; fondo que desvanece al cerrar. */
+  .sidebar.sidebar-reference,
+  .sidebar.sidebar-reference.is-collapsed {
+    transition: transform 280ms cubic-bezier(.2,.8,.2,1);
+  }
+  .nav-backdrop {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease, visibility 0s linear 220ms;
+  }
+  .nav-backdrop.is-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 220ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar.sidebar-reference,
+  .sidebar-reference .sidebar-top,
+  .sidebar-reference .nav-scroll,
+  .sidebar-reference .nav-selection-indicator,
+  .sidebar-reference .nav-link,
+  .sidebar-reference .nav-link svg,
+  .sidebar-reference .nav-link > span:not(.nav-count),
+  .sidebar-reference .nav-caption,
+  .sidebar-reference .brand,
+  .sidebar-reference .brand-logo,
+  .sidebar-reference .brand-compact-logo,
+  .sidebar-reference .nav-count,
+  .nav-backdrop {
+    transition: none !important;
+    animation: none !important;
+  }
+}
