@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, CalendarDays, Check, ChevronDown, Download, Inbox,
-  MoreHorizontal, PackageCheck, Plus, UsersRound
+  MoreHorizontal, PackageCheck, UsersRound
 } from 'lucide-react';
 import { useCrm } from '../store';
 import { dateText, dayDiff, today, type Opportunity, type Task } from '../domain';
