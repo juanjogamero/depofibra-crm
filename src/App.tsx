@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
   CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Search, Bell,
   ChevronDown, Menu, X, ArrowRight, Plus, Factory, ShieldCheck,
-  Command, HelpCircle, CheckCheck, BellRing
+  Command, HelpCircle, CheckCheck, BellRing, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { useCrm } from './store';
 import { AppRoutes } from './views';
@@ -19,7 +19,7 @@ function Brand() {
     <div className="brand-text"><strong>DEPOFIBRA</strong><small>GESTIÓN COMERCIAL</small></div>
   </div>;
 }
-function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
+function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void }) {
   const { role, data } = useCrm();
   const pending = data.opportunities.filter(o => !['Aceptada','Perdida'].includes(o.status)).length;
   const groups: Group[] = role === 'fabrica'
@@ -45,12 +45,11 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
     ];
   return <>
     {mobileOpen && <button className="nav-backdrop" aria-label="Cerrar navegación" onClick={onClose}/>}
-    <aside className={'sidebar '+(mobileOpen?'is-open':'')}>
-      <div className="sidebar-top"><Brand/><button className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
+    <aside className={'sidebar sidebar-reference '+(mobileOpen?'is-open ':'')+(collapsed?'is-collapsed':'')}>
+      <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<PanelLeftOpen size={17}/>:<PanelLeftClose size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
       <div className="nav-scroll">
-        {groups.map(g=><div className="nav-group" key={g.caption}>
-          <div className="nav-caption">{g.caption}</div>
-          {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
+        {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
+          {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
             <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
             {n.badge !== undefined && n.badge>0 && <span className="nav-count">{n.badge}</span>}
           </NavLink>)}
@@ -58,7 +57,7 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
       </div>
       <div className="sidebar-bottom">
         <div className="sidebar-note"><span className="status-light"/><div><strong>Entorno de pruebas</strong><small>Datos ficticios · sin servidor</small></div></div>
-        <div className="sidebar-copyright">Depofibra · Uso interno</div>
+        
       </div>
     </aside>
   </>;
@@ -135,12 +134,13 @@ function BottomBar() {
 }
 export default function App() {
   const [open,setOpen]=useState(false);
+  const [collapsed,setCollapsed]=useState(false);
   const {role}=useCrm();
   const location=useLocation();
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector('.app-main')?.scrollTo({top:0,behavior:'instant'});},[location.pathname]);
   useEffect(()=>{const listener=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.querySelector<HTMLInputElement>('.global-search input')?.focus();}};window.addEventListener('keydown',listener);return()=>window.removeEventListener('keydown',listener)},[]);
   return <div className="app-root">
-    <Sidebar mobileOpen={open} onClose={()=>setOpen(false)}/>
+    <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
     <div className="app-body">
       <Header onMenu={()=>setOpen(true)}/>
       <div className="demo-ribbon"><ShieldCheck size={13}/> DEMO INTERACTIVA <span>·</span> Datos ficticios y guardados solo en este navegador <span>·</span> {role==='fabrica'?'Perfil Fábrica simulado':'Sin conexión a servidores'}</div>
