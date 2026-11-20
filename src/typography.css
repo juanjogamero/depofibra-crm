@@ -1,0 +1,284 @@
+/* Depofibra CRM · Legibilidad y jerarquía tipográfica
+   Ajuste solicitado por Dirección. Mantiene la composición del Dashboard,
+   las fuentes corporativas (Inter / Plus Jakarta Sans) y toda la navegación.
+   Base de lectura: textos 12–14 px, titulares 15–20 px y contrastes reforzados.
+   Esta hoja se carga después de los estilos de cada pantalla. */
+
+:root {
+  font-family: Inter, Arial, sans-serif;
+  font-size: 14px;
+}
+
+body {
+  font-family: Inter, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.48;
+  color: #26384c;
+}
+
+/* Identidad transversal: botones, navegación y ayudas sin letra diminuta. */
+.app-body .topbar .global-search input {
+  font-size: 12.7px;
+  font-weight: 500;
+}
+.app-body .topbar .breadcrumb strong {
+  font-weight: 750;
+}
+.app-body .topbar .profile-copy strong {
+  font-size: 12.6px;
+  font-weight: 700;
+}
+.app-body .topbar .profile-copy small {
+  font-size: 11.5px;
+  color: #5c7087;
+}
+.sidebar-reference .nav-link {
+  font-size: 13.5px;
+  font-weight: 550;
+}
+.sidebar-reference .nav-link.active {
+  font-weight: 750;
+}
+.sidebar-reference .nav-caption {
+  font-size: 10.8px;
+  font-weight: 750;
+}
+.sidebar-reference .sidebar-note strong { font-size: 12px; }
+.sidebar-reference .sidebar-note small { font-size: 10.6px; }
+
+/* Resto de módulos: subir un escalón sin reconstruir sus maquetaciones. */
+.app-main .page:not(.dashboard-vektora) .page-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+}
+.app-main .page:not(.dashboard-vektora) .page-header p {
+  font-size: 13px;
+  color: #53677e;
+}
+.app-main .page:not(.dashboard-vektora) .panel h3 {
+  font-size: 14.3px;
+  font-weight: 750;
+}
+.app-main .page:not(.dashboard-vektora) .panel-sub,
+.app-main .page:not(.dashboard-vektora) .cell-note,
+.app-main .page:not(.dashboard-vektora) .cell-person small {
+  font-size: 11.8px;
+  color: #587086;
+}
+.app-main .page:not(.dashboard-vektora) .data-table th {
+  font-size: 11.7px;
+  font-weight: 750;
+  color: #405771;
+}
+.app-main .page:not(.dashboard-vektora) .data-table td {
+  font-size: 13px;
+  font-weight: 450;
+  color: #364c64;
+}
+.app-main .page:not(.dashboard-vektora) .cell-person strong,
+.app-main .page:not(.dashboard-vektora) .cell-strong {
+  font-size: 13px;
+  font-weight: 750;
+  color: #213a56;
+}
+.app-main .page:not(.dashboard-vektora) .btn {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.app-main .page:not(.dashboard-vektora) .form-field .field-label {
+  font-size: 12.7px;
+  font-weight: 650;
+  color: #354b63;
+}
+.app-main .page:not(.dashboard-vektora) .form-field input,
+.app-main .page:not(.dashboard-vektora) .form-field select,
+.app-main .page:not(.dashboard-vektora) .form-field textarea {
+  font-size: 13.5px;
+}
+.app-main .page:not(.dashboard-vektora) .pill {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Dashboard de la referencia Vektora: jerarquía de títulos. */
+.dashboard-vektora .vek-card-header h2 {
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #173451;
+  line-height: 1.35;
+}
+.dashboard-vektora .vek-card-header p {
+  font-size: 12px;
+  font-weight: 500;
+  color: #53697e;
+  line-height: 1.4;
+}
+.dashboard-vektora .vek-button {
+  font-size: 12.1px;
+  font-weight: 700;
+}
+.dashboard-vektora .vek-select-wrap select {
+  font-size: 12px;
+  font-weight: 600;
+  color: #405970;
+}
+
+/* Pestañas: estados claramente diferenciados incluso sin depender del color. */
+.dashboard-vektora .vek-tab {
+  font-size: 12.7px;
+  font-weight: 600;
+  color: #586e82;
+}
+.dashboard-vektora .vek-tab.active {
+  font-weight: 800;
+  color: #01488e;
+}
+.dashboard-vektora .vek-tab:focus-visible {
+  outline: 2px solid #6c9ac7;
+  outline-offset: -2px;
+}
+
+/* Tabla de pendientes: cliente y próxima acción se leen de un vistazo. */
+.dashboard-vektora .vek-table th {
+  font-size: 11.6px;
+  font-weight: 800;
+  color: #425972;
+  line-height: 1.35;
+}
+.dashboard-vektora .vek-table td {
+  font-size: 12.9px;
+  font-weight: 500;
+  color: #3d5268;
+  line-height: 1.35;
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+.dashboard-vektora .vek-name {
+  font-size: 13.2px;
+  font-weight: 750;
+  color: #203952;
+}
+.dashboard-vektora .vek-channel { font-weight: 650; }
+.dashboard-vektora .vek-action span {
+  font-size: 12.6px;
+  font-weight: 550;
+  color: #344d65;
+}
+.dashboard-vektora .vek-date {
+  color: #48617a;
+  font-weight: 650;
+}
+.dashboard-vektora .vek-date-due {
+  color: #8a4d16;
+  font-weight: 800;
+}
+.dashboard-vektora .vek-progress {
+  font-size: 11.7px;
+  font-weight: 800;
+  color: #405c76;
+}
+.dashboard-vektora .vek-empty {
+  font-size: 13.1px;
+  color: #516a81;
+}
+
+/* Donut: leyenda y cifras con mayor presencia y contraste. */
+.dashboard-vektora .vek-legend-line {
+  font-size: 12px;
+  font-weight: 550;
+  color: #465d76;
+  gap: 7px;
+}
+.dashboard-vektora .vek-legend-line strong {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #1b3957;
+}
+.dashboard-vektora .vek-donut-foot strong {
+  font-size: 23px;
+  font-weight: 800;
+  color: #173451;
+}
+.dashboard-vektora .vek-donut-foot small {
+  font-size: 11.4px;
+  font-weight: 550;
+  line-height: 1.3;
+  color: #536a81;
+}
+
+/* Evolución: leyenda y marcas más visibles, sin añadir ruido al gráfico. */
+.dashboard-vektora .vek-chart-legend {
+  font-size: 11.7px;
+  font-weight: 650;
+  color: #455c75;
+}
+.dashboard-vektora .vek-axis-label {
+  font: 12px Inter, sans-serif;
+  fill: #536a81;
+}
+
+/* Agenda: tareas en negrita, contexto secundario legible y fechas claras. */
+.dashboard-vektora .vek-agenda-main strong {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #1d3a56;
+  line-height: 1.35;
+}
+.dashboard-vektora .vek-agenda-main small {
+  font-size: 11.8px;
+  font-weight: 500;
+  color: #576d83;
+}
+.dashboard-vektora .vek-agenda-due strong {
+  font-size: 11.8px;
+  font-weight: 750;
+  color: #2c455f;
+}
+.dashboard-vektora .vek-agenda-due small {
+  font-size: 11.2px;
+  font-weight: 650;
+  color: #60768c;
+}
+.dashboard-vektora .vek-agenda-due small.is-overdue {
+  color: #9a4935;
+  font-weight: 800;
+}
+.dashboard-vektora .vek-agenda-due small.is-today {
+  color: #216a53;
+  font-weight: 800;
+}
+.dashboard-vektora .vek-agenda-footer {
+  font-size: 11.2px;
+  font-weight: 600;
+  color: #556d82;
+}
+
+/* Mantener espacio en portátiles: no reducir la letra a tamaños ilegibles. */
+@media (max-width: 1380px) {
+  .dashboard-vektora .vek-card-header h2 { font-size: 15px; }
+  .dashboard-vektora .vek-legend-line { font-size: 11.5px; }
+  .dashboard-vektora .vek-chart-legend { font-size: 11.2px; }
+  .dashboard-vektora .vek-button { font-size: 11.7px; }
+}
+@media (max-width: 1100px) and (min-width: 851px) {
+  .dashboard-vektora .vek-donut-legend { gap: 9px; }
+  .dashboard-vektora .vek-legend-line { font-size: 11.2px; }
+  .dashboard-vektora .vek-agenda-item { gap: 9px; }
+  .dashboard-vektora .vek-agenda-main strong { font-size: 12.7px; }
+}
+@media (max-width: 500px) {
+  .dashboard-vektora .vek-card-header h2 { font-size: 14.2px; }
+  .dashboard-vektora .vek-card-header p { font-size: 11.5px; }
+  .dashboard-vektora .vek-button { font-size: 11.5px; }
+  .dashboard-vektora .vek-tab { font-size: 12px; }
+  .dashboard-vektora .vek-table th { font-size: 11.5px; }
+  .dashboard-vektora .vek-table td { font-size: 12.6px; }
+  .dashboard-vektora .vek-donut-foot strong { font-size: 20px; }
+  .dashboard-vektora .vek-donut-foot small { font-size: 10.7px; }
+  .dashboard-vektora .vek-legend-line { font-size: 11.3px; }
+  .dashboard-vektora .vek-agenda-main strong { font-size: 12.7px; }
+  .dashboard-vektora .vek-agenda-main small { font-size: 11.4px; }
+  .dashboard-vektora .vek-agenda-due strong { font-size: 11.1px; }
+  .dashboard-vektora .vek-agenda-due small { font-size: 10.8px; }
+}
