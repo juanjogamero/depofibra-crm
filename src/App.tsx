@@ -135,7 +135,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
   return <header className="topbar">
     <div className="topbar-start">
       <button className="icon-button menu-trigger" aria-label="Abrir menú" onClick={onMenu}><Menu size={21}/></button>
-      <div className="breadcrumb">{location.pathname==='/' ? <strong className="dashboard-top-welcome">Bienvenido de nuevo, Dirección <span className="dashboard-top-wave">👋</span></strong> : <><span>Depofibra CRM</span><span className="crumb-slash">/</span><strong>{pageLabel(location.pathname)}</strong></>}</div>
+      <div className="breadcrumb">{location.pathname==='/' ? <strong className="vek-topbar-title">Dashboard</strong> : <><span>Depofibra CRM</span><span className="crumb-slash">/</span><strong>{pageLabel(location.pathname)}</strong></>}</div>
     </div>
     <div className="topbar-end">
       <div className="global-search">
