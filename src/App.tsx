@@ -49,6 +49,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
       <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<ChevronsRight size={17}/>:<ChevronsLeft size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
       <div className="nav-scroll">
         {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
+          <div className="nav-caption">{g.caption}</div>
           {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
             <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
             {n.badge !== undefined && n.badge>0 && <span className="nav-count">{n.badge}</span>}
