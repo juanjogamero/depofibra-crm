@@ -15,8 +15,8 @@ type Group = { caption: string; links: NavItem[] };
 
 function Brand() {
   return <div className="brand">
-    <div className="brand-mark">D<span>.</span></div>
-    <div className="brand-text"><strong>DEPOFIBRA</strong><small>CRM · WORKSPACE</small></div>
+    <div className="brand-mark">D</div>
+    <div className="brand-text"><strong>DEPOFIBRA</strong><small>GESTIÓN COMERCIAL</small></div>
   </div>;
 }
 function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
@@ -57,8 +57,8 @@ function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => 
         </div>)}
       </div>
       <div className="sidebar-bottom">
-        <div className="sidebar-note"><span className="status-light"/><div><strong>Entorno de diseño</strong><small>Datos ficticios · sin servidor</small></div></div>
-        <div className="sidebar-copyright">© 2026 Depofibra</div>
+        <div className="sidebar-note"><span className="status-light"/><div><strong>Entorno de pruebas</strong><small>Datos ficticios · sin servidor</small></div></div>
+        <div className="sidebar-copyright">Depofibra · Uso interno</div>
       </div>
     </aside>
   </>;
@@ -90,7 +90,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
   return <header className="topbar">
     <div className="topbar-start">
       <button className="icon-button menu-trigger" aria-label="Abrir menú" onClick={onMenu}><Menu size={21}/></button>
-      <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{pageLabel(location.pathname)}</strong></div>
+      <div className="breadcrumb"><span>Depofibra CRM</span><span className="crumb-slash">/</span><strong>{pageLabel(location.pathname)}</strong></div>
     </div>
     <div className="topbar-end">
       <div className="global-search">
