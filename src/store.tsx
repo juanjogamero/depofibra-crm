@@ -40,7 +40,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* private browser */ } }, [data]);
   const actions = useMemo(() => ({
     addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => setData(d => ({
-      ...d, opportunities: [{ ...item, id: uid('OP'), createdAt: today(), activity: [{ at: today(), text: 'Solicitud introducida manualmente (demo)', by: 'Dirección' }] }, ...d.opportunities]
+      ...d, opportunities: [{ ...item, id: uid('OP'), createdAt: today(), receivedAt: new Date().toISOString(), activity: [{ at: today(), text: 'Solicitud introducida manualmente (demo)', by: 'Dirección' }] }, ...d.opportunities]
     })),
     updateOpportunity: (id: string, patch: Partial<Opportunity>) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch } : o) })),
     addActivity: (id: string, text: string) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, activity: [{ at: today(), text, by: 'Dirección' }, ...o.activity] } : o) })),
