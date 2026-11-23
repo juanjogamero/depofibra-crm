@@ -835,3 +835,21 @@
 @media (prefers-reduced-motion:reduce) {
   .vek2-dashboard .vek2-table tbody tr {transition:none;}
 }
+
+/* Móvil: mantener el menú lateral como cajón completo y no cortar enlaces. */
+@media (max-width:840px) {
+  .app-root-dashboard .sidebar.sidebar-reference,
+  .app-root-dashboard .sidebar.sidebar-reference.is-collapsed {
+    position:fixed;
+    left:0;top:0;bottom:0;
+    z-index:40;
+    width:270px;
+    height:100dvh;
+    flex:0 0 270px;
+    border:0;
+    border-radius:0;
+    box-shadow:15px 0 35px rgba(1,27,57,.22);
+  }
+  .app-root-dashboard .sidebar-reference .nav-scroll {padding:14px 12px;}
+  .app-root-dashboard .sidebar-reference .sidebar-top {min-height:88px;padding:20px 17px 10px;}
+}
