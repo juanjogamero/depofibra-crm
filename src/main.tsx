@@ -21,6 +21,7 @@ import './clients-dashboard.css';
 import './orders-dashboard.css';
 import './commissions-dashboard.css';
 import './agenda-dashboard.css';
+import './results-dashboard.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
