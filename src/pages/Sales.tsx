@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleAlert, FileText, Filter, MapPin, MessageCircle, Plus, Search, Shield, Sparkles, Truck, ExternalLink } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleAlert, FileText, Filter, MapPin, MessageCircle, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
