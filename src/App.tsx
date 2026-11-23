@@ -187,7 +187,7 @@ export default function App() {
   const onDashboard = location.pathname === '/';
   return <div className="app-root">
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
-    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '')}>
+    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (location.pathname === '/oportunidades' ? ' is-opportunities' : '')}>
       {!onDashboard && <Header onMenu={()=>setOpen(true)}/>}
       {onDashboard && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
       <main className="app-main" id="main-content"><AppRoutes/></main>
