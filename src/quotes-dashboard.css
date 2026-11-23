@@ -1,0 +1,109 @@
+/* REG-0100 · DEPOFIBRA CRM
+   Presupuestos: reutiliza la estructura contrastada de Oportunidades,
+   pero presenta importes y estados propios de la oferta. Sólo /presupuestos. */
+.app-body.is-quotes .page.page-quotes {
+  background:linear-gradient(135deg,#fff 36%,#f5f9fd 100%);
+}
+.page-quotes .op-heading-copy p {max-width:720px;}
+.page-quotes .op-phase-tabs {margin-bottom:19px;}
+.page-quotes .quote-data-table .op-col-id {width:10%;}
+.page-quotes .quote-data-table .op-col-client {width:23%;}
+.page-quotes .quote-data-table .op-col-product {width:27%;}
+.page-quotes .quote-data-table .quote-col-amount {width:18%;}
+.page-quotes .quote-data-table .op-col-date {width:11%;}
+.page-quotes .quote-data-table .op-col-status {width:9%;}
+.page-quotes .quote-data-table .op-col-open {width:2%;}
+.page-quotes .quote-data-table th.quote-col-amount {text-align:right;}
+.page-quotes .quote-data-table td.quote-col-amount {text-align:right;}
+.page-quotes .quote-amount {
+  display:inline-block;
+  max-width:100%;
+  color:#002d59;
+  font:800 clamp(11.5px,.95vw,13.8px)/1.25 "Plus Jakarta Sans",Inter,sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.015em;
+  white-space:nowrap;
+}
+.page-quotes .op-client-sub {color:#859aaf;}
+.page-quotes .op-status-pill.is-draft {background:#edf2f6;color:#627b92;}
+.page-quotes .op-status-pill.is-sent {background:#e4f0fc;color:#236ca3;}
+.page-quotes .op-status-pill.is-won {background:#e1f4eb;color:#267756;}
+.page-quotes .op-status-pill.is-lost {background:#fceae9;color:#ad5655;}
+.page-quotes .op-table-footer {
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  flex-wrap:wrap;
+}
+.page-quotes .quote-footer-note {
+  margin-left:auto;
+  color:#91a3b5;
+  font-weight:500;
+}
+.page-quotes .op-data-table tbody .op-reference {white-space:nowrap;}
+.page-quotes .op-client-copy {min-width:0;}
+.page-quotes .op-data-table .op-col-product .op-product {
+  display:block;min-width:0;max-width:100%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.page-quotes .op-advanced-filters label {min-width:0;}
+.page-quotes .op-advanced-filters select {max-width:290px;}
+/* Ajustar el conjunto de columnas a 100% sin barra horizontal. */
+@media (max-width:1180px) {
+  .page-quotes .quote-data-table .op-col-id {width:10%;}
+  .page-quotes .quote-data-table .op-col-client {width:25%;}
+  .page-quotes .quote-data-table .op-col-product {width:25%;}
+  .page-quotes .quote-data-table .quote-col-amount {width:16%;}
+  .page-quotes .quote-data-table .op-col-date {width:12%;}
+  .page-quotes .quote-data-table .op-col-status {width:10%;}
+  .page-quotes .quote-data-table .op-col-open {width:2%;}
+}
+@media (max-width:940px) {
+  .page-quotes .op-heading-copy h1 {font-size:27px;}
+  .page-quotes .op-phase-tabs {margin-bottom:13px;}
+}
+@media (max-width:780px) {
+  .page-quotes .quote-data-table .op-col-id {width:12%;}
+  .page-quotes .quote-data-table .op-col-client {width:34%;}
+  .page-quotes .quote-data-table .op-col-product {width:25%;}
+  .page-quotes .quote-data-table .quote-col-amount {width:16%;}
+  .page-quotes .quote-data-table .op-col-date {display:none;}
+  .page-quotes .quote-data-table .op-col-status {width:10%;}
+  .page-quotes .quote-data-table .op-col-open {width:3%;}
+  .page-quotes .quote-data-table .quote-col-amount,
+  .page-quotes .quote-data-table .op-col-status {overflow-wrap:anywhere;}
+  .page-quotes .quote-data-table .quote-amount {font-size:11.1px;}
+  .page-quotes .quote-footer-note {display:none;}
+}
+@media (max-width:660px) {
+  .page-quotes .op-screen-heading {align-items:flex-start;flex-wrap:wrap;padding-right:43px;}
+  .page-quotes .op-heading-copy h1 {font-size:22px;}
+  .page-quotes .op-heading-copy p {font-size:11px;}
+  .page-quotes .op-heading-actions {margin-left:0;}
+  .page-quotes .op-new-button,.page-quotes .op-export-button {
+    padding:7px 9px;min-height:35px;font-size:10.6px;
+  }
+  .page-quotes .op-phase-tabs {gap:0 9px;margin-bottom:10px;}
+  .page-quotes .op-phase-tab {font-size:10.5px;min-height:37px;padding:6px 4px 8px;}
+  .page-quotes .op-status-pill {font-size:9.8px;padding:4px 5px;}
+  .page-quotes .op-table-footer {font-size:10px;}
+  .page-quotes .quote-amount {font-size:10.7px;}
+}
+@media (max-width:520px) {
+  .page-quotes .quote-data-table .op-col-id {width:14%;}
+  .page-quotes .quote-data-table .op-col-client {width:42%;}
+  .page-quotes .quote-data-table .op-col-product {display:none;}
+  .page-quotes .quote-data-table .quote-col-amount {width:24%;}
+  .page-quotes .quote-data-table .op-col-status {width:16%;}
+  .page-quotes .quote-data-table .op-col-open {width:4%;}
+  .page-quotes .quote-data-table .op-col-id,
+  .page-quotes .quote-data-table .op-col-client,
+  .page-quotes .quote-data-table .quote-col-amount,
+  .page-quotes .quote-data-table .op-col-status,
+  .page-quotes .quote-data-table .op-col-open {padding-inline:5px;}
+  .page-quotes .quote-amount {font-size:10.6px;}
+  .page-quotes .op-client-cell .initials {width:29px;height:29px;flex-basis:29px;}
+  .page-quotes .op-client-name {font-size:10.8px;}
+  .page-quotes .op-client-sub {font-size:9.5px;}
+  .page-quotes .op-status-pill {font-size:9.3px;padding:4px;}
+}

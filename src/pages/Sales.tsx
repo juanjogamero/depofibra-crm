@@ -211,12 +211,172 @@ export function OpportunityDetail(){
  </div>;
 }
 
+type QuoteListFilter = 'Todos' | QuoteStatus;
+type QuoteListSort = 'Recientes'|'Antiguos'|'Mayor importe'|'Menor importe';
 export function Quotes(){
- const {data}=useCrm();const nav=useNavigate();const [search,setSearch]=useState('');
- const quotes=data.quotes.filter(q=>(q.id+q.name+q.product).toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')));
- return <div className="page"><PageHeader eyebrow="VENTAS · PRECIOS" title="Presupuestos" subtitle="Mensajes comerciales rápidos, importe ofertado y seguimiento de aceptación." actions={<Link className="btn btn-primary" to="/presupuestos/nuevo"><Plus size={17}/>Nuevo presupuesto</Link>}/>
- <div className="section-metrics"><span><strong>{data.quotes.length}</strong> presupuestos</span><i/><span><strong>{data.quotes.filter(q=>q.status==='Enviado').length}</strong> esperando respuesta</span><i/><span><strong>{data.quotes.filter(q=>q.status==='Aceptado').length}</strong> aceptados</span></div>
- <Panel className="table-panel"><div className="table-toolbar"><div className="table-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar presupuesto, nombre o producto..."/></div><Pill tone="blue">Envío como mensaje</Pill></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Referencia</th><th>Consulta / comprador</th><th>Producto</th><th>Importe ofertado</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>{quotes.map(q=><tr className="clickable-row" key={q.id} onClick={()=>nav('/presupuestos/'+q.id)}><td><strong>{q.id}</strong></td><td>{q.name}</td><td>{q.product}</td><td className="price-cell">{money(q.amount)}</td><td><Status value={q.status}/></td><td>{dateText(q.createdAt)}</td><td><ChevronRight size={16}/></td></tr>)}</tbody></table></div><div className="table-footer">El importe de tu comisión se guarda de forma privada y no se incluye en el mensaje.</div></Panel></div>;
+ const {data}=useCrm();
+ const nav=useNavigate();
+ const [search,setSearch]=useState('');
+ const [phase,setPhase]=useState<QuoteListFilter>('Todos');
+ const [sort,setSort]=useState<QuoteListSort>('Recientes');
+ const [opportunityFilter,setOpportunityFilter]=useState('Todas las solicitudes');
+ const [dateFrom,setDateFrom]=useState('');
+ const [dateTo,setDateTo]=useState('');
+ const [datesOpen,setDatesOpen]=useState(false);
+ const [filtersOpen,setFiltersOpen]=useState(false);
+ const query=search.trim().toLocaleLowerCase('es-ES');
+ const groups:{id:QuoteListFilter;label:string}[]=[
+   {id:'Todos',label:'Todos'},
+   {id:'Borrador',label:'Borradores'},
+   {id:'Enviado',label:'Enviados'},
+   {id:'Aceptado',label:'Aceptados'},
+   {id:'Rechazado',label:'Rechazados'}
+ ];
+ const quotes=data.quotes.filter(q=>{
+   const opportunity=data.opportunities.find(o=>o.id===q.opportunityId);
+   return (phase==='Todos'||q.status===phase)
+     &&(opportunityFilter==='Todas las solicitudes'||q.opportunityId===opportunityFilter)
+     &&(!dateFrom||q.createdAt.slice(0,10)>=dateFrom)
+     &&(!dateTo||q.createdAt.slice(0,10)<=dateTo)
+     &&[q.id,q.name,q.product,q.opportunityId,opportunity?.destination||'',opportunity?.channel||'']
+         .join(' ').toLocaleLowerCase('es-ES').includes(query);
+ }).sort((a,b)=>{
+   if(sort==='Mayor importe')return b.amount-a.amount||(b.createdAt.localeCompare(a.createdAt));
+   if(sort==='Menor importe')return a.amount-b.amount||(b.createdAt.localeCompare(a.createdAt));
+   const comparison=b.createdAt.localeCompare(a.createdAt);
+   return sort==='Antiguos'?-comparison:comparison;
+ });
+ const activeFilters=Boolean(query||phase!=='Todos'||sort!=='Recientes'||opportunityFilter!=='Todas las solicitudes'||dateFrom||dateTo);
+ const clearFilters=()=>{setSearch('');setPhase('Todos');setSort('Recientes');setOpportunityFilter('Todas las solicitudes');setDateFrom('');setDateTo('');};
+ const dateLabel=dateFrom&&dateTo?formatRangeDate(dateFrom)+' – '+formatRangeDate(dateTo):dateFrom?'Desde '+formatRangeDate(dateFrom):dateTo?'Hasta '+formatRangeDate(dateTo):'Todas las fechas';
+ const exportQuotes=()=>{
+   if(!quotes.length)return;
+   const headers=['Referencia','Solicitud vinculada','Cliente','Producto','Importe ofertado (EUR)','Estado','Fecha de registro'];
+   const safeCell=(text:string)=>{
+     const value=String(text??'');
+     const safe=/^\s*[=+@-]/.test(value)?"'"+value:value;
+     return '"'+safe.replace(/"/g,'""')+'"';
+   };
+   const rows=quotes.map(q=>[q.id,q.opportunityId,q.name,q.product,q.amount.toFixed(2).replace('.',','),q.status,q.createdAt.slice(0,10)]);
+   const csv='\uFEFF'+[headers,...rows].map(row=>row.map(safeCell).join(';')).join('\r\n');
+   const file=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(file);
+   const link=document.createElement('a');
+   link.href=url;link.download='depofibra-presupuestos-'+today()+'.csv';
+   document.body.appendChild(link);link.click();link.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+ return <div className="page page-opportunities page-quotes">
+   <div className="op-screen-heading">
+     <div className="op-heading-copy">
+       <h1 id="quotes-title">Presupuestos</h1>
+       <p>Ofertas económicas preparadas para las solicitudes recibidas. Consulta importes, estados y seguimiento comercial.</p>
+     </div>
+     <div className="op-heading-actions">
+       <button type="button" className="op-export-button" disabled={!quotes.length} onClick={exportQuotes}
+         title="Exportar únicamente los presupuestos filtrados, sin costes, comisiones ni transporte interno"><Download size={16}/>Exportar</button>
+       <Link className="op-new-button" to="/presupuestos/nuevo"><Plus size={17}/>Nuevo presupuesto</Link>
+     </div>
+   </div>
+   <nav className="op-phase-tabs" aria-label="Filtrar presupuestos por estado">
+     {groups.map(g=><button type="button" key={g.id}
+       className={'op-phase-tab'+(phase===g.id?' is-active':'')}
+       aria-pressed={phase===g.id} onClick={()=>setPhase(g.id)}>
+       <span>{g.label}</span><strong>{g.id==='Todos'?data.quotes.length:data.quotes.filter(q=>q.status===g.id).length}</strong>
+     </button>)}
+   </nav>
+   <div className="op-searchbar">
+     <label className="op-search">
+       <Search size={18} aria-hidden="true"/>
+       <input type="search" aria-label="Buscar presupuesto, cliente o producto" value={search}
+         onChange={e=>setSearch(e.target.value)} placeholder="Buscar presupuesto, cliente o producto"/>
+       {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
+     </label>
+     <div className="op-searchbar-actions">
+       <div className="op-date-range-control">
+         <button type="button" className={'op-date-range-trigger'+(dateFrom||dateTo?' has-range':'')}
+           aria-expanded={datesOpen} aria-controls="quotes-date-range"
+           onClick={()=>{setDatesOpen(v=>!v);setFiltersOpen(false)}}>
+           <CalendarDays size={17}/><span>{dateLabel}</span><ChevronDown size={15}/>
+         </button>
+         {datesOpen&&<div className="op-date-popover" id="quotes-date-range" role="group" aria-label="Filtrar por fecha de presupuesto">
+           <strong>Fecha del presupuesto</strong>
+           <div className="op-date-fields">
+             <label><span>Desde</span><input type="date" value={dateFrom} max={dateTo||undefined}
+               aria-label="Presupuestos desde" onChange={e=>setDateFrom(e.target.value)}/></label>
+             <label><span>Hasta</span><input type="date" value={dateTo} min={dateFrom||undefined}
+               aria-label="Presupuestos hasta" onChange={e=>setDateTo(e.target.value)}/></label>
+           </div>
+           <div className="op-date-buttons">
+             <button type="button" onClick={()=>{setDateFrom('');setDateTo('')}}>Borrar fechas</button>
+             <button type="button" onClick={()=>setDatesOpen(false)}>Listo</button>
+           </div>
+         </div>}
+       </div>
+       <button type="button" className={'op-filter-toggle'+(filtersOpen?' is-active':'')}
+         aria-expanded={filtersOpen} aria-controls="quotes-advanced-filters"
+         onClick={()=>{setFiltersOpen(v=>!v);setDatesOpen(false)}}>
+         <Filter size={16}/>Filtros
+       </button>
+       {activeFilters&&<button type="button" className="op-reset-filters" onClick={clearFilters}>Limpiar</button>}
+     </div>
+   </div>
+   {filtersOpen&&<div className="op-advanced-filters" id="quotes-advanced-filters">
+     <label><span>Solicitud vinculada</span>
+       <select value={opportunityFilter} aria-label="Filtrar presupuestos por solicitud"
+         onChange={e=>setOpportunityFilter(e.target.value)}>
+         <option>Todas las solicitudes</option>
+         {data.opportunities.filter(o=>data.quotes.some(q=>q.opportunityId===o.id)).map(o=>
+           <option key={o.id} value={o.id}>{o.id} · {o.name}</option>)}
+       </select>
+     </label>
+     <label><span>Ordenar por</span>
+       <select value={sort} aria-label="Ordenar presupuestos" onChange={e=>setSort(e.target.value as QuoteListSort)}>
+         <option>Recientes</option><option>Antiguos</option><option>Mayor importe</option><option>Menor importe</option>
+       </select>
+     </label>
+   </div>}
+   <section className="op-table-panel" aria-labelledby="quotes-title">
+     <div className="op-table-scroll" tabIndex={0} role="region" aria-label="Lista de presupuestos con desplazamiento vertical">
+       <table className="op-data-table quote-data-table">
+         <thead><tr>
+           <th scope="col" className="op-col-id">Referencia</th>
+           <th scope="col" className="op-col-client">Cliente</th>
+           <th scope="col" className="op-col-product">Producto presupuestado</th>
+           <th scope="col" className="quote-col-amount">Importe ofertado</th>
+           <th scope="col" className="op-col-date">Fecha</th>
+           <th scope="col" className="op-col-status">Estado</th>
+           <th scope="col" className="op-col-open" aria-label="Acceso a la ficha"></th>
+         </tr></thead>
+         <tbody>{quotes.map(q=>{
+           const tone=q.status==='Borrador'?'draft':q.status==='Enviado'?'sent':q.status==='Aceptado'?'won':'lost';
+           const related=data.opportunities.find(o=>o.id===q.opportunityId);
+           return <tr className="op-clickable-row" key={q.id} onClick={()=>nav('/presupuestos/'+q.id)}>
+             <td className="op-col-id"><span className="op-reference">{q.id}</span></td>
+             <td className="op-col-client"><div className="op-client-cell">
+               <Initials name={q.name}/>
+               <div className="op-client-copy">
+                 <Link className="op-client-name" to={'/presupuestos/'+q.id} onClick={e=>e.stopPropagation()}>{q.name}</Link>
+                 <span className="op-client-sub">{q.opportunityId}{related?.destination?' · '+related.destination:''}</span>
+               </div>
+             </div></td>
+             <td className="op-col-product"><span className="op-product" title={q.product}>{q.product}</span></td>
+             <td className="quote-col-amount"><strong className="quote-amount">{decimal(q.amount)}</strong></td>
+             <td className="op-col-date"><time dateTime={q.createdAt}>{dateText(q.createdAt)}</time></td>
+             <td className="op-col-status"><span className={'op-status-pill is-'+tone}>{q.status}</span></td>
+             <td className="op-col-open"><Link className="op-row-open" to={'/presupuestos/'+q.id}
+               onClick={e=>e.stopPropagation()} aria-label={'Abrir presupuesto '+q.id}><ChevronRight size={17}/></Link></td>
+           </tr>;
+         })}</tbody>
+       </table>
+       {!quotes.length&&<Empty title="No hay presupuestos" body="Prueba otra búsqueda o modifica los filtros."/>}
+     </div>
+     <footer className="op-table-footer">
+       Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.length}</strong> presupuestos
+       <span className="quote-footer-note">Importes ofertados registrados · Estados de demostración</span>
+     </footer>
+   </section>
+ </div>;
 }
 
 export function QuoteNew(){
