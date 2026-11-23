@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Check, CheckCircle2, ChevronRight, CircleAlert, FileText, Filter, MapPin, MessageCircle, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
@@ -11,6 +11,7 @@ const quoteStatuses:QuoteStatus[]=['Borrador','Enviado','Aceptado','Rechazado'];
 
 type OpportunityQuickFilter = 'Todas'|'Nueva'|'En gestión'|'Por presupuestar'|'Presupuesto enviado'|'Aceptada'|'Perdida';
 type OpportunitySort = 'Recientes'|'Antiguas'|'Próximo seguimiento';
+const formatRangeDate=(iso:string)=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T12:00:00'));
 
 export function Opportunities(){
  const {data,addOpportunity}=useCrm();
@@ -24,6 +25,7 @@ export function Opportunities(){
  const [dateFrom,setDateFrom]=useState('');
  const [dateTo,setDateTo]=useState('');
  const [filtersOpen,setFiltersOpen]=useState(false);
+ const [datesOpen,setDatesOpen]=useState(false);
  const [modal,setModal]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const isClosed=(s:OpportunityStatus)=>s==='Aceptada'||s==='Perdida';
@@ -55,16 +57,40 @@ export function Opportunities(){
    return sort==='Antiguas'?-diff:diff;
  });
  const hasFilters=Boolean(search.trim()||quick!=='Todas'||status!=='Todos los estados'||channel!=='Todos los canales'||sort!=='Recientes'||overdueOnly||dateFrom||dateTo);
+ const dateRangeLabel=dateFrom&&dateTo?formatRangeDate(dateFrom)+' – '+formatRangeDate(dateTo):dateFrom?'Desde '+formatRangeDate(dateFrom):dateTo?'Hasta '+formatRangeDate(dateTo):'Todas las fechas';
+ const exportFilteredCsv=()=>{
+   if(!list.length)return;
+   const headers=['Referencia','Cliente','Producto','Capacidad','Localidad','Canal','Recibida','Estado','Próxima acción','Fecha de seguimiento'];
+   const safeCell=(value:string)=>{
+     const normalized=String(value??'');
+     const safe=/^\s*[=+@-]/.test(normalized)?"'"+normalized:normalized;
+     return '"'+safe.replace(/"/g,'""')+'"';
+   };
+   const rows=list.map(o=>[o.id,o.name,o.product,o.capacity,o.destination,o.channel,(o.receivedAt||o.createdAt).slice(0,10),o.status,o.nextAction,o.nextDate]);
+   const csv='\uFEFF'+[headers,...rows].map(row=>row.map(safeCell).join(';')).join('\r\n');
+   const file=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(file);
+   const anchor=document.createElement('a');
+   anchor.href=url;
+   anchor.download='depofibra-oportunidades-'+today()+'.csv';
+   document.body.appendChild(anchor);
+   anchor.click();
+   anchor.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
  const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
  const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial'});setModal(false);setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
  return <div className="page page-opportunities">
    <div className="op-screen-heading">
      <div className="op-heading-copy">
        <h1 id="op-title">Oportunidades</h1>
-       <p>Consultas de personas y empresas que solicitan información sobre nuestros productos o un presupuesto.</p>
-       <span className="op-heading-count">{data.opportunities.length} {data.opportunities.length===1?'solicitud registrada':'solicitudes registradas'}</span>
+       <p>Solicitudes de clientes potenciales que entran para informarse o pedir precio.</p>
      </div>
-     <button type="button" className="op-new-button" onClick={()=>setModal(true)}><Plus size={16}/>Registrar solicitud</button>
+     <div className="op-heading-actions">
+       <button type="button" className="op-export-button" onClick={exportFilteredCsv} disabled={!list.length}
+         title="Exportar las solicitudes que coinciden con los filtros en un archivo CSV"><Download size={16}/>Exportar</button>
+       <button type="button" className="op-new-button" onClick={()=>setModal(true)}><Plus size={17}/>Nueva solicitud</button>
+     </div>
    </div>
    <nav className="op-phase-tabs" aria-label="Filtrar oportunidades por estado">
      {groups.map(g=><button type="button" key={g.id}
@@ -77,16 +103,35 @@ export function Opportunities(){
    </nav>
    <div className="op-searchbar">
      <label className="op-search">
-       <Search size={17} aria-hidden="true"/>
+       <Search size={18} aria-hidden="true"/>
        <input type="search" value={search} aria-label="Buscar por cliente, producto, localidad o número"
-         onChange={e=>setSearch(e.target.value)} placeholder="Buscar por cliente, producto, localidad o n.º"/>
+         onChange={e=>setSearch(e.target.value)} placeholder="Buscar cliente, producto o localidad"/>
        {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
      </label>
-     <button type="button" className={'op-filter-toggle'+(filtersOpen?' is-active':'')} aria-expanded={filtersOpen}
-       aria-controls="op-advanced-filters" onClick={()=>setFiltersOpen(x=>!x)}>
-       <Filter size={15}/>Filtros
-     </button>
-     {hasFilters&&<button type="button" className="op-reset-filters" onClick={clearFilters}>Limpiar filtros</button>}
+     <div className="op-searchbar-actions">
+       <div className="op-date-range-control">
+         <button type="button" className={'op-date-range-trigger'+(dateFrom||dateTo?' has-range':'')} aria-expanded={datesOpen}
+           aria-controls="op-date-range-panel" onClick={()=>{setDatesOpen(v=>!v);setFiltersOpen(false);}}>
+           <CalendarDays size={17}/><span>{dateRangeLabel}</span><ChevronDown size={15}/>
+         </button>
+         {datesOpen&&<div className="op-date-popover" id="op-date-range-panel" role="group" aria-label="Filtrar solicitudes por fecha de entrada">
+           <strong>Fecha de entrada</strong>
+           <div className="op-date-fields">
+             <label><span>Desde</span><input type="date" aria-label="Entrada desde" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
+             <label><span>Hasta</span><input type="date" aria-label="Entrada hasta" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
+           </div>
+           <div className="op-date-buttons">
+             <button type="button" onClick={()=>{setDateFrom('');setDateTo('');}}>Borrar fechas</button>
+             <button type="button" onClick={()=>setDatesOpen(false)}>Listo</button>
+           </div>
+         </div>}
+       </div>
+       <button type="button" className={'op-filter-toggle'+(filtersOpen?' is-active':'')} aria-expanded={filtersOpen}
+         aria-controls="op-advanced-filters" onClick={()=>{setFiltersOpen(v=>!v);setDatesOpen(false);}}>
+         <Filter size={16}/>Filtros
+       </button>
+       {hasFilters&&<button type="button" className="op-reset-filters" onClick={clearFilters}>Limpiar</button>}
+     </div>
    </div>
    {filtersOpen&&<div className="op-advanced-filters" id="op-advanced-filters">
      <label><span>Canal</span><select aria-label="Filtrar por canal" value={channel} onChange={e=>setChannel(e.target.value)}>
@@ -95,8 +140,6 @@ export function Opportunities(){
      <label><span>Estado exacto</span><select aria-label="Filtrar por estado exacto" value={status} onChange={e=>setStatus(e.target.value)}>
        <option>Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}
      </select></label>
-     <label><span>Desde</span><input type="date" aria-label="Entrada desde" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
-     <label><span>Hasta</span><input type="date" aria-label="Entrada hasta" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
      <label><span>Orden</span><select aria-label="Ordenar solicitudes" value={sort} onChange={e=>setSort(e.target.value as OpportunitySort)}>
        <option>Recientes</option><option>Antiguas</option><option>Próximo seguimiento</option>
      </select></label>

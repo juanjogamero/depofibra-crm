@@ -555,3 +555,348 @@
 @media (prefers-reduced-motion:reduce) {
   .page-opportunities .op-phase-tab,.page-opportunities .op-data-table tbody td {transition:none;}
 }
+
+
+/* REG-0098 · Cabecera/filtros fieles a la referencia aceptada por Dirección.
+   Estilo contenido solamente en la ruta de Oportunidades.
+   El logo corporativo YA está en el menú: no se duplica en el contenido. */
+.app-body.is-opportunities .page.page-opportunities {
+  background:linear-gradient(135deg,#fff 36%,#f5f9fd 100%);
+}
+.page-opportunities .op-screen-heading {
+  min-height:94px;
+  margin-bottom:17px;
+  align-items:flex-start;
+  gap:20px;
+}
+.page-opportunities .op-heading-copy {gap:7px;justify-content:center;align-self:center;}
+.page-opportunities .op-heading-copy h1 {
+  font-size:clamp(26px,2.3vw,33px);
+  font-weight:800;
+  letter-spacing:-.045em;
+  line-height:1.16;
+  color:#002d59;
+}
+.page-opportunities .op-heading-copy p {
+  max-width:690px;
+  font-size:13.3px;
+  font-weight:500;
+  line-height:1.45;
+  color:#647b91;
+}
+.page-opportunities .op-heading-actions {
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:9px;
+  align-self:center;
+}
+.page-opportunities .op-export-button,
+.page-opportunities .op-new-button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:42px;
+  padding:10px 15px;
+  border-radius:9px;
+  font:750 12.4px/1.25 Inter,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.page-opportunities .op-export-button {
+  border:1px solid #cfdde9;
+  color:#01488e;
+  background:#fff;
+}
+.page-opportunities .op-export-button:hover:not(:disabled),
+.page-opportunities .op-export-button:focus-visible {
+  background:#eaf2fb;
+  border-color:#9bbbd6;
+}
+.page-opportunities .op-export-button:disabled {
+  cursor:not-allowed;
+  color:#99aec0;
+  background:#f6f8fb;
+}
+.page-opportunities .op-new-button {
+  border-color:#01488e;
+  background:#01488e;
+  color:#fff;
+}
+.page-opportunities .op-new-button:hover,
+.page-opportunities .op-new-button:focus-visible {
+  border-color:#002d59;
+  background:#002d59;
+}
+
+/* Navegación subrayada en lugar de una fila de tarjetas separadas. */
+.page-opportunities .op-phase-tabs {
+  display:flex;
+  flex-wrap:wrap;
+  flex:0 0 auto;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:0 clamp(6px,1.2vw,18px);
+  min-width:0;
+  min-height:55px;
+  padding:0 0 1px;
+  margin:0 0 19px;
+  border-bottom:1px solid #e1e9f1;
+}
+.page-opportunities .op-phase-tab {
+  position:relative;
+  flex:0 0 auto;
+  min-height:54px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 6px 13px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#566d84;
+  font:650 12.4px/1.3 Inter,sans-serif;
+  white-space:nowrap;
+}
+.page-opportunities .op-phase-tab:hover {
+  border:0;
+  background:transparent;
+  color:#01488e;
+}
+.page-opportunities .op-phase-tab strong {
+  min-width:23px;
+  height:23px;
+  padding:0 6px;
+  border-radius:999px;
+  background:#e8f1fb;
+  color:#33668f;
+  font:750 11px/1 Inter,sans-serif;
+}
+.page-opportunities .op-phase-new strong,
+.page-opportunities .op-phase-working strong,
+.page-opportunities .op-phase-quote strong,
+.page-opportunities .op-phase-sent strong,
+.page-opportunities .op-phase-won strong,
+.page-opportunities .op-phase-lost strong {
+  background:#e8f1fb;
+  color:#33668f;
+}
+.page-opportunities .op-phase-tab.is-active {
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:#01488e;
+  font-weight:800;
+}
+.page-opportunities .op-phase-tab.is-active::after {
+  position:absolute;
+  bottom:-2px;
+  left:2px;
+  right:2px;
+  height:3px;
+  border-radius:2px;
+  background:#01488e;
+  content:"";
+}
+.page-opportunities .op-phase-tab.is-active strong {
+  background:#dcebf9;
+  color:#01488e;
+}
+.page-opportunities .op-phase-tab.is-active>span {
+  padding:7px 0;
+}
+
+/* Barra de búsqueda + rango real de fechas + filtros, alineada como referencia. */
+.page-opportunities .op-searchbar {
+  position:relative;
+  z-index:10;
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:space-between;
+  gap:13px;
+  min-height:43px;
+  margin:0 0 19px;
+}
+.page-opportunities .op-search {
+  flex:0 1 412px;
+  height:42px;
+  min-width:0;
+  padding:0 13px;
+  border-radius:9px;
+  border-color:#d4e0ed;
+  color:#6e8ba4;
+  background:#fff;
+}
+.page-opportunities .op-search input {
+  font-size:12.7px;
+  font-weight:500;
+}
+.page-opportunities .op-searchbar-actions {
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  min-width:0;
+  margin-left:auto;
+}
+.page-opportunities .op-date-range-control {
+  position:relative;
+  z-index:14;
+  flex:0 0 auto;
+}
+.page-opportunities .op-date-range-trigger {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:42px;
+  max-width:320px;
+  padding:9px 12px;
+  border:1px solid #d4e0ed;
+  border-radius:9px;
+  background:#fff;
+  color:#214868;
+  font:700 12px/1.3 Inter,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.page-opportunities .op-date-range-trigger span {
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.page-opportunities .op-date-range-trigger svg:first-child {flex:0 0 auto;color:#01488e;}
+.page-opportunities .op-date-range-trigger svg:last-child {flex:0 0 auto;color:#7292a9;}
+.page-opportunities .op-date-range-trigger:hover,
+.page-opportunities .op-date-range-trigger.has-range {
+  border-color:#a9c9e4;
+  background:#f8fbff;
+}
+.page-opportunities .op-date-popover {
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:50;
+  width:min(328px,calc(100vw - 30px));
+  max-width:calc(100vw - 30px);
+  padding:15px;
+  border:1px solid #dce7f2;
+  border-radius:11px;
+  background:#fff;
+  box-shadow:0 14px 36px rgba(0,45,89,.14);
+}
+.page-opportunities .op-date-popover>strong {
+  display:block;
+  margin-bottom:12px;
+  color:#002d59;
+  font:800 13px/1.3 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-opportunities .op-date-fields {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+}
+.page-opportunities .op-date-fields label {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+  color:#648099;
+  font:650 11.2px/1.3 Inter,sans-serif;
+}
+.page-opportunities .op-date-fields input {
+  width:100%;
+  height:37px;
+  min-width:0;
+  padding:6px 8px;
+  border:1px solid #dbe7f1;
+  border-radius:7px;
+  background:#fff;
+  color:#214c73;
+  color-scheme:light;
+  font:600 11px Inter,sans-serif;
+}
+.page-opportunities .op-date-buttons {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:14px;
+}
+.page-opportunities .op-date-buttons button {
+  min-height:34px;
+  padding:7px 11px;
+  border:1px solid #dae6f0;
+  border-radius:7px;
+  color:#01488e;
+  background:#fff;
+  font:750 11.5px Inter,sans-serif;
+  cursor:pointer;
+}
+.page-opportunities .op-date-buttons button:last-child {
+  border-color:#01488e;
+  background:#01488e;
+  color:#fff;
+}
+.page-opportunities .op-date-buttons button:hover {filter:brightness(.95);}
+.page-opportunities .op-filter-toggle {
+  min-height:42px;
+  border-radius:9px;
+  padding:9px 14px;
+  font-size:12.2px;
+  color:#01488e;
+  background:#fff;
+}
+.page-opportunities .op-filter-toggle:hover,
+.page-opportunities .op-filter-toggle.is-active {
+  background:#eaf2fb;
+}
+.page-opportunities .op-reset-filters {
+  min-height:38px;
+  padding:8px 5px;
+  font-size:11.5px;
+}
+.page-opportunities .op-advanced-filters {
+  margin:0 0 14px;
+  padding:13px 15px;
+  border-color:#dce8f2;
+  background:#fbfdff;
+}
+
+/* Mantener tabla sin scroll lateral y con altura intrínseca por número de filas.
+   La estética de las filas NO se modifica en este ajuste de filtros. */
+@media (max-width:1220px) {
+  .page-opportunities .op-screen-heading {min-height:79px;margin-bottom:13px;}
+  .page-opportunities .op-heading-copy h1 {font-size:27px;}
+  .page-opportunities .op-phase-tabs {column-gap:7px;margin-bottom:14px;}
+  .page-opportunities .op-phase-tab {font-size:11.6px;padding-inline:5px;min-height:46px;}
+  .page-opportunities .op-phase-tab strong {height:21px;min-width:21px;font-size:10.5px;}
+}
+@media (max-width:940px) {
+  .page-opportunities .op-screen-heading {align-items:flex-start;flex-wrap:wrap;min-height:0;gap:9px;}
+  .page-opportunities .op-heading-actions {align-self:flex-start;margin-left:auto;}
+  .page-opportunities .op-screen-heading {padding-bottom:5px;}
+  .page-opportunities .op-searchbar {flex-wrap:wrap;gap:10px;}
+  .page-opportunities .op-search {flex:1 1 100%;max-width:none;}
+  .page-opportunities .op-searchbar-actions {flex:1 1 100%;justify-content:flex-end;}
+}
+@media (max-width:660px) {
+  .page-opportunities .op-screen-heading {padding-right:43px;margin-bottom:8px;gap:9px;}
+  .page-opportunities .op-heading-copy h1 {font-size:22px;}
+  .page-opportunities .op-heading-copy p {font-size:11.4px;}
+  .page-opportunities .op-heading-actions {margin-left:0;gap:6px;}
+  .page-opportunities .op-export-button,
+  .page-opportunities .op-new-button {min-height:35px;padding:7px 9px;font-size:10.5px;gap:5px;}
+  .page-opportunities .op-phase-tabs {min-height:0;gap:0 7px;margin-bottom:10px;}
+  .page-opportunities .op-phase-tab {min-height:36px;padding:6px 4px 8px;font-size:10.4px;gap:5px;}
+  .page-opportunities .op-phase-tab strong {min-width:19px;height:19px;padding-inline:4px;font-size:9.8px;}
+  .page-opportunities .op-searchbar {margin-bottom:11px;gap:7px;}
+  .page-opportunities .op-search {height:37px;flex-basis:100%;}
+  .page-opportunities .op-search input {font-size:11.2px;}
+  .page-opportunities .op-searchbar-actions {gap:6px;}
+  .page-opportunities .op-date-range-trigger,
+  .page-opportunities .op-filter-toggle {min-height:36px;padding:6px 9px;font-size:10.7px;}
+  .page-opportunities .op-date-range-trigger {max-width:222px;gap:6px;}
+  .page-opportunities .op-reset-filters {font-size:10px;}
+}
