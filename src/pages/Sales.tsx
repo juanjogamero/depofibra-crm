@@ -156,7 +156,7 @@ export function Opportunities(){
            <th className="op-col-city" scope="col">Localidad</th>
            <th className="op-col-date" scope="col">Recibida</th>
            <th className="op-col-status" scope="col">Estado</th>
-           <th className="op-col-open" scope="col"><span className="sr-only">Abrir ficha</span></th>
+           <th className="op-col-open" scope="col" aria-label="Acceso a la ficha"></th>
          </tr></thead>
          <tbody>{list.map(o=>{
            const tone=o.status==='Nueva'?'new':o.status==='Aceptada'?'won':o.status==='Perdida'?'lost':o.status==='Por presupuestar'?'quote':o.status==='Presupuesto enviado'?'sent':'working';
