@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlarmClock, ArrowRight, CalendarDays, ChevronLeft, ChevronRight,
-  ClipboardList, FileText, Inbox, Plus
+  AlarmClock, ArrowRight, ChevronLeft, ChevronRight,
+  FileText, Inbox, Plus
 } from 'lucide-react';
 import { useCrm } from '../store';
-import { dateText, dayDiff, today, type Opportunity, type Quote, type Order, type Task } from '../domain';
+import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
 
 type Period = '8 semanas' | '6 meses';
 type Series = { label: string; consultations: number; quotations: number };
@@ -178,35 +178,48 @@ function OpportunityDonut({ opportunities }: { opportunities: Opportunity[] }) {
   </section>;
 }
 
-function taskDestination(task: Task, opportunities: Opportunity[], orders: Order[]): string {
-  const opp = opportunities.find(o => task.context.includes(o.id));
-  if (opp) return '/oportunidades/' + opp.id;
-  const order = orders.find(o => task.context.includes(o.id));
-  if (order) return '/pedidos/' + order.id;
-  return '/agenda';
+function requestInitials(name: string): string {
+  const words = name.replace(/\s*·\s*ejemplo$/i, '').trim().split(/\s+/).filter(Boolean);
+  return words.length > 1
+    ? (words[0][0] + words[words.length - 1][0]).toLocaleUpperCase('es-ES')
+    : (words[0] || '?').slice(0, 2).toLocaleUpperCase('es-ES');
 }
 
-function PendingActions({ tasks, opportunities, orders }: { tasks: Task[]; opportunities: Opportunity[]; orders: Order[] }) {
-  const upcoming = tasks.filter(t => !t.done)
-    .slice().sort((a,b)=>a.due.localeCompare(b.due))
-    .slice(0,4);
-  return <section className="hr-right-card hr-tasks" aria-labelledby="hr-tasks-heading">
+function requestDate(o: Opportunity) {
+  const received = o.receivedAt ? new Date(o.receivedAt) : null;
+  const hasTime = received !== null && !Number.isNaN(received.getTime());
+  const date = hasTime ? received! : new Date(o.createdAt + 'T12:00:00');
+  return {
+    shortDate: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', ''),
+    shortTime: hasTime ? date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : null,
+    fullDate: date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+  };
+}
+
+function RecentRequests({ opportunities }: { opportunities: Opportunity[] }) {
+  const recent = [...opportunities]
+    .sort((a, b) => (b.receivedAt || b.createdAt).localeCompare(a.receivedAt || a.createdAt))
+    .slice(0, 4);
+  return <section className="hr-right-card hr-recent" aria-labelledby="hr-recent-heading">
     <div className="hr-panel-heading">
-      <div><h2 id="hr-tasks-heading">Próximas acciones</h2><p>Llamadas y seguimientos</p></div>
-      <Link to="/agenda" aria-label="Abrir agenda"><CalendarDays size={17}/></Link>
+      <div><h2 id="hr-recent-heading">Últimas solicitudes</h2><p>Entradas recientes por canal</p></div>
+      <Link to="/oportunidades" aria-label="Ver todas las solicitudes"><ArrowRight size={17}/></Link>
     </div>
-    <div className="hr-tasks-list">
-      {upcoming.length ? upcoming.map(t => {
-        const initials = t.context.startsWith('OP-') ? 'OP' : t.context.startsWith('PED-') ? 'PD' : 'TA';
-        const state = t.due < today() ? 'Vencida' : t.due === today() ? 'Hoy' : 'Pendiente';
-        return <Link key={t.id} to={taskDestination(t,opportunities,orders)} className="hr-task-row">
-          <span className="hr-task-avatar" aria-hidden="true">{initials}</span>
-          <span className="hr-task-main"><strong>{t.title}</strong><small>{t.context}</small></span>
-          <span className="hr-task-date"><strong>{dateText(t.due)}</strong><small className={state==='Vencida'?'is-late':''}>{state}</small></span>
+    <div className="hr-recent-list">
+      {recent.length ? recent.map(o => {
+        const when = requestDate(o);
+        return <Link key={o.id} to={'/oportunidades/' + o.id} className="hr-recent-row"
+          aria-label={'Abrir solicitud de ' + o.name + ', ' + o.channel + ', ' + when.fullDate + (when.shortTime ? ' a las ' + when.shortTime : '')}>
+          <span className="hr-recent-avatar" aria-hidden="true">{requestInitials(o.name)}</span>
+          <span className="hr-recent-main"><strong title={o.name}>{o.name}</strong><small>{o.channel}</small></span>
+          <time className="hr-recent-date" dateTime={o.receivedAt || o.createdAt} title={when.fullDate}>
+            <span>{when.shortDate}</span>
+            {when.shortTime && <small>{when.shortTime}</small>}
+          </time>
         </Link>;
-      }) : <div className="hr-empty">No hay acciones pendientes.</div>}
+      }) : <div className="hr-empty">Todavía no hay solicitudes registradas.</div>}
     </div>
-    <Link className="hr-tasks-footer" to="/agenda"><Plus size={16}/> Abrir agenda y añadir tarea</Link>
+    <Link className="hr-recent-footer" to="/oportunidades">Ver todas las solicitudes <ArrowRight size={16}/></Link>
   </section>;
 }
 
@@ -305,12 +318,12 @@ export default function Dashboard() {
           <DashboardBars points={periods}/>
         </section>
       </div>
-      <aside className="hr-side-column" aria-label="Agenda y calendario">
+      <aside className="hr-side-column" aria-label="Solicitudes recientes y calendario">
         <div className="hr-side-top">
           <span>Planificación</span>
           <Link to="/oportunidades/nueva"><Plus size={16}/> Nueva solicitud</Link>
         </div>
-        <PendingActions tasks={data.tasks} opportunities={data.opportunities} orders={data.orders}/>
+        <RecentRequests opportunities={data.opportunities}/>
         <MiniCalendar tasks={data.tasks}/>
       </aside>
     </div>

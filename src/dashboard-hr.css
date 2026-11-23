@@ -475,88 +475,94 @@
   color:#3089bd;
   background:#f1f8fd;
 }
-.dashboard-hr .hr-tasks-list {
+/* Solicitudes recientes: lista limpia de cliente, canal y entrada. */
+.dashboard-hr .hr-recent-list {
   display:flex;
   flex:1 1 auto;
   min-height:0;
   flex-direction:column;
-  justify-content:stretch;
   padding:0 16px;
 }
-.dashboard-hr .hr-task-row {
+.dashboard-hr .hr-recent-row {
   display:flex;
   flex:1 1 0;
-  min-height:51px;
+  min-height:48px;
   align-items:center;
-  gap:10px;
+  gap:11px;
   padding:7px 0;
-  border-bottom:1px solid #e9eef4;
+  border-bottom:1px solid #e9eef2;
   transition:background-color 150ms ease;
 }
-.dashboard-hr .hr-task-row:last-child { border-bottom:0; }
-.dashboard-hr .hr-task-row:hover { background:#f8fcff; }
-.dashboard-hr .hr-task-avatar {
-  flex:0 0 34px;
-  width:34px;
-  height:34px;
+.dashboard-hr .hr-recent-row:last-child { border-bottom:0; }
+.dashboard-hr .hr-recent-row:hover,
+.dashboard-hr .hr-recent-row:focus-visible { background:#f7fafc; }
+.dashboard-hr .hr-recent-avatar {
+  flex:0 0 35px;
+  width:35px;
+  height:35px;
   display:grid;
   place-items:center;
+  border:1px solid #e1ebf2;
   border-radius:50%;
-  background:#e4f1fc;
-  color:#277cad;
-  font-size:10px;
+  background:#eaf3f9;
+  color:#235e8c;
+  font-size:10.5px;
   font-weight:800;
+  letter-spacing:.1px;
 }
-.dashboard-hr .hr-task-row:nth-child(2n) .hr-task-avatar { background:#e9f7f3; color:#338e7b; }
-.dashboard-hr .hr-task-main {
+.dashboard-hr .hr-recent-row:nth-child(even) .hr-recent-avatar {
+  background:#edf5f2;
+  border-color:#e4eee9;
+  color:#467c6e;
+}
+.dashboard-hr .hr-recent-main {
   display:flex;
   flex:1 1 auto;
   min-width:0;
   flex-direction:column;
-  gap:3px;
+  gap:4px;
 }
-.dashboard-hr .hr-task-main strong {
-  color:#27425b;
-  font-size:12px;
+.dashboard-hr .hr-recent-main strong {
+  color:#243f58;
+  font-size:12.5px;
   font-weight:750;
-  line-height:1.3;
+  line-height:1.28;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.dashboard-hr .hr-task-main small {
+.dashboard-hr .hr-recent-main small {
   color:#8194a6;
-  font-size:10.2px;
-  font-weight:500;
+  font-size:10.6px;
+  font-weight:550;
+  line-height:1.2;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-.dashboard-hr .hr-task-date {
+.dashboard-hr .hr-recent-date {
   display:flex;
-  flex:0 0 72px;
+  flex:0 0 64px;
   flex-direction:column;
-  text-align:right;
-  gap:5px;
   align-items:flex-end;
-}
-.dashboard-hr .hr-task-date strong {
-  color:#647d95;
-  font-size:10px;
-  font-weight:650;
+  gap:4px;
+  color:#60788d;
+  text-align:right;
+  font-size:10.6px;
+  font-weight:700;
   white-space:nowrap;
+  font-variant-numeric:tabular-nums;
 }
-.dashboard-hr .hr-task-date small {
-  color:#548671;
-  font-size:10px;
-  font-weight:650;
+.dashboard-hr .hr-recent-date small {
+  color:#96a4b0;
+  font-size:10.3px;
+  font-weight:550;
 }
-.dashboard-hr .hr-task-date .is-late { color:#b16446; }
-.dashboard-hr .hr-tasks-footer {
+.dashboard-hr .hr-recent-footer {
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:7px;
+  gap:8px;
   min-height:39px;
   margin:7px 15px 14px;
   border-radius:22px;
@@ -565,7 +571,8 @@
   font-size:11.5px;
   font-weight:750;
 }
-.dashboard-hr .hr-tasks-footer:hover { background:#d5edfa; }
+.dashboard-hr .hr-recent-footer:hover,
+.dashboard-hr .hr-recent-footer:focus-visible { background:#d5edfa; }
 .dashboard-hr .hr-empty {
   display:flex;
   align-items:center;
@@ -864,7 +871,7 @@
   .dashboard-hr .hr-bars-area { min-height:230px; }
   .dashboard-hr .hr-side-column { grid-template-columns:1fr; grid-template-rows:42px auto auto; }
   .dashboard-hr .hr-right-card { min-height:0; }
-  .dashboard-hr .hr-tasks { min-height:340px; }
+  .dashboard-hr .hr-recent { min-height:340px; }
   .dashboard-hr .hr-calendar { min-height:340px; }
   .dashboard-hr .hr-side-top { grid-column:1/-1; }
   .dashboard-hr .hr-calendar-days { min-height:210px; }
@@ -884,8 +891,8 @@
   .dashboard-hr .hr-donut-layout { gap:4px; }
   .dashboard-hr .hr-donut-legend { gap:7px; }
   .dashboard-hr .hr-legend-row { font-size:10.1px; }
-  .dashboard-hr .hr-task-main strong { font-size:11.4px; }
-  .dashboard-hr .hr-task-date { flex-basis:69px; }
+  .dashboard-hr .hr-recent-main strong { font-size:11.4px; }
+  .dashboard-hr .hr-recent-date { flex-basis:64px; }
   .dashboard-hr .hr-calendar-footer { flex-wrap:wrap; white-space:normal; }
   .dashboard-hr .hr-month-selector>span { min-width:90px; }
 }
@@ -898,6 +905,6 @@
   .dashboard-hr .hr-side-column { grid-template-rows:42px 347px 310px; }
 }
 @media (prefers-reduced-motion:reduce) {
-  .dashboard-hr .hr-stat,.dashboard-hr .hr-side-top>a,.dashboard-hr .hr-task-row,
+  .dashboard-hr .hr-stat,.dashboard-hr .hr-side-top>a,.dashboard-hr .hr-recent-row,
   .dashboard-hr .hr-calendar-day { transition:none !important; }
 }
