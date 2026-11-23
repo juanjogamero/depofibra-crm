@@ -1,19 +1,182 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarPlus, Check, CheckCircle2, ChevronRight, Clock3, CreditCard, Factory, FileText, MapPin, Package, Plus, Search, Shield, Truck, Wallet } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
 
+type ClientListGroup = 'Todos'|'Con pedidos'|'Sin pedidos'|'Con documentos';
+type ClientListSort = 'Recientes'|'Antiguos'|'Nombre A-Z'|'Más pedidos';
+const clientRangeDate=(iso:string)=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T12:00:00'));
+
 export function Clients(){
- const {data}=useCrm();const [search,setSearch]=useState('');const nav=useNavigate();
- const list=data.customers.filter(c=>(c.name+c.destination+c.id).toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')));
- return <div className="page"><PageHeader eyebrow="VENTAS CONFIRMADAS" title="Clientes" subtitle="Compradores con anticipo o pago completo verificado; no mezclados con consultas."/>
- <Panel className="table-panel"><div className="table-toolbar"><div className="table-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar cliente, destino, referencia..."/></div><Pill tone="green">{data.customers.length} clientes confirmados</Pill></div>
- <div className="table-scroll"><table className="data-table"><thead><tr><th>Cliente</th><th>Destino</th><th>Pedidos</th><th>Documentos (demo)</th><th>Desde</th><th></th></tr></thead><tbody>{list.map(c=><tr className="clickable-row" key={c.id} onClick={()=>nav('/clientes/'+c.id)}><td><div className="cell-person"><Initials name={c.name}/><span><strong>{c.name}</strong><small>{c.id}</small></span></div></td><td>{c.destination}</td><td className="price-cell">{data.orders.filter(o=>o.customerId===c.id).length}</td><td><Pill>{c.documentNames.length} referencias</Pill></td><td>{dateText(c.createdAt)}</td><td><ChevronRight size={16}/></td></tr>)}</tbody></table></div><div className="table-footer">Las personas que solo han solicitado un precio siguen en Oportunidades.</div></Panel></div>;
+ const {data}=useCrm();
+ const nav=useNavigate();
+ const [search,setSearch]=useState('');
+ const [group,setGroup]=useState<ClientListGroup>('Todos');
+ const [sort,setSort]=useState<ClientListSort>('Recientes');
+ const [destination,setDestination]=useState('Todas las localidades');
+ const [dateFrom,setDateFrom]=useState('');
+ const [dateTo,setDateTo]=useState('');
+ const [datesOpen,setDatesOpen]=useState(false);
+ const [filtersOpen,setFiltersOpen]=useState(false);
+ const orderCount=(id:string)=>data.orders.filter(o=>o.customerId===id).length;
+ const matches=(c:{id:string;documentNames:string[]},key:ClientListGroup)=>{
+   const n=orderCount(c.id);
+   return key==='Todos'||key==='Con pedidos'&&n>0||key==='Sin pedidos'&&n===0||key==='Con documentos'&&c.documentNames.length>0;
+ };
+ const groups:{id:ClientListGroup;label:string}[]=[
+   {id:'Todos',label:'Todos'},
+   {id:'Con pedidos',label:'Con pedidos'},
+   {id:'Sin pedidos',label:'Sin pedidos'},
+   {id:'Con documentos',label:'Con documentos'}
+ ];
+ const destinations=[...new Set(data.customers.map(c=>c.destination).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+ const query=search.trim().toLocaleLowerCase('es-ES');
+ const list=data.customers.filter(c=>
+   matches(c,group)
+   &&(destination==='Todas las localidades'||c.destination===destination)
+   &&(!dateFrom||c.createdAt.slice(0,10)>=dateFrom)
+   &&(!dateTo||c.createdAt.slice(0,10)<=dateTo)
+   &&[c.id,c.name,c.destination,c.contact,c.notes].join(' ').toLocaleLowerCase('es-ES').includes(query)
+ ).sort((a,b)=>{
+   if(sort==='Nombre A-Z')return a.name.localeCompare(b.name,'es');
+   if(sort==='Más pedidos')return orderCount(b.id)-orderCount(a.id)||b.createdAt.localeCompare(a.createdAt);
+   const difference=b.createdAt.localeCompare(a.createdAt);
+   return sort==='Antiguos'?-difference:difference;
+ });
+ const activeFilters=Boolean(query||group!=='Todos'||destination!=='Todas las localidades'||sort!=='Recientes'||dateFrom||dateTo);
+ const clearFilters=()=>{setSearch('');setGroup('Todos');setSort('Recientes');setDestination('Todas las localidades');setDateFrom('');setDateTo('');};
+ const dateLabel=dateFrom&&dateTo?clientRangeDate(dateFrom)+' – '+clientRangeDate(dateTo):dateFrom?'Desde '+clientRangeDate(dateFrom):dateTo?'Hasta '+clientRangeDate(dateTo):'Todas las fechas';
+ const exportClients=()=>{
+   if(!list.length)return;
+   const headers=['Referencia','Cliente','Localidad','Pedidos registrados','Documentos anotados','Fecha de alta'];
+   const cell=(raw:string)=>{
+     const value=String(raw??'');
+     const safe=/^\s*[=+@-]/.test(value)?"'"+value:value;
+     return '"'+safe.replace(/"/g,'""')+'"';
+   };
+   const rows=list.map(c=>[c.id,c.name,c.destination,String(orderCount(c.id)),String(c.documentNames.length),c.createdAt.slice(0,10)]);
+   const csv='\uFEFF'+[headers,...rows].map(row=>row.map(cell).join(';')).join('\r\n');
+   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');
+   a.href=url;a.download='depofibra-clientes-'+today()+'.csv';
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+ return <div className="page page-opportunities page-clients">
+   <div className="op-screen-heading">
+     <div className="op-heading-copy">
+       <h1 id="clients-title">Clientes</h1>
+       <p>Compradores registrados. Consulta sus datos, pedidos y referencias documentales.</p>
+     </div>
+     <div className="op-heading-actions">
+       <button type="button" className="op-export-button" onClick={exportClients} disabled={!list.length}
+         title="Exportar clientes filtrados, sin datos de contacto ni información económica interna">
+         <Download size={16}/>Exportar
+       </button>
+       <Link to="/pedidos" className="op-new-button"><Package size={16}/>Ver pedidos</Link>
+     </div>
+   </div>
+   <nav className="op-phase-tabs" aria-label="Filtrar clientes">
+     {groups.map(g=><button key={g.id} type="button" className={'op-phase-tab'+(group===g.id?' is-active':'')}
+       aria-pressed={group===g.id} onClick={()=>setGroup(g.id)}>
+       <span>{g.label}</span><strong>{data.customers.filter(c=>matches(c,g.id)).length}</strong>
+     </button>)}
+   </nav>
+   <div className="op-searchbar">
+     <label className="op-search">
+       <Search size={18} aria-hidden="true"/>
+       <input type="search" aria-label="Buscar clientes por nombre, localidad o referencia" value={search}
+         onChange={e=>setSearch(e.target.value)} placeholder="Buscar cliente, localidad o referencia"/>
+       {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
+     </label>
+     <div className="op-searchbar-actions">
+       <div className="op-date-range-control">
+         <button type="button" className={'op-date-range-trigger'+(dateFrom||dateTo?' has-range':'')}
+           aria-expanded={datesOpen} aria-controls="clients-date-range"
+           onClick={()=>{setDatesOpen(v=>!v);setFiltersOpen(false)}}>
+           <CalendarDays size={17}/><span>{dateLabel}</span><ChevronDown size={15}/>
+         </button>
+         {datesOpen&&<div className="op-date-popover" id="clients-date-range" role="group" aria-label="Filtrar por fecha de alta">
+           <strong>Fecha de alta del cliente</strong>
+           <div className="op-date-fields">
+             <label><span>Desde</span><input type="date" aria-label="Clientes desde" value={dateFrom}
+               max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
+             <label><span>Hasta</span><input type="date" aria-label="Clientes hasta" value={dateTo}
+               min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
+           </div>
+           <div className="op-date-buttons">
+             <button type="button" onClick={()=>{setDateFrom('');setDateTo('')}}>Borrar fechas</button>
+             <button type="button" onClick={()=>setDatesOpen(false)}>Listo</button>
+           </div>
+         </div>}
+       </div>
+       <button type="button" className={'op-filter-toggle'+(filtersOpen?' is-active':'')}
+         aria-expanded={filtersOpen} aria-controls="clients-advanced-filters"
+         onClick={()=>{setFiltersOpen(v=>!v);setDatesOpen(false)}}>
+         <Filter size={16}/>Filtros
+       </button>
+       {activeFilters&&<button type="button" className="op-reset-filters" onClick={clearFilters}>Limpiar</button>}
+     </div>
+   </div>
+   {filtersOpen&&<div className="op-advanced-filters" id="clients-advanced-filters">
+     <label><span>Localidad</span><select aria-label="Filtrar clientes por localidad" value={destination}
+       onChange={e=>setDestination(e.target.value)}>
+       <option>Todas las localidades</option>
+       {destinations.map(d=><option key={d} value={d}>{d}</option>)}
+     </select></label>
+     <label><span>Ordenar por</span><select aria-label="Ordenar clientes" value={sort}
+       onChange={e=>setSort(e.target.value as ClientListSort)}>
+       <option>Recientes</option><option>Antiguos</option><option>Nombre A-Z</option><option>Más pedidos</option>
+     </select></label>
+   </div>}
+   <section className="op-table-panel" aria-labelledby="clients-title">
+     <div className="op-table-scroll" role="region" tabIndex={0} aria-label="Lista de clientes con desplazamiento vertical">
+       <table className="op-data-table clients-data-table">
+         <thead><tr>
+           <th scope="col" className="op-col-id">Referencia</th>
+           <th scope="col" className="op-col-client">Cliente</th>
+           <th scope="col" className="clients-col-location">Localidad</th>
+           <th scope="col" className="clients-col-orders">Pedidos</th>
+           <th scope="col" className="clients-col-docs">Documentos anotados</th>
+           <th scope="col" className="clients-col-date">Alta</th>
+           <th scope="col" className="op-col-open" aria-label="Acceso a la ficha"></th>
+         </tr></thead>
+         <tbody>{list.map(c=>{
+           const orders=orderCount(c.id);
+           return <tr key={c.id} className="op-clickable-row" onClick={()=>nav('/clientes/'+c.id)}>
+             <td className="op-col-id"><span className="op-reference">{c.id}</span></td>
+             <td className="op-col-client"><div className="op-client-cell">
+               <Initials name={c.name}/>
+               <div className="op-client-copy">
+                 <Link to={'/clientes/'+c.id} className="op-client-name"
+                   onClick={e=>e.stopPropagation()}>{c.name}</Link>
+                 <span className="op-client-sub">{c.contact||'Contacto por completar'}</span>
+               </div>
+             </div></td>
+             <td className="clients-col-location"><span className="op-location" title={c.destination}>{c.destination||'Por completar'}</span></td>
+             <td className="clients-col-orders"><span className={'clients-count is-orders'+(orders?' has-items':'')}>{orders} {orders===1?'pedido':'pedidos'}</span></td>
+             <td className="clients-col-docs"><span className={'clients-count is-docs'+(c.documentNames.length?' has-items':'')}>{c.documentNames.length} {c.documentNames.length===1?'referencia':'referencias'}</span></td>
+             <td className="clients-col-date"><time dateTime={c.createdAt}>{dateText(c.createdAt)}</time></td>
+             <td className="op-col-open"><Link className="op-row-open" to={'/clientes/'+c.id}
+               onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+c.name}><ChevronRight size={17}/></Link></td>
+           </tr>;
+         })}</tbody>
+       </table>
+       {!list.length&&<Empty title="No hay clientes" body="Prueba otra búsqueda o modifica los filtros."/>}
+     </div>
+     <footer className="op-table-footer">
+       Mostrando <strong>{list.length}</strong> de <strong>{data.customers.length}</strong> clientes
+       <span className="clients-footer-note">Los documentos de esta demo son nombres anotados, no archivos almacenados.</span>
+     </footer>
+   </section>
+ </div>;
 }
+
 export function ClientDetail(){
  const {id}=useParams();const {data,addDocumentName}=useCrm();const [tab,setTab]=useState('Resumen');
  const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado de demostración."/></div>;
