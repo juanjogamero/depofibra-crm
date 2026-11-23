@@ -18,6 +18,7 @@ import './dashboard-vektora-v2.css';
 import './opportunities-dashboard.css';
 import './quotes-dashboard.css';
 import './clients-dashboard.css';
+import './orders-dashboard.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
