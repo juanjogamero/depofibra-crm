@@ -630,17 +630,10 @@
   .vek2-dashboard .vek2-legend-mark {font-size:9px;}
   .vek2-dashboard .vek2-chart-plot {margin-inline:7px;}
 }
-@media (max-height:620px) and (min-width:901px) {
-  }
 /* Prioridad de accesibilidad: movimiento solo funcional, sin animaciones forzadas. */
 @media (prefers-reduced-motion:reduce) {
   .vek2-dashboard .vek2-table tbody tr {transition:none;}
 }
-
-/* Móvil: mantener el menú lateral como cajón completo y no cortar enlaces. */
-@media (max-width:840px) {
-  }
-
 
 /* Recuperar desplazamiento únicamente donde la cuadrícula 2x2 no cabe.
    El shell/menú mantienen las reglas de la plataforma anterior. */
