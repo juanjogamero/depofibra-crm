@@ -13,6 +13,7 @@ import './dashboard-hr.css';
 import './crm-typography.css';
 import './dashboard-photo-banner.css';
 import './calendar-interaction.css';
+import './dashboard-requests-focus.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
