@@ -14,6 +14,7 @@ type OpportunitySort = 'Recientes'|'Antiguas'|'Próximo seguimiento';
 
 export function Opportunities(){
  const {data,addOpportunity}=useCrm(); const nav=useNavigate();
+ const [searchInput,setSearchInput]=useState('');
  const [search,setSearch]=useState('');
  const [quick,setQuick]=useState<OpportunityQuickFilter>('Todas');
  const [status,setStatus]=useState('Todos los estados');
@@ -23,6 +24,7 @@ export function Opportunities(){
  const [dateFrom,setDateFrom]=useState('');
  const [dateTo,setDateTo]=useState('');
  const [filtersOpen,setFiltersOpen]=useState(false);
+ const [selectedIds,setSelectedIds]=useState<string[]>([]);
  const [modal,setModal]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const isClosed=(s:OpportunityStatus)=>s==='Aceptada'||s==='Perdida';
@@ -49,103 +51,113 @@ export function Opportunities(){
    const comparison=(b.receivedAt||b.createdAt).localeCompare(a.receivedAt||a.createdAt);
    return sort==='Antiguas'?-comparison:comparison;
  });
- const counts:{id:OpportunityQuickFilter;label:string;count:number}[]=[
-   {id:'Todas',label:'Todas',count:data.opportunities.length},
-   {id:'Sin responder',label:'Sin responder',count:data.opportunities.filter(o=>quickMatch(o.status,'Sin responder')).length},
-   {id:'En gestión',label:'En gestión',count:data.opportunities.filter(o=>quickMatch(o.status,'En gestión')).length},
-   {id:'Cerradas',label:'Cerradas',count:data.opportunities.filter(o=>quickMatch(o.status,'Cerradas')).length}
- ];
- const activeFilters=Boolean(search.trim()||quick!=='Todas'||status!=='Todos los estados'||channel!=='Todos los canales'||sort!=='Recientes'||overdueOnly||dateFrom||dateTo);
- const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
+ const activeFilters=Boolean(search||quick!=='Todas'||status!=='Todos los estados'||channel!=='Todos los canales'||sort!=='Recientes'||overdueOnly||dateFrom||dateTo);
+ const clearFilters=()=>{setSearchInput('');setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
+ const selectedOpportunity=selectedIds.length===1?data.opportunities.find(o=>o.id===selectedIds[0]):undefined;
+ const allVisibleSelected=list.length>0&&list.every(o=>selectedIds.includes(o.id));
+ const toggleVisible=(checked:boolean)=>setSelectedIds(current=>checked
+   ?Array.from(new Set([...current,...list.map(o=>o.id)]))
+   :current.filter(id=>!list.some(o=>o.id===id)));
+ const toggleSelected=(id:string,checked:boolean)=>setSelectedIds(current=>checked
+   ?[...current.filter(old=>old!==id),id]
+   :current.filter(old=>old!==id));
  const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial'});setModal(false);setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
  return <div className="page page-opportunities">
-   <section className="op-table-panel op-orderboard" aria-labelledby="op-board-title">
-     <div className="op-board-topline">
-       <label className="op-search">
-         <Search size={17} aria-hidden="true"/>
-         <input type="search" aria-label="Buscar solicitudes" placeholder="Buscar cliente, producto, destino o referencia..."
-           value={search} onChange={e=>setSearch(e.target.value)}/>
-         {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
-       </label>
-       <Button onClick={()=>setModal(true)}><Plus size={16}/>Registrar solicitud</Button>
-     </div>
-     <header className="op-board-heading">
-       <div>
-         <span className="op-board-eyebrow">GESTIÓN COMERCIAL</span>
-         <h1 id="op-board-title">Oportunidades</h1>
-         <p><strong>{list.length}</strong> {list.length===1?'solicitud encontrada':'solicitudes encontradas'}<span className="op-count-total"> · {data.opportunities.length} en total</span></p>
-       </div>
-       <div className="op-board-stats" aria-label="Resumen de oportunidades">
-         <span><i className="op-stat-dot" aria-hidden="true"/><strong>{data.opportunities.filter(o=>o.status==='Nueva').length}</strong> sin responder</span>
-         <span><i className="op-stat-dot is-overdue" aria-hidden="true"/><strong>{data.opportunities.filter(isOverdue).length}</strong> vencidas</span>
-       </div>
+   <section className="op-table-panel op-sheetboard" aria-labelledby="op-board-title">
+     <header className="op-sheet-banner">
+       <div><h1 id="op-board-title">Oportunidades</h1><span>Gestión de solicitudes comerciales</span></div>
+       <div className="op-sheet-totals"><span>Total de solicitudes</span><strong>{data.opportunities.length}</strong></div>
      </header>
-     <div className="op-tabs-line">
-       <div className="op-quick-tabs" role="group" aria-label="Filtrar por fase comercial">
-         {counts.map(item=><button key={item.id} type="button" className={quick===item.id?'is-active':''}
-           aria-pressed={quick===item.id} onClick={()=>{setQuick(item.id);setStatus('Todos los estados')}}>
-           {item.label}<span>{item.count}</span>
-         </button>)}
-       </div>
-       <div className="op-date-range" role="group" aria-label="Filtrar por fecha de entrada">
-         <label><span className="sr-only">Entrada desde</span><input type="date" aria-label="Fecha de entrada desde" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
-         <span className="op-date-separator" aria-hidden="true">—</span>
-         <label><span className="sr-only">Entrada hasta</span><input type="date" aria-label="Fecha de entrada hasta" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
-       </div>
-     </div>
-     <div className="op-filterbar">
-       <div className="op-filter-main">
+     <div className="op-sheet-controls">
+       <form className="op-search-form" role="search" onSubmit={e=>{e.preventDefault();setSearch(searchInput.trim());}}>
+         <label className="op-search">
+           <Search size={17} aria-hidden="true"/>
+           <input type="search" aria-label="Buscar solicitudes" placeholder="Buscar cliente, producto o referencia..."
+             value={searchInput} onChange={e=>setSearchInput(e.target.value)}/>
+           {searchInput&&<button type="button" className="op-clear-search" aria-label="Borrar búsqueda" onClick={()=>{setSearchInput('');setSearch('')}}><X size={15}/></button>}
+         </label>
+         <button type="submit" className="op-find-button">Buscar</button>
+       </form>
+       <div className="op-sheet-filters" role="group" aria-label="Filtros de solicitudes">
          <button type="button" className={'op-filter-expand'+(filtersOpen?' is-active':'')}
-           aria-expanded={filtersOpen} aria-controls="op-extra-filters" onClick={()=>setFiltersOpen(open=>!open)}>
-           <Filter size={15}/> Filtros <ChevronRight size={14} className="op-filter-chevron"/>
+           aria-controls="op-extra-filters" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(open=>!open)}>
+           <Filter size={15}/> Filtrar
          </button>
-         <button type="button" className={'op-overdue-toggle'+(overdueOnly?' is-active':'')}
-           aria-pressed={overdueOnly} onClick={()=>setOverdueOnly(value=>!value)}>Solo vencidas</button>
+         <label className="op-select-wrap"><span className="sr-only">Fase comercial</span>
+           <select value={quick} onChange={e=>{setQuick(e.target.value as OpportunityQuickFilter);setStatus('Todos los estados')}} aria-label="Fase comercial">
+             <option>Todas</option><option>Sin responder</option><option>En gestión</option><option>Cerradas</option>
+           </select>
+         </label>
+         <label className="op-select-wrap"><span className="sr-only">Estado detallado</span>
+           <select value={status} onChange={e=>setStatus(e.target.value)} aria-label="Estado comercial">
+             <option>Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}
+           </select>
+         </label>
+         <label className="op-select-wrap"><span className="sr-only">Canal</span>
+           <select value={channel} onChange={e=>setChannel(e.target.value)} aria-label="Canal de entrada">
+             <option>Todos los canales</option>{channels.map(s=><option key={s}>{s}</option>)}
+           </select>
+         </label>
          {activeFilters&&<button type="button" className="op-clear" onClick={clearFilters}><X size={14}/>Limpiar</button>}
        </div>
-       <label className="op-sort">
-         <span>Ordenar:</span>
-         <select value={sort} onChange={e=>setSort(e.target.value as OpportunitySort)} aria-label="Ordenar solicitudes">
-           <option>Recientes</option><option>Antiguas</option><option>Próximo seguimiento</option>
-         </select>
-       </label>
      </div>
-     {filtersOpen&&<div id="op-extra-filters" className="op-extra-filters">
-       <label><span>Estado comercial</span><select value={status} onChange={e=>setStatus(e.target.value)} aria-label="Estado comercial">
-         <option>Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}
+     {filtersOpen&&<div className="op-extra-filters" id="op-extra-filters">
+       <label><span>Entrada desde</span><input type="date" aria-label="Fecha de entrada desde" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
+       <label><span>Entrada hasta</span><input type="date" aria-label="Fecha de entrada hasta" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
+       <label><span>Orden</span><select value={sort} onChange={e=>setSort(e.target.value as OpportunitySort)} aria-label="Ordenar solicitudes">
+         <option>Recientes</option><option>Antiguas</option><option>Próximo seguimiento</option>
        </select></label>
-       <label><span>Canal de entrada</span><select value={channel} onChange={e=>setChannel(e.target.value)} aria-label="Canal de entrada">
-         <option>Todos los canales</option>{channels.map(s=><option key={s}>{s}</option>)}
-       </select></label>
+       <button type="button" className={'op-overdue-toggle'+(overdueOnly?' is-active':'')}
+         aria-pressed={overdueOnly} onClick={()=>setOverdueOnly(current=>!current)}>Solo vencidas</button>
      </div>}
-     <div className="op-table-scroll" tabIndex={0} role="region" aria-label="Solicitudes, desplazar dentro de la tabla">
+     <div className="op-sheet-actions" role="group" aria-label="Acciones sobre oportunidades">
+       <button type="button" onClick={()=>setModal(true)}><Plus size={15}/>Nueva solicitud</button>
+       <button type="button" onClick={()=>selectedOpportunity&&nav('/oportunidades/'+selectedOpportunity.id)} disabled={!selectedOpportunity}>
+         <FileText size={15}/>Abrir ficha
+       </button>
+       <button type="button" onClick={()=>nav('/presupuestos')}><FileText size={15}/>Presupuestos</button>
+       <button type="button" onClick={()=>nav('/agenda')}><ChevronRight size={15}/>Agenda</button>
+       {selectedIds.length>0&&<button type="button" className="op-deselect" onClick={()=>setSelectedIds([])}><X size={14}/>Deseleccionar</button>}
+       <span className="op-selected-count">{selectedIds.length>0?selectedIds.length+' seleccionada'+(selectedIds.length===1?'':'s'):list.length+' resultados'}</span>
+     </div>
+     <div className="op-table-scroll" tabIndex={0} role="region" aria-label="Solicitudes, tabla con desplazamiento interno">
        <table className="op-data-table">
          <thead><tr>
-           <th scope="col">Ref.</th><th scope="col">Cliente / solicitud</th><th scope="col">Producto</th>
-           <th scope="col">Canal</th><th scope="col">Fecha</th><th scope="col">Estado</th>
+           <th className="op-check-cell" scope="col"><input type="checkbox" aria-label="Seleccionar solicitudes visibles"
+             checked={allVisibleSelected} onChange={e=>toggleVisible(e.target.checked)}/></th>
+           <th scope="col">N.º</th>
+           <th scope="col">Cliente</th>
+           <th scope="col">Producto solicitado</th>
+           <th scope="col">Entrada</th>
+           <th scope="col">Seguimiento</th>
+           <th scope="col">Canal</th>
+           <th scope="col">Estado</th>
            <th scope="col"><span className="sr-only">Abrir ficha</span></th>
          </tr></thead>
-         <tbody>{list.map(o=>{
+         <tbody>{list.map((o,i)=>{
            const tone=o.status==='Nueva'?'is-new':o.status==='Aceptada'?'is-won':o.status==='Perdida'?'is-lost':'is-progress';
-           return <tr key={o.id} onClick={()=>nav('/oportunidades/'+o.id)} className="op-clickable-row">
-             <td className="op-ref">{o.id}</td>
-             <td><div className="op-client-cell"><Initials name={o.name}/><div>
-               <Link to={'/oportunidades/'+o.id} className="op-client-name" onClick={e=>e.stopPropagation()}>{o.name}</Link>
-               <small>{o.destination||'Destino por concretar'}</small>
-             </div></div></td>
+           const date=(o.receivedAt||o.createdAt).slice(0,10);
+           const selected=selectedIds.includes(o.id);
+           return <tr key={o.id} className={'op-clickable-row'+(selected?' is-selected':'')} onClick={()=>nav('/oportunidades/'+o.id)}>
+             <td className="op-check-cell"><input type="checkbox" aria-label={'Seleccionar '+o.name}
+               checked={selected} onClick={e=>e.stopPropagation()} onChange={e=>toggleSelected(o.id,e.target.checked)}/></td>
+             <td className="op-row-number" title={o.id}>{i+1}<small>{o.id}</small></td>
+             <td><div className="op-client-cell"><span className="op-client-name" title={o.name}>{o.name}</span><small>{o.destination||'Destino por concretar'}</small></div></td>
              <td><span className="op-product" title={o.product}>{o.product}</span><small className="op-sub">{o.capacity||'Capacidad por concretar'}</small></td>
+             <td><time className="op-date-tag" dateTime={date}>{dateText(date)}</time></td>
+             <td><span className={'op-due-tag'+(isOverdue(o)?' is-overdue':'')}>{o.nextDate?dateText(o.nextDate):'Sin fecha'}</span>
+               <small className="op-sub" title={o.nextAction}>{o.nextAction||'Sin acción prevista'}</small></td>
              <td><span className="op-channel">{o.channel}</span></td>
-             <td><time dateTime={o.receivedAt||o.createdAt}>{dateText((o.receivedAt||o.createdAt).slice(0,10))}</time></td>
              <td><span className={'op-state '+tone}>{o.status}</span></td>
-             <td><Link className="op-arrow" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir solicitud '+o.name}><ChevronRight size={17}/></Link></td>
+             <td><Link className="op-arrow" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+o.name}><ChevronRight size={17}/></Link></td>
            </tr>;
          })}</tbody>
        </table>
-       {!list.length&&<Empty title="Sin coincidencias" body="No hay solicitudes que coincidan con estos filtros. Puedes modificarlos o limpiar la búsqueda."/>}
+       {!list.length&&<Empty title="Sin coincidencias" body="No hay solicitudes con estos filtros. Modifícalos o pulsa Limpiar."/>}
      </div>
      <footer className="op-footer">
        <span>Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</span>
-       <span>Desplázate dentro de la tabla para ver más</span>
+       <span>Selecciona una fila para abrir su ficha · Desplázate dentro de la tabla para ver más</span>
      </footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Solo datos de prueba durante el desarrollo público" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
@@ -156,6 +168,7 @@ export function Opportunities(){
    <Field label="Enlace a la conversación"><input value={form.conversation} onChange={e=>setForm({...form,conversation:e.target.value})} placeholder="https://... (opcional)"/></Field><Field label="Necesidad del comprador"><textarea rows={3} value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/></Field>
    <div className="modal-actions"><Button variant="outline" onClick={()=>setModal(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar solicitud</Button></div><NoteDemo/>
  </form></Modal>}
+
  </div>;
 }
 
