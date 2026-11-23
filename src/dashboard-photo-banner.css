@@ -197,3 +197,230 @@
 @media (prefers-reduced-motion:reduce) {
   .dashboard-hr a.hr-web-banner { transition:none; }
 }
+
+
+/* REG-0085 | Inicio a pantalla completa y sin scroll en escritorio.
+   La barra global se omite solo en Inicio: los otros módulos conservan
+   búsqueda, navegación y notificaciones. */
+.app-body.is-dashboard {
+  position:relative;
+  min-height:0;
+}
+.app-body.is-dashboard .app-main {
+  min-height:0;
+  height:100%;
+  padding-bottom:0;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+.app-body.is-dashboard .dashboard-mobile-menu { display:none; }
+.app-body.is-dashboard .page.page-dashboard.dashboard-hr {
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  overflow:hidden;
+}
+.app-body.is-dashboard .dashboard-hr .hr-workspace {
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  gap:clamp(10px,1.1vw,16px);
+  padding:clamp(9px,1.35vh,16px);
+  grid-template-columns:minmax(0,1fr) clamp(300px,26.5vw,365px);
+  align-items:stretch;
+}
+.app-body.is-dashboard .dashboard-hr .hr-main-column {
+  height:100%;
+  min-height:0;
+  grid-template-rows:minmax(36px,.36fr) minmax(101px,1.18fr) minmax(125px,1.48fr) minmax(195px,3.55fr);
+  gap:clamp(8px,1.2vh,14px);
+}
+.app-body.is-dashboard .dashboard-hr .hr-side-column {
+  height:100%;
+  min-height:0;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows: minmax(34px,.44fr) minmax(0,3.5fr) minmax(0,3.25fr);
+  gap:clamp(8px,1.2vh,14px);
+  padding:0 0 0 12px;
+  border-left:1px solid rgba(1,72,142,.10);
+}
+.app-body.is-dashboard .dashboard-hr .hr-side-column::before {
+  inset:-12px -12px -12px 0;
+  border-radius:0;
+}
+.app-body.is-dashboard .dashboard-hr .hr-greeting {
+  min-height:0;
+}
+.app-body.is-dashboard .dashboard-hr .hr-stats { min-height:0; }
+.app-body.is-dashboard .dashboard-hr .hr-stat {
+  min-height:0;
+  padding:clamp(11px,1.6vh,18px) clamp(12px,1.6vw,20px);
+  border-radius:16px;
+}
+.app-body.is-dashboard .dashboard-hr .hr-stat-bottom strong {
+  font-size:clamp(26px,2.3vw,33px);
+}
+.app-body.is-dashboard .dashboard-hr a.hr-web-banner {
+  height:100%;
+  min-height:0;
+}
+.app-body.is-dashboard .dashboard-hr .hr-web-banner-copy {
+  padding-block:clamp(11px,1.45vh,21px);
+  gap:clamp(6px,.9vh,11px);
+}
+.app-body.is-dashboard .dashboard-hr .hr-web-banner-title {
+  font-size:clamp(19px,2vw,27px);
+}
+.app-body.is-dashboard .dashboard-hr .hr-web-banner-button {
+  min-height:31px;
+  padding-block:6px;
+}
+.app-body.is-dashboard .dashboard-hr .hr-chart-panel {
+  min-height:0;
+  height:100%;
+}
+.app-body.is-dashboard .dashboard-hr .hr-chart-panel .hr-panel-heading {
+  flex:0 0 auto;
+  min-height:clamp(43px,6.3vh,57px);
+  padding:clamp(8px,1.25vh,15px) 17px 6px;
+}
+.app-body.is-dashboard .dashboard-hr .hr-bars-area {
+  flex:1 1 auto;
+  min-height:0;
+  height:0;
+  padding:2px 15px 12px;
+  overflow:hidden;
+}
+.app-body.is-dashboard .dashboard-hr .hr-bars-area svg {
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+}
+.app-body.is-dashboard .dashboard-hr .hr-right-card {
+  height:100%;
+  min-height:0;
+}
+.app-body.is-dashboard .dashboard-hr .hr-recent-list,
+.app-body.is-dashboard .dashboard-hr .hr-calendar-days {
+  min-height:0;
+}
+.app-body.is-dashboard .dashboard-hr .hr-recent-row {
+  min-height:0;
+}
+@media (min-width:761px) and (max-width:1150px) {
+  .app-body.is-dashboard .dashboard-hr .hr-workspace {
+    grid-template-columns:minmax(0,1fr) clamp(260px,31vw,310px);
+    gap:10px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-main-column {
+    grid-template-rows:minmax(36px,.35fr) minmax(98px,1.1fr) minmax(124px,1.4fr) minmax(195px,3.6fr);
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-side-column { padding-left:8px; }
+  .app-body.is-dashboard .dashboard-hr .hr-stat-label { font-size:11.4px; }
+  .app-body.is-dashboard .dashboard-hr .hr-stat-icon { display:none; }
+  .app-body.is-dashboard .dashboard-hr .hr-stat-badge { padding:3px 6px; }
+}
+@media (min-width:761px) and (max-height:730px) {
+  .app-body.is-dashboard .dashboard-hr .hr-recent-row { padding:3px 0; }
+  .app-body.is-dashboard .dashboard-hr .hr-recent-avatar {
+    flex-basis:29px;
+    width:29px;
+    height:29px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-right-card .hr-panel-heading {
+    min-height:48px;
+    padding:10px 12px 5px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-recent-footer {
+    min-height:29px;
+    margin:4px 12px 7px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-calendar-weekdays { min-height:19px; }
+  .app-body.is-dashboard .dashboard-hr .hr-calendar-days { margin-inline:11px; grid-auto-rows:minmax(17px,1fr); }
+  .app-body.is-dashboard .dashboard-hr .hr-calendar-footer {
+    flex-basis:32px;
+    padding:3px 9px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-month-selector>span { min-width:80px; font-size:10px; }
+  .app-body.is-dashboard .dashboard-hr .hr-web-banner-description { font-size:11px; }
+  .app-body.is-dashboard .dashboard-hr .hr-stat-badge { min-height:19px; }
+}
+/* En pantallas muy estrechas se conserva el contenido accesible:
+   mejor el desplazamiento vertical que cortar calendario o controles. */
+@media (max-width:760px) {
+  .app-body.is-dashboard .app-main {
+    height:auto;
+    overflow-y:auto;
+    overscroll-behavior-y:contain;
+    padding-bottom:65px;
+  }
+  .app-body.is-dashboard .page.page-dashboard.dashboard-hr {
+    height:auto;
+    max-height:none;
+    min-height:100%;
+    overflow:visible;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-workspace {
+    height:auto;
+    max-height:none;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    padding:13px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-main-column {
+    height:auto;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-stat { min-height:120px; }
+  .app-body.is-dashboard .dashboard-hr a.hr-web-banner { height:auto; min-height:190px; }
+  .app-body.is-dashboard .dashboard-hr .hr-chart-panel { height:auto; min-height:345px; }
+  .app-body.is-dashboard .dashboard-hr .hr-bars-area {
+    height:auto;
+    min-height:250px;
+    overflow-x:auto;
+    overflow-y:hidden;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-bars-area svg {
+    width:680px;
+    min-width:680px;
+    height:270px;
+    min-height:270px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-side-column {
+    height:auto;
+    border:0;
+    padding:10px 0 0;
+    grid-template-rows:42px auto auto;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-right-card { height:auto; }
+  .app-body.is-dashboard .dashboard-hr .hr-recent { min-height:320px; }
+  .app-body.is-dashboard .dashboard-hr .hr-calendar { min-height:340px; }
+}
+@media (max-width:840px) {
+  .app-body.is-dashboard .dashboard-mobile-menu {
+    position:absolute;
+    z-index:12;
+    top:14px;
+    right:15px;
+    display:grid;
+    place-items:center;
+    width:36px;
+    height:36px;
+    border:1px solid #d5e4f3;
+    border-radius:10px;
+    background:#fff;
+    color:#01488e;
+    box-shadow:0 2px 8px rgba(0,45,89,.09);
+    cursor:pointer;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-current-date {
+    display:none;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-greeting { padding-right:43px; }
+}
