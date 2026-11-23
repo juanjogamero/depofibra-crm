@@ -1,0 +1,113 @@
+/* REG-0101 — DEPOFIBRA CRM / Clientes.
+   Reutiliza la arquitectura visual aprobada de Oportunidades y Presupuestos.
+   Exclusivo del listado /clientes, manteniendo fichas, datos y shell originales. */
+.app-body.is-clients .page.page-clients {
+  background:linear-gradient(135deg,#fff 36%,#f5f9fd 100%);
+}
+.page-clients .op-heading-copy p {max-width:710px;}
+.page-clients .op-phase-tabs {margin-bottom:19px;}
+.page-clients .clients-data-table .op-col-id {width:10%;}
+.page-clients .clients-data-table .op-col-client {width:30%;}
+.page-clients .clients-data-table .clients-col-location {width:20%;}
+.page-clients .clients-data-table .clients-col-orders {width:12%;}
+.page-clients .clients-data-table .clients-col-docs {width:16%;}
+.page-clients .clients-data-table .clients-col-date {width:10%;}
+.page-clients .clients-data-table .op-col-open {width:2%;}
+.page-clients .clients-data-table .op-col-client {min-width:0;}
+.page-clients .clients-data-table .op-client-copy {min-width:0;}
+.page-clients .clients-data-table .op-client-name,
+.page-clients .clients-data-table .op-client-sub {max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.page-clients .clients-data-table .op-location {display:block;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.page-clients .clients-count {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  padding:5px 8px;
+  border-radius:999px;
+  background:#f0f4f8;
+  color:#627e98;
+  font:700 10.5px/1.25 Inter,sans-serif;
+  white-space:normal;
+  text-align:center;
+}
+.page-clients .clients-count.is-orders.has-items {background:#e2f0fc;color:#1b6b9c;}
+.page-clients .clients-count.is-docs.has-items {background:#e5f3ed;color:#307b67;}
+.page-clients .clients-data-table time {
+  white-space:nowrap;
+  color:#536f87;
+  font-variant-numeric:tabular-nums;
+}
+.page-clients .op-table-footer {
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  gap:4px;
+}
+.page-clients .clients-footer-note {
+  margin-left:auto;
+  color:#92a3b4;
+  font:500 10.4px/1.3 Inter,sans-serif;
+}
+.page-clients .op-advanced-filters label {min-width:0;}
+.page-clients .op-advanced-filters select {max-width:240px;}
+/* Reordenación de porcentajes: nunca barra de scroll horizontal. */
+@media (max-width:1180px) {
+  .page-clients .clients-data-table .op-col-id {width:11%;}
+  .page-clients .clients-data-table .op-col-client {width:31%;}
+  .page-clients .clients-data-table .clients-col-location {width:20%;}
+  .page-clients .clients-data-table .clients-col-orders {width:13%;}
+  .page-clients .clients-data-table .clients-col-docs {width:14%;}
+  .page-clients .clients-data-table .clients-col-date {width:8%;}
+  .page-clients .clients-data-table .op-col-open {width:3%;}
+  .page-clients .clients-data-table .clients-col-date {display:none;}
+  .page-clients .clients-data-table .op-col-client {width:35%;}
+  .page-clients .clients-data-table .clients-col-location {width:23%;}
+  .page-clients .clients-data-table .clients-col-orders {width:14%;}
+  .page-clients .clients-data-table .clients-col-docs {width:14%;}
+}
+@media (max-width:940px) {
+  .page-clients .op-heading-copy h1 {font-size:27px;}
+  .page-clients .op-phase-tabs {margin-bottom:13px;}
+}
+@media (max-width:780px) {
+  .page-clients .clients-data-table .op-col-id {width:13%;}
+  .page-clients .clients-data-table .op-col-client {width:38%;}
+  .page-clients .clients-data-table .clients-col-location {width:25%;}
+  .page-clients .clients-data-table .clients-col-orders {width:18%;}
+  .page-clients .clients-data-table .clients-col-docs {display:none;}
+  .page-clients .clients-data-table .op-col-open {width:6%;}
+  .page-clients .clients-data-table td,
+  .page-clients .clients-data-table th {padding-left:7px;padding-right:7px;}
+  .page-clients .clients-data-table .clients-count {font-size:10px;padding:4px 6px;}
+  .page-clients .clients-footer-note {display:none;}
+}
+@media (max-width:660px) {
+  .page-clients .op-screen-heading {align-items:flex-start;flex-wrap:wrap;padding-right:43px;}
+  .page-clients .op-heading-copy h1 {font-size:22px;}
+  .page-clients .op-heading-copy p {font-size:11px;}
+  .page-clients .op-heading-actions {margin-left:0;}
+  .page-clients .op-new-button,.page-clients .op-export-button {
+    min-height:35px;
+    padding:7px 9px;
+    font-size:10.6px;
+  }
+  .page-clients .op-phase-tabs {gap:0 9px;margin-bottom:10px;}
+  .page-clients .op-phase-tab {font-size:10.5px;min-height:37px;padding:6px 4px 8px;}
+  .page-clients .op-table-footer {font-size:10px;}
+}
+@media (max-width:520px) {
+  .page-clients .clients-data-table .op-col-id {width:17%;}
+  .page-clients .clients-data-table .op-col-client {width:54%;}
+  .page-clients .clients-data-table .clients-col-location {display:none;}
+  .page-clients .clients-data-table .clients-col-orders {width:23%;}
+  .page-clients .clients-data-table .op-col-open {width:6%;}
+  .page-clients .clients-data-table .op-col-id,
+  .page-clients .clients-data-table .op-col-client,
+  .page-clients .clients-data-table .clients-col-orders,
+  .page-clients .clients-data-table .op-col-open {padding-inline:5px;}
+  .page-clients .clients-data-table .op-client-cell .initials {width:29px;height:29px;flex-basis:29px;}
+  .page-clients .clients-data-table .op-client-name {font-size:10.9px;}
+  .page-clients .clients-data-table .op-client-sub {font-size:9.5px;}
+  .page-clients .clients-data-table .clients-count {font-size:9.8px;padding:4px;}
+}
