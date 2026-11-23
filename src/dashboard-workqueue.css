@@ -266,6 +266,15 @@
   .dashboard-hr .hr-workpanel { min-height:285px; }
   .dashboard-hr .hr-work-row,.dashboard-hr .hr-follow-row { min-height:58px; }
 }
+@media (min-width:761px) and (max-width:850px) {
+  .dashboard-hr .hr-main-column {
+    display:flex;
+    flex-direction:column;
+    gap:13px;
+  }
+  .dashboard-hr .hr-stats { min-height:145px; }
+  .dashboard-hr .hr-chart-panel { min-height:300px; }
+}
 @media (max-width:540px) {
   .dashboard-hr .hr-workpanel { border-radius:15px; }
   .dashboard-hr .hr-workpanel .hr-panel-heading { min-height:61px; padding:14px 14px 9px; }
