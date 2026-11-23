@@ -402,12 +402,108 @@ export function OrderDetail(){
  </div>;
 }
 export function Commissions(){
- const {data}=useCrm();const [filter,setFilter]=useState('Pendientes');
- const list=data.orders.filter(o=>filter==='Todas'||(filter==='Pendientes'?o.commissionPaid===0:filter==='Parciales'?o.commissionPaid>0&&o.commissionPaid<o.commission:o.commissionPaid>=o.commission));
- const earned=data.orders.reduce((a,o)=>a+o.commission,0),paid=data.orders.reduce((a,o)=>a+o.commissionPaid,0);
- return <div className="page"><PageHeader eyebrow="CONTROL PRIVADO DE DIRECCIÓN" title="Mis comisiones" subtitle="Separación entre las generadas en cada venta y las efectivamente cobradas."/>
- <div className="kpi-grid three"><div className="kpi"><div className="kpi-top"><span>Generadas</span><Wallet size={20}/></div><div className="kpi-value">{money(earned)}</div><div className="kpi-foot">Comisiones por pedidos de la demo</div></div><div className="kpi"><div className="kpi-top"><span>Cobradas</span><CheckCircle2 size={20}/></div><div className="kpi-value">{money(paid)}</div><div className="kpi-foot">Importes liquidados</div></div><div className="kpi"><div className="kpi-top"><span>Pendientes</span><Clock3 size={20}/></div><div className="kpi-value">{money(earned-paid)}</div><div className="kpi-foot">No equivale a beneficio neto</div></div></div>
- <Panel className="table-panel"><div className="table-toolbar"><div className="segmented">{['Pendientes','Parciales','Pagadas','Todas'].map(x=><button className={filter===x?'seg-active':''} key={x} onClick={()=>setFilter(x)}>{x}</button>)}</div></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Cliente / pedido</th><th>Comisión acordada</th><th>Cobrado</th><th>Pendiente</th><th>Estado</th><th></th></tr></thead><tbody>{list.map(o=><tr key={o.id}><td><div className="cell-person"><Initials name={o.buyerName}/><span><strong>{o.buyerName}</strong><small>{o.id}</small></span></div></td><td>{money(o.commission)}</td><td>{money(o.commissionPaid)}</td><td className="price-cell">{money(o.commission-o.commissionPaid)}</td><td><Status value={o.commissionPaid===0?'Pendiente':o.commissionPaid<o.commission?'Parcialmente cobrada':'Pagada'}/></td><td><Link className="table-link" to={'/pedidos/'+o.id+'?tab=Comisiones'}>Abrir <ChevronRight size={16}/></Link></td></tr>)}</tbody></table>{!list.length&&<Empty title="Sin registros" body="Prueba otra pestaña para consultar el historial."/>}</div></Panel></div>;
+ const {data}=useCrm();
+ const navigate=useNavigate();
+ const [filter,setFilter]=useState('Pendientes');
+ const [search,setSearch]=useState('');
+ // Mantener exactamente la clasificación y los cálculos existentes del store.
+ const matchesStatus=(o:Order,status:string)=>
+   status==='Todas'
+   ||(status==='Pendientes'&&o.commissionPaid===0)
+   ||(status==='Parciales'&&o.commissionPaid>0&&o.commissionPaid<o.commission)
+   ||(status==='Pagadas'&&o.commissionPaid>=o.commission);
+ const tabs=['Pendientes','Parciales','Pagadas','Todas'];
+ const term=search.trim().toLocaleLowerCase('es-ES');
+ const list=data.orders.filter(o=>matchesStatus(o,filter)
+   &&[o.buyerName,o.id,o.product,o.capacity].join(' ').toLocaleLowerCase('es-ES').includes(term));
+ const earned=data.orders.reduce((a,o)=>a+o.commission,0);
+ const paid=data.orders.reduce((a,o)=>a+o.commissionPaid,0);
+ return <div className="page page-opportunities page-commissions">
+   <div className="op-screen-heading">
+     <div className="op-heading-copy">
+       <h1 id="commissions-title">Mis comisiones</h1>
+       <p>Control privado de las comisiones acordadas, cobradas y pendientes de liquidar.</p>
+     </div>
+     <div className="op-heading-actions">
+       <Link to="/pedidos" className="op-new-button"><Package size={16}/>Ver pedidos</Link>
+     </div>
+   </div>
+   <section className="commission-banners" aria-label="Resumen de comisiones">
+     <article className="commission-banner is-generated">
+       <div className="commission-banner-heading"><span>Comisiones generadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
+       <strong className="commission-banner-value">{money(earned)}</strong>
+       <span className="commission-banner-caption">Total acordado en pedidos de la demo</span>
+     </article>
+     <article className="commission-banner is-collected">
+       <div className="commission-banner-heading"><span>Comisiones cobradas</span><span className="commission-banner-icon"><CheckCircle2 size={19}/></span></div>
+       <strong className="commission-banner-value">{money(paid)}</strong>
+       <span className="commission-banner-caption">Importes efectivamente registrados como liquidados</span>
+     </article>
+     <article className="commission-banner is-outstanding">
+       <div className="commission-banner-heading"><span>Pendiente de cobro</span><span className="commission-banner-icon"><Clock3 size={19}/></span></div>
+       <strong className="commission-banner-value">{money(earned-paid)}</strong>
+       <span className="commission-banner-caption">Saldo de comisión · No equivale a beneficio neto</span>
+     </article>
+   </section>
+   <nav className="op-phase-tabs commission-tabs" aria-label="Filtrar por estado de comisión">
+     {tabs.map(tab=><button key={tab} type="button" className={'op-phase-tab'+(filter===tab?' is-active':'')}
+       aria-pressed={filter===tab} onClick={()=>setFilter(tab)}>
+       <span>{tab}</span><strong>{data.orders.filter(o=>matchesStatus(o,tab)).length}</strong>
+     </button>)}
+   </nav>
+   <div className="commission-toolbar">
+     <label className="op-search">
+       <Search size={18} aria-hidden="true"/>
+       <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
+         aria-label="Buscar comisión por cliente, pedido o producto"
+         placeholder="Buscar cliente, pedido o producto"/>
+       {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
+     </label>
+     <span className="commission-toolbar-meta">{list.length} {list.length===1?'registro':'registros'}</span>
+   </div>
+   <section className="op-table-panel commissions-table-panel" aria-labelledby="commissions-title">
+     <div className="op-table-scroll" role="region" tabIndex={0} aria-label="Comisiones con desplazamiento vertical">
+       <table className="op-data-table commissions-data-table">
+         <thead><tr>
+           <th scope="col" className="commission-col-client">Cliente / pedido</th>
+           <th scope="col" className="commission-col-agreed">Comisión acordada</th>
+           <th scope="col" className="commission-col-paid">Cobrado</th>
+           <th scope="col" className="commission-col-due">Pendiente</th>
+           <th scope="col" className="commission-col-status">Estado</th>
+           <th scope="col" className="commission-col-open" aria-label="Acceso a la ficha"></th>
+         </tr></thead>
+         <tbody>{list.map(o=>{
+           const balance=o.commission-o.commissionPaid;
+           const state=o.commissionPaid===0?'Pendiente':o.commissionPaid<o.commission?'Parcialmente cobrada':'Pagada';
+           const tone=state==='Pendiente'?'is-due':state==='Pagada'?'is-paid':'is-partial';
+           const orderUrl='/pedidos/'+o.id+'?tab=Comisiones';
+           const customerUrl='/clientes/'+o.customerId;
+           return <tr key={o.id} className="op-clickable-row" onClick={()=>navigate(orderUrl)}>
+             <td className="commission-col-client"><div className="op-client-cell">
+               <Initials name={o.buyerName}/>
+               <div className="op-client-copy">
+                 <Link to={customerUrl} className="op-client-name commission-client-link"
+                   title={'Ver ficha del cliente: '+o.buyerName} onClick={e=>e.stopPropagation()}>{o.buyerName}</Link>
+                 <span className="op-client-sub">{o.id}</span>
+               </div>
+             </div></td>
+             <td className="commission-col-agreed"><span className="commission-amount">{money(o.commission)}</span></td>
+             <td className="commission-col-paid"><span className="commission-amount">{money(o.commissionPaid)}</span></td>
+             <td className="commission-col-due"><strong className={'commission-amount'+(balance>0?' has-balance':'')}>{money(balance)}</strong></td>
+             <td className="commission-col-status"><span className={'commission-state '+tone}>{state}</span></td>
+             <td className="commission-col-open"><Link to={orderUrl} className="op-row-open"
+               aria-label={'Abrir comisiones del pedido '+o.id} onClick={e=>e.stopPropagation()}><ChevronRight size={18}/></Link></td>
+           </tr>;
+         })}</tbody>
+       </table>
+       {!list.length&&<Empty title="Sin registros" body="Prueba otra pestaña o modifica la búsqueda."/>}
+     </div>
+     <footer className="op-table-footer">
+       Mostrando <strong>{list.length}</strong> de <strong>{data.orders.length}</strong> pedidos
+       <span className="commission-footer-note">Datos locales de demostración · Acceso privado de Dirección</span>
+     </footer>
+   </section>
+ </div>;
 }
 export function FactoryHome(){
  const {data}=useCrm();const active=data.orders.filter(o=>o.factory!=='Entregado');
