@@ -185,11 +185,10 @@ export default function App() {
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector('.app-main')?.scrollTo({top:0,behavior:'instant'});},[location.pathname]);
   useEffect(()=>{const listener=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.querySelector<HTMLInputElement>('.global-search input')?.focus();}};window.addEventListener('keydown',listener);return()=>window.removeEventListener('keydown',listener)},[]);
   const onDashboard = location.pathname === '/';
-  return <div className="app-root">
+  return <div className={'app-root' + (onDashboard ? ' app-root-dashboard' : '')}>
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
     <div className={'app-body' + (onDashboard ? ' is-dashboard' : '')}>
-      {!onDashboard && <Header onMenu={()=>setOpen(true)}/>}
-      {onDashboard && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
+      <Header onMenu={()=>setOpen(true)}/>
       <main className="app-main" id="main-content"><AppRoutes/></main>
     </div>
     <BottomBar/>
