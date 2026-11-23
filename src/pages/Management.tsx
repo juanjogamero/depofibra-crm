@@ -11,7 +11,7 @@ export function Agenda(){
   const [searchParams,setSearchParams]=useSearchParams();
   const requestedDay=searchParams.get('fecha');
   const isValidDate=(value:string|null): value is string => {
-    if(!value || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+    if(!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const check=new Date(value+'T12:00:00');
     return !Number.isNaN(check.getTime()) && check.getFullYear()===Number(value.slice(0,4))
       && check.getMonth()+1===Number(value.slice(5,7)) && check.getDate()===Number(value.slice(8,10));
