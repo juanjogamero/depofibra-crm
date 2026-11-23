@@ -664,3 +664,365 @@
     max-height:none;
   }
 }
+
+
+/* REG-0091 · Escala coherente con menú lateral (Inter 13px) y calendario MINI.
+   No se modifica el shell corporativo ni el resto de módulos.
+   La lectura tiene prioridad sobre ver cinco filas diminutas: Inicio muestra cuatro. */
+
+/* La evolución recibe el protagonismo inferior; el calendario queda como
+   acceso compacto en la ESQUINA INFERIOR DERECHA, no medio dashboard. */
+.vek2-dashboard .vek2-grid {
+  gap:clamp(12px,1.45vw,18px);
+  grid-template-rows:minmax(0,1.02fr) minmax(0,1fr);
+}
+.vek2-dashboard .vek2-grid-top,
+.vek2-dashboard .vek2-grid-bottom {
+  gap:clamp(12px,1.45vw,18px);
+}
+.vek2-dashboard .vek2-grid-top {
+  grid-template-columns:minmax(0,1.9fr) minmax(280px,.86fr);
+}
+.vek2-dashboard .vek2-grid-bottom {
+  grid-template-columns:minmax(0,1fr) minmax(258px,292px);
+  align-items:stretch;
+}
+.vek2-dashboard .vek2-card,
+.vek2-dashboard .hr-right-card.vek2-card {
+  border-color:#e2eaf1;
+  border-radius:15px;
+  box-shadow:0 2px 11px rgba(0,45,89,.04);
+}
+
+/* Titulares y controles a la escala del menú Depofibra (13px),
+   con encabezados proporcionales de 17–18px. */
+.vek2-dashboard .vek2-card-heading {
+  min-height:64px;
+  padding:16px 19px 12px;
+  gap:14px;
+}
+.vek2-dashboard .vek2-card-heading h2 {
+  font-family:var(--crm-font-display,"Plus Jakarta Sans",Inter,sans-serif);
+  font-size:17px;
+  font-weight:800;
+  line-height:1.26;
+  letter-spacing:-.033em;
+  color:#0b2e56;
+}
+.vek2-dashboard .vek2-card-heading p {
+  margin-top:4px;
+  font-size:12.4px;
+  font-weight:500;
+  line-height:1.35;
+  color:#688096;
+}
+.vek2-dashboard .vek2-heading-actions { gap:9px; }
+.vek2-dashboard .vek2-primary-action,
+.vek2-dashboard .vek2-secondary-action {
+  gap:7px;
+  min-height:35px;
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:700;
+}
+.vek2-dashboard .vek2-primary-action svg,
+.vek2-dashboard .vek2-secondary-action svg { width:15px; height:15px; }
+.vek2-dashboard .vek2-text-link {
+  font-size:12.1px;
+  gap:6px;
+}
+
+/* Solicitudes: cuatro filas con más altura y tipografía igual al menú. */
+.vek2-dashboard .vek2-tabs {
+  margin:0 17px;
+  padding:0 8px;
+  min-height:42px;
+  gap:8px;
+  border-radius:8px;
+}
+.vek2-dashboard .vek2-tabs button {
+  min-height:42px;
+  padding:0 10px;
+  font-size:12.1px;
+  font-weight:650;
+  line-height:1.25;
+}
+.vek2-dashboard .vek2-table-area {
+  padding:7px 17px 11px;
+}
+.vek2-dashboard .vek2-table thead { height:35px; }
+.vek2-dashboard .vek2-table thead th {
+  padding:6px 7px;
+  font-size:11.6px;
+  font-weight:750;
+  letter-spacing:0;
+  color:#657f95;
+}
+.vek2-dashboard .vek2-table tbody tr { height:25%; }
+.vek2-dashboard .vek2-table td {
+  padding:7px;
+  font-size:12.4px;
+  font-weight:500;
+  line-height:1.37;
+  color:#445d75;
+}
+.vek2-dashboard .vek2-client-link { gap:11px; }
+.vek2-dashboard .vek2-client-avatar {
+  flex:0 0 36px;
+  width:36px;
+  height:36px;
+  font-size:11.5px;
+  font-weight:800;
+}
+.vek2-dashboard .vek2-client-copy strong {
+  font-size:12.8px;
+  font-weight:750;
+  line-height:1.35;
+  color:#173a5e;
+}
+.vek2-dashboard .vek2-client-copy small,
+.vek2-dashboard .vek2-ellipsis small,
+.vek2-dashboard .vek2-table time small {
+  font-size:11.1px;
+  line-height:1.25;
+  margin-top:4px;
+  color:#8194a7;
+}
+.vek2-dashboard .vek2-table time { gap:1px; }
+.vek2-dashboard .vek2-status {
+  border-radius:8px;
+  padding:6px 9px;
+  font-size:11.4px;
+  line-height:1.2;
+  font-weight:700;
+}
+.vek2-dashboard .vek2-open-row svg {width:17px;height:17px;}
+.vek2-dashboard .vek2-empty {font-size:13px;}
+
+/* Estado: círculo y leyendas proporcionales, no cifras microscópicas. */
+.vek2-dashboard .vek2-statistics .vek2-card-heading {min-height:61px;}
+.vek2-dashboard .vek2-donut-layout {
+  padding:0 16px 8px;
+  gap:13px;
+}
+.vek2-dashboard .vek2-donut-wrap { flex-basis:43%; }
+.vek2-dashboard .vek2-donut-wrap svg { max-height:184px; }
+.vek2-dashboard .vek2-donut-total strong {
+  font-size:32px;
+  font-weight:800;
+}
+.vek2-dashboard .vek2-donut-total small { font-size:11.5px; }
+.vek2-dashboard .vek2-stat-legend {gap:12px;}
+.vek2-dashboard .vek2-legend-row {
+  gap:8px;
+  font-size:12.1px;
+  font-weight:550;
+  line-height:1.3;
+}
+.vek2-dashboard .vek2-legend-dot {width:9px;height:9px;flex-basis:9px;}
+.vek2-dashboard .vek2-legend-row strong {font-size:12.2px;}
+.vek2-dashboard .vek2-stat-foot {
+  flex-basis:72px;
+  padding:10px 16px 14px;
+}
+.vek2-dashboard .vek2-foot-metric {gap:10px;}
+.vek2-dashboard .vek2-foot-icon {
+  flex-basis:33px;
+  width:33px;
+  height:33px;
+}
+.vek2-dashboard .vek2-foot-metric strong {font-size:24px;}
+.vek2-dashboard .vek2-foot-metric small {font-size:10.8px;}
+
+/* Líneas interactivas: aprovechar su tamaño, con puntos y valores legibles. */
+.vek2-dashboard .vek2-evolution .vek2-card-heading {min-height:65px;}
+.vek2-dashboard .vek2-chart-top-controls {gap:13px;}
+.vek2-dashboard .vek2-legend-mark {
+  gap:7px;
+  font-size:12.1px;
+  font-weight:600;
+}
+.vek2-dashboard .vek2-legend-mark i,
+.vek2-dashboard .vek2-chart-tooltip i {width:9px;height:9px;flex-basis:9px;}
+.vek2-dashboard .vek2-period select {
+  min-height:34px;
+  max-width:120px;
+  padding:6px 8px;
+  font-size:12px;
+  border-radius:8px;
+}
+.vek2-dashboard .vek2-chart-plot {margin:2px 20px 15px;}
+.vek2-dashboard .vek2-axis-label {font-size:12px;}
+.vek2-dashboard .vek2-chart-tooltip {
+  gap:7px;
+  min-width:146px;
+  padding:11px 14px;
+  border-radius:10px;
+  font-size:12px;
+  line-height:1.3;
+}
+.vek2-dashboard .vek2-chart-tooltip strong {font-size:13px;}
+
+/* Calendario no ocupa media fila: pequeña tarjeta pegada a la esquina.
+   Mantiene mes, días seleccionables, detalle y enlace a Agenda. */
+.vek2-dashboard .hr-calendar.vek2-calendar {
+  justify-self:end;
+  align-self:end;
+  width:100%;
+  max-width:292px;
+  height:min(292px,100%);
+  max-height:292px;
+  min-height:0;
+  border-radius:14px;
+  background:#fff;
+}
+.vek2-dashboard .hr-calendar .hr-panel-heading {
+  min-height:51px;
+  gap:4px;
+  padding:12px 12px 6px;
+}
+.vek2-dashboard .hr-calendar .hr-panel-heading h2 {
+  font-size:14.2px;
+  font-weight:800;
+}
+.vek2-dashboard .hr-month-selector { gap:0; }
+.vek2-dashboard .hr-month-selector>span {
+  min-width:90px;
+  font-size:11.4px;
+  font-weight:700;
+}
+.vek2-dashboard .hr-month-selector button {
+  width:23px;
+  height:25px;
+  flex-basis:23px;
+}
+.vek2-dashboard .hr-calendar-weekdays,
+.vek2-dashboard .hr-calendar-days {margin:0 13px;}
+.vek2-dashboard .hr-calendar-weekdays {
+  flex-basis:21px;
+  min-height:21px;
+}
+.vek2-dashboard .hr-calendar-weekdays span {font-size:11px;}
+.vek2-dashboard .hr-calendar-days {
+  flex:1 1 auto;
+  min-height:0;
+  grid-auto-rows:minmax(22px,1fr);
+}
+.vek2-dashboard .hr-calendar-day {
+  width:min(100%,31px);
+  min-height:0;
+  font-size:11.8px;
+  border-radius:7px;
+}
+.vek2-dashboard .hr-calendar-footer {
+  flex-basis:34px;
+  gap:5px;
+  padding:4px 10px 7px;
+}
+.vek2-dashboard .hr-calendar-footer .hr-selected-date,
+.vek2-dashboard .hr-calendar-footer .hr-selected-tasks,
+.vek2-dashboard .hr-calendar-footer>a {font-size:10.5px;}
+.vek2-dashboard .hr-calendar-inspector {
+  left:7px;
+  right:7px;
+  bottom:33px;
+  height:min(185px,67%);
+  max-height:calc(100% - 73px);
+}
+
+/* Cuando el ancho del contenido real se reduce por el menú (256px),
+   priorizar textos antes que columnas de poca utilidad. */
+@media (max-width:1450px) and (min-width:901px) {
+  .vek2-dashboard .vek2-grid-top {
+    grid-template-columns:minmax(0,1.78fr) minmax(280px,.90fr);
+  }
+  .vek2-dashboard .vek2-table th:nth-child(3),
+  .vek2-dashboard .vek2-table td:nth-child(3) {display:none;}
+  .vek2-dashboard .vek2-table th:nth-child(1) {width:36%;}
+  .vek2-dashboard .vek2-table th:nth-child(2) {width:27%;}
+  .vek2-dashboard .vek2-table th:nth-child(4) {width:15%;}
+  .vek2-dashboard .vek2-table th:nth-child(5) {width:18%;}
+  .vek2-dashboard .vek2-table th:nth-child(6) {width:4%;}
+  .vek2-dashboard .vek2-donut-wrap {flex-basis:40%;}
+  .vek2-dashboard .vek2-legend-row {font-size:11.5px;}
+  .vek2-dashboard .vek2-legend-row strong {font-size:12px;}
+}
+@media (max-width:1190px) and (min-width:901px) {
+  .vek2-dashboard .vek2-grid-top {
+    grid-template-columns:minmax(0,1fr) minmax(266px,.85fr);
+  }
+  .vek2-dashboard .vek2-table th:nth-child(2),
+  .vek2-dashboard .vek2-table td:nth-child(2),
+  .vek2-dashboard .vek2-table th:nth-child(4),
+  .vek2-dashboard .vek2-table td:nth-child(4) {display:none;}
+  .vek2-dashboard .vek2-table th:nth-child(1) {width:61%;}
+  .vek2-dashboard .vek2-table th:nth-child(5) {width:33%;}
+  .vek2-dashboard .vek2-table th:nth-child(6) {width:6%;}
+  .vek2-dashboard .vek2-tabs {gap:2px;padding-inline:3px;margin-inline:9px;}
+  .vek2-dashboard .vek2-tabs button {font-size:11px;padding-inline:5px;}
+  .vek2-dashboard .vek2-card-heading {padding-inline:12px;}
+  .vek2-dashboard .vek2-secondary-action {display:none;}
+  .vek2-dashboard .vek2-donut-layout {gap:6px;padding-inline:8px;}
+  .vek2-dashboard .vek2-legend-row {gap:5px;font-size:11px;}
+}
+@media (max-width:900px) {
+  .vek2-dashboard .vek2-grid,
+  .vek2-dashboard .vek2-grid-top,
+  .vek2-dashboard .vek2-grid-bottom {gap:14px;}
+  .vek2-dashboard .vek2-grid-bottom {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    justify-items:stretch;
+  }
+  .vek2-dashboard .vek2-card,
+  .vek2-dashboard .hr-calendar.vek2-calendar {height:auto;}
+  .vek2-dashboard .vek2-summary {min-height:348px;}
+  .vek2-dashboard .vek2-statistics {min-height:295px;}
+  .vek2-dashboard .vek2-evolution {min-height:310px;}
+  .vek2-dashboard .hr-calendar.vek2-calendar {
+    width:min(100%,292px);
+    height:292px;
+    min-height:292px;
+    margin-left:auto;
+    justify-self:end;
+    align-self:end;
+  }
+  .vek2-dashboard .vek2-chart-plot {min-height:215px;}
+  .vek2-dashboard .vek2-table tbody tr {height:25%;}
+}
+@media (max-width:660px) {
+  .vek2-dashboard .vek2-card-heading h2 {font-size:16px;}
+  .vek2-dashboard .vek2-table th:nth-child(2),
+  .vek2-dashboard .vek2-table td:nth-child(2),
+  .vek2-dashboard .vek2-table th:nth-child(3),
+  .vek2-dashboard .vek2-table td:nth-child(3),
+  .vek2-dashboard .vek2-table th:nth-child(4),
+  .vek2-dashboard .vek2-table td:nth-child(4) {display:none;}
+  .vek2-dashboard .vek2-table th:nth-child(1) {width:61%;}
+  .vek2-dashboard .vek2-table th:nth-child(5) {width:33%;}
+  .vek2-dashboard .vek2-table th:nth-child(6) {width:6%;}
+  .vek2-dashboard .vek2-table td {font-size:12px;}
+  .vek2-dashboard .vek2-client-avatar {flex-basis:30px;width:30px;height:30px;font-size:10px;}
+  .vek2-dashboard .vek2-tabs button {font-size:11px;padding-inline:5px;}
+  .vek2-dashboard .vek2-donut-wrap {flex-basis:40%;}
+  .vek2-dashboard .vek2-legend-row {font-size:11.6px;}
+  .vek2-dashboard .vek2-chart-top-controls {gap:7px;}
+  .vek2-dashboard .vek2-legend-mark {font-size:11.2px;}
+  .vek2-dashboard .hr-calendar.vek2-calendar {width:min(100%,292px);}
+}
+@media (min-width:901px) and (max-height:745px) {
+  .vek2-dashboard .vek2-card-heading {min-height:54px;padding:9px 13px 6px;}
+  .vek2-dashboard .vek2-tabs {min-height:36px;}
+  .vek2-dashboard .vek2-tabs button {min-height:36px;}
+  .vek2-dashboard .vek2-table thead {height:28px;}
+  .vek2-dashboard .vek2-table td {padding:4px 6px;}
+  .vek2-dashboard .vek2-client-avatar {flex-basis:30px;width:30px;height:30px;}
+  .vek2-dashboard .vek2-statistics .vek2-card-heading {min-height:54px;}
+  .vek2-dashboard .vek2-stat-foot {flex-basis:58px;padding:6px 11px;}
+  .vek2-dashboard .vek2-legend-row {gap:6px;}
+  .vek2-dashboard .vek2-stat-legend {gap:7px;}
+  .vek2-dashboard .hr-calendar.vek2-calendar {height:min(270px,100%);max-height:270px;}
+  .vek2-dashboard .hr-calendar .hr-panel-heading {min-height:46px;padding:8px 10px 5px;}
+  .vek2-dashboard .hr-calendar-footer {flex-basis:30px;padding:3px 9px;}
+}

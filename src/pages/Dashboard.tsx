@@ -59,7 +59,7 @@ function RecentTable({opportunities}:{opportunities:Opportunity[]}) {
     ||(tab==='nuevas'&&o.status==='Nueva')
     ||(tab==='gestion'&&['Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento'].includes(o.status))
     ||(tab==='cerradas'&&['Aceptada','Perdida'].includes(o.status));
-  const latest=sorted.filter(filter).slice(0,5);
+  const latest=sorted.filter(filter).slice(0,4);
   const tabs:[Tab,string][]=[['todas','Todas'],['nuevas','Sin responder'],['gestion','En gestión'],['cerradas','Cerradas']];
   return <section className="vek2-card vek2-summary" aria-labelledby="vek2-summary-heading">
     <div className="vek2-card-heading">
@@ -203,11 +203,11 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
             width={Math.max(42,628/Math.max(points.length-1,1))} height="155" fill="transparent"
             onMouseEnter={()=>setHover(i)} onMouseMove={()=>setHover(i)}
             onClick={()=>setHover(i)}/>
-          <circle cx={x(i)} cy={y(p.consultations)} r={hover===i?5.5:3.1}
+          <circle cx={x(i)} cy={y(p.consultations)} r={hover===i?6:3.7}
             fill="#17b396" stroke="#fff" strokeWidth="2" tabIndex={0} role="button"
             aria-label={p.label+': '+p.consultations+' consultas y '+p.quotations+' presupuestos'}
             onFocus={()=>setHover(i)} onBlur={()=>setHover(null)}/>
-          <circle cx={x(i)} cy={y(p.quotations)} r={hover===i?5.5:3.1}
+          <circle cx={x(i)} cy={y(p.quotations)} r={hover===i?6:3.7}
             fill="#e1bf43" stroke="#fff" strokeWidth="2"/>
         </g>)}
       </svg>
