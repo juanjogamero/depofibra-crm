@@ -1,0 +1,226 @@
+/* Mis comisiones · banners editoriales y tabla corporativa.
+   Solo /comisiones; reutiliza los componentes visuales de los listados existentes.
+   Fotografías Pexels (uso gratuito en aplicaciones comerciales):
+   https://www.pexels.com/photo/a-person-working-on-the-documents-using-a-calculator-8297220/
+   https://www.pexels.com/photo/businessman-people-laptop-office-8062355/
+   https://www.pexels.com/photo/a-calculator-and-documents-on-the-table-8296948/
+   Son imágenes editoriales ilustrativas, no instalaciones ni operaciones reales de Depofibra.
+   Licencia: https://www.pexels.com/license/ */
+.app-body.is-commissions .page.page-commissions {
+  background:linear-gradient(135deg,#fff 36%,#f5f9fd 100%);
+}
+.page-commissions .op-screen-heading {margin-bottom:15px;}
+.page-commissions .op-heading-copy p {max-width:740px;}
+.page-commissions .commission-banners {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  flex:0 0 auto;
+  min-width:0;
+  margin:0 0 18px;
+}
+.page-commissions .commission-banner {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  isolation:isolate;
+  min-width:0;
+  min-height:159px;
+  overflow:hidden;
+  padding:19px 21px 18px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:12px;
+  background:#002d59;
+  color:#fff;
+  box-shadow:0 6px 18px rgba(0,45,89,.095);
+}
+.page-commissions .commission-banner::before,
+.page-commissions .commission-banner::after {
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  content:'';
+  pointer-events:none;
+}
+.page-commissions .commission-banner::before {
+  background-size:cover;
+  background-position:center;
+  filter:saturate(.77) contrast(1.05);
+  transform:scale(1.015);
+}
+.page-commissions .commission-banner.is-generated::before {
+  background-image:url('https://images.pexels.com/photos/8297220/pexels-photo-8297220.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-position:center 56%;
+}
+.page-commissions .commission-banner.is-collected::before {
+  background-image:url('https://images.pexels.com/photos/8062355/pexels-photo-8062355.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-position:center 55%;
+}
+.page-commissions .commission-banner.is-outstanding::before {
+  background-image:url('https://images.pexels.com/photos/8296948/pexels-photo-8296948.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-position:center 52%;
+}
+/* Filtro navy oscuro: el texto nunca depende del contraste original de la foto. */
+.page-commissions .commission-banner::after {
+  background:linear-gradient(102deg,rgba(0,24,49,.94) 0%,rgba(0,34,69,.86) 52%,rgba(1,45,86,.67) 100%);
+}
+.page-commissions .commission-banner-heading {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:9px;
+  color:rgba(255,255,255,.91);
+  font:750 12.2px/1.35 Inter,sans-serif;
+}
+.page-commissions .commission-banner-icon {
+  display:grid;
+  flex:0 0 34px;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:9px;
+  color:#fff;
+  background:rgba(255,255,255,.105);
+}
+.page-commissions .commission-banner-value {
+  display:block;
+  margin-top:12px;
+  color:#fff;
+  font:800 clamp(27px,2.45vw,36px)/1.1 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.047em;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 1px 12px rgba(0,0,0,.2);
+}
+.page-commissions .commission-banner-caption {
+  display:block;
+  margin-top:9px;
+  color:rgba(255,255,255,.81);
+  font:500 10.8px/1.4 Inter,sans-serif;
+}
+.page-commissions .commission-tabs {margin-bottom:12px;}
+.page-commissions .commission-toolbar {
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:39px;
+  margin:0 0 13px;
+}
+.page-commissions .commission-toolbar .op-search {flex:0 1 392px;}
+.page-commissions .commission-toolbar-meta {
+  color:#8297a9;
+  font:650 11.2px/1.3 Inter,sans-serif;
+  white-space:nowrap;
+}
+.page-commissions .commissions-table-panel {margin:0;}
+.page-commissions .commissions-data-table .commission-col-client {width:30%;}
+.page-commissions .commissions-data-table .commission-col-agreed {width:18%;}
+.page-commissions .commissions-data-table .commission-col-paid {width:15%;}
+.page-commissions .commissions-data-table .commission-col-due {width:15%;}
+.page-commissions .commissions-data-table .commission-col-status {width:19%;}
+.page-commissions .commissions-data-table .commission-col-open {width:3%;}
+.page-commissions .commission-amount {
+  display:inline-block;
+  max-width:100%;
+  color:#365a77;
+  font:700 clamp(11px,1vw,13px)/1.3 "Plus Jakarta Sans",Inter,sans-serif;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.page-commissions .commission-amount.has-balance {color:#002d59;font-weight:800;}
+.page-commissions .commission-client-link {
+  border-radius:3px;
+  text-decoration:none;
+  text-underline-offset:3px;
+  transition:color .15s ease,background .15s ease;
+}
+.page-commissions .commission-client-link:hover,
+.page-commissions .commission-client-link:focus-visible {
+  color:#01488e;
+  background:#e7f2fb;
+  text-decoration:underline;
+  outline-offset:3px;
+}
+.page-commissions .commission-state {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  padding:5px 9px;
+  border-radius:6px;
+  font:750 10.6px/1.25 Inter,sans-serif;
+  white-space:normal;
+  text-align:center;
+}
+.page-commissions .commission-state.is-due {background:#fff0dc;color:#9a6a25;}
+.page-commissions .commission-state.is-partial {background:#e4effb;color:#266b9e;}
+.page-commissions .commission-state.is-paid {background:#e1f3e9;color:#287554;}
+.page-commissions .commission-footer-note {
+  margin-left:auto;
+  color:#91a3b5;
+  font:500 10.3px/1.3 Inter,sans-serif;
+}
+@media(max-width:1180px) {
+  .page-commissions .commission-banner {padding:16px 17px;min-height:150px;}
+  .page-commissions .commissions-data-table .commission-col-client {width:34%;}
+  .page-commissions .commissions-data-table .commission-col-agreed {width:16%;}
+  .page-commissions .commissions-data-table .commission-col-paid {width:13%;}
+  .page-commissions .commissions-data-table .commission-col-due {width:15%;}
+  .page-commissions .commissions-data-table .commission-col-status {width:19%;}
+  .page-commissions .commissions-data-table .commission-col-open {width:3%;}
+}
+@media(max-width:830px) {
+  .page-commissions .commission-banners {gap:9px;}
+  .page-commissions .commission-banner {min-height:140px;padding:13px;}
+  .page-commissions .commission-banner-heading {font-size:10.8px;}
+  .page-commissions .commission-banner-icon {width:30px;height:30px;flex-basis:30px;}
+  .page-commissions .commission-banner-value {font-size:26px;}
+  .page-commissions .commission-banner-caption {font-size:10px;}
+  .page-commissions .commissions-data-table .commission-col-agreed {display:none;}
+  .page-commissions .commissions-data-table .commission-col-client {width:43%;}
+  .page-commissions .commissions-data-table .commission-col-paid {width:17%;}
+  .page-commissions .commissions-data-table .commission-col-due {width:17%;}
+  .page-commissions .commissions-data-table .commission-col-status {width:19%;}
+  .page-commissions .commissions-data-table .commission-col-open {width:4%;}
+}
+@media(max-width:660px) {
+  .page-commissions .op-screen-heading {margin-bottom:11px;}
+  .page-commissions .commission-banners {grid-template-columns:1fr;gap:8px;margin-bottom:12px;}
+  .page-commissions .commission-banner {
+    min-height:109px;
+    padding:12px 15px;
+  }
+  .page-commissions .commission-banner-value {margin-top:3px;font-size:25px;}
+  .page-commissions .commission-banner-caption {margin-top:4px;}
+  .page-commissions .commission-banner-heading {font-size:11px;}
+  .page-commissions .commission-banner-icon {width:26px;height:26px;flex-basis:26px;}
+  .page-commissions .commission-toolbar {gap:8px;margin-bottom:10px;}
+  .page-commissions .commission-toolbar .op-search {flex:1 1 auto;}
+  .page-commissions .commission-toolbar-meta {font-size:10px;}
+  .page-commissions .commissions-data-table .commission-col-paid {display:none;}
+  .page-commissions .commissions-data-table .commission-col-client {width:55%;}
+  .page-commissions .commissions-data-table .commission-col-due {width:21%;}
+  .page-commissions .commissions-data-table .commission-col-status {width:19%;}
+  .page-commissions .commissions-data-table .commission-col-open {width:5%;}
+  .page-commissions .commission-footer-note {display:none;}
+}
+@media(max-width:440px) {
+  .page-commissions .commission-toolbar-meta {display:none;}
+  .page-commissions .commissions-data-table .commission-col-status {display:none;}
+  .page-commissions .commissions-data-table .commission-col-client {width:68%;}
+  .page-commissions .commissions-data-table .commission-col-due {width:25%;}
+  .page-commissions .commissions-data-table .commission-col-open {width:7%;}
+  .page-commissions .commission-amount {font-size:11px;}
+}
+@media(max-height:700px) and (min-width:661px) {
+  .page-commissions .commission-banner {min-height:128px;padding:12px 16px;}
+  .page-commissions .commission-banners {margin-bottom:10px;}
+  .page-commissions .commission-banner-value {font-size:25px;margin-top:4px;}
+  .page-commissions .commission-banner-caption {margin-top:5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .page-commissions .commission-client-link {transition:none;}
+}
