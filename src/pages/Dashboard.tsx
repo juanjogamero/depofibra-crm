@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlarmClock, ArrowRight, ChevronLeft, ChevronRight,
-  ExternalLink, FileText, Inbox, Plus
+  ExternalLink, FileText, Inbox, Plus, X
 } from 'lucide-react';
 import { useCrm } from '../store';
 import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
@@ -167,18 +167,26 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
   const base = new Date(today()+'T12:00:00');
   const [month, setMonth] = useState(() => new Date(base.getFullYear(), base.getMonth(), 1));
   const [selected, setSelected] = useState(today);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const year = month.getFullYear();
   const m = month.getMonth();
   const offset = (new Date(year,m,1).getDay()+6)%7;
   const dayCount = new Date(year,m+1,0).getDate();
   const positions = Math.ceil((offset + dayCount)/7)*7;
-  const selectedTasks = tasks.filter(t=>!t.done && t.due===selected);
+  const pendingTasks = tasks.filter(t=>!t.done);
+  const selectedTasks = pendingTasks.filter(t=>t.due===selected);
   const monthTitle = month.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
   const weekdays = ['L','M','X','J','V','S','D'];
+  const agendaUrl = '/agenda?fecha=' + selected;
   const move = (delta:number) => {
     const next = new Date(year,m+delta,1);
     setMonth(next);
     setSelected(makeKey(next.getFullYear(),next.getMonth(),1));
+    setDetailsOpen(false);
+  };
+  const showDate = (date:string) => {
+    setSelected(date);
+    setDetailsOpen(true);
   };
   return <section className="hr-right-card hr-calendar" aria-labelledby="hr-calendar-heading">
     <div className="hr-panel-heading hr-calendar-head">
@@ -195,18 +203,38 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
         const day=i-offset+1;
         if(day<1||day>dayCount) return <span key={'blank-'+i} aria-hidden="true"/>;
         const date=makeKey(year,m,day);
-        const count=tasks.filter(t=>!t.done&&t.due===date).length;
+        const count=pendingTasks.filter(t=>t.due===date).length;
         const classes='hr-calendar-day'+(date===today()?' is-today':'')+(date===selected?' is-selected':'');
-        return <button key={date} type="button" className={classes} onClick={()=>setSelected(date)}
-          aria-label={day+' de '+monthTitle+(count?', '+count+' tareas':'')} aria-pressed={date===selected}>
+        return <button key={date} type="button" className={classes} onClick={()=>showDate(date)}
+          aria-label={day+' de '+monthTitle+(count?', '+count+(count===1?' tarea pendiente':' tareas pendientes'):', sin tareas pendientes')+'. Ver detalles'}
+          aria-pressed={date===selected && detailsOpen}>
           <span>{day}</span>{count>0&&<i aria-hidden="true"/>}
         </button>;
       })}
     </div>
+    {detailsOpen&&<div className="hr-calendar-inspector" role="region" aria-label={'Tareas del '+dateText(selected)}>
+      <div className="hr-calendar-inspector-head">
+        <div><small>Agenda del día</small><strong>{dateText(selected)}</strong></div>
+        <button type="button" onClick={()=>setDetailsOpen(false)} aria-label="Cerrar detalles del calendario"><X size={16}/></button>
+      </div>
+      <div className="hr-calendar-inspector-list">
+        {selectedTasks.length ? selectedTasks.slice(0,3).map(t=>
+          <Link key={t.id} to={agendaUrl} className="hr-calendar-task-link" title={'Ver la tarea en Agenda: '+t.title}>
+            <span className="hr-calendar-task-dot" aria-hidden="true"/>
+            <span className="hr-calendar-task-copy"><strong>{t.title}</strong>{t.context&&<small>{t.context}</small>}</span>
+            <ArrowRight size={13} aria-hidden="true"/>
+          </Link>
+        ) : <p className="hr-calendar-no-tasks">No hay tareas pendientes en esta fecha.</p>}
+        {selectedTasks.length>3&&<span className="hr-calendar-task-more">Y {selectedTasks.length-3} más en Agenda</span>}
+      </div>
+      <Link className="hr-calendar-open-day" to={selectedTasks.length?agendaUrl:agendaUrl+'&nueva=1'}>
+        {selectedTasks.length?'Ver todas las tareas del día':'Crear tarea para este día'} <ArrowRight size={14}/>
+      </Link>
+    </div>}
     <div className="hr-calendar-footer">
       <span className="hr-selected-date">{dateText(selected)}</span>
       <span className="hr-selected-tasks">{selectedTasks.length===0 ? 'Sin tareas' : selectedTasks.length + (selectedTasks.length===1?' tarea':' tareas')}</span>
-      <Link to="/agenda">Ver agenda <ArrowRight size={13}/></Link>
+      <Link to={agendaUrl}>Ver agenda <ArrowRight size={13}/></Link>
     </div>
   </section>;
 }
