@@ -6,7 +6,7 @@ export type TimelineItem = { at: string; text: string; by: string };
 export type Opportunity = {
   id: string; name: string; channel: Channel; contact: string; alias: string; conversation: string;
   product: string; capacity: string; destination: string; status: OpportunityStatus;
-  createdAt: string; nextAction: string; nextDate: string; message: string; lostReason?: string; activity: TimelineItem[];
+  createdAt: string; receivedAt?: string; nextAction: string; nextDate: string; message: string; lostReason?: string; activity: TimelineItem[];
 };
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
