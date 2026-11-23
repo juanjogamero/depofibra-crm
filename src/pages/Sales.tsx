@@ -20,6 +20,9 @@ export function Opportunities(){
  const [channel,setChannel]=useState('Todos los canales');
  const [sort,setSort]=useState<OpportunitySort>('Recientes');
  const [overdueOnly,setOverdueOnly]=useState(false);
+ const [dateFrom,setDateFrom]=useState('');
+ const [dateTo,setDateTo]=useState('');
+ const [filtersOpen,setFiltersOpen]=useState(false);
  const [modal,setModal]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const isClosed=(s:OpportunityStatus)=>s==='Aceptada'||s==='Perdida';
@@ -34,6 +37,8 @@ export function Opportunities(){
    &&(status==='Todos los estados'||o.status===status)
    &&(channel==='Todos los canales'||o.channel===channel)
    &&(!overdueOnly||isOverdue(o))
+   &&(!dateFrom||(o.receivedAt||o.createdAt).slice(0,10)>=dateFrom)
+   &&(!dateTo||(o.receivedAt||o.createdAt).slice(0,10)<=dateTo)
    &&[o.id,o.name,o.product,o.capacity,o.destination,o.alias,o.channel,o.contact,o.nextAction]
        .join(' ').toLocaleLowerCase('es-ES').includes(query)
  ).sort((a,b)=>{
@@ -50,80 +55,97 @@ export function Opportunities(){
    {id:'En gestión',label:'En gestión',count:data.opportunities.filter(o=>quickMatch(o.status,'En gestión')).length},
    {id:'Cerradas',label:'Cerradas',count:data.opportunities.filter(o=>quickMatch(o.status,'Cerradas')).length}
  ];
- const activeFilters=Boolean(search.trim()||quick!=='Todas'||status!=='Todos los estados'||channel!=='Todos los canales'||sort!=='Recientes'||overdueOnly);
- const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false)};
+ const activeFilters=Boolean(search.trim()||quick!=='Todas'||status!=='Todos los estados'||channel!=='Todos los canales'||sort!=='Recientes'||overdueOnly||dateFrom||dateTo);
+ const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
  const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial'});setModal(false);setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
  return <div className="page page-opportunities">
-   <PageHeader eyebrow="GESTIÓN COMERCIAL" title="Oportunidades" subtitle="Consulta, filtra y gestiona todas las solicitudes comerciales." actions={<Button onClick={()=>setModal(true)}><Plus size={17}/>Registrar solicitud</Button>}/>
-   <div className="op-metrics">
-     <span><strong>{data.opportunities.length}</strong> solicitudes</span>
-     <span><strong>{data.opportunities.filter(o=>o.status==='Nueva').length}</strong> sin responder</span>
-     <span><strong>{data.opportunities.filter(isOverdue).length}</strong> seguimientos vencidos</span>
-   </div>
-   <section className="op-table-panel" aria-label="Listado de oportunidades">
-     <div className="op-quick-tabs" role="group" aria-label="Filtrar por fase comercial">
-       {counts.map(item=><button key={item.id} type="button" className={quick===item.id?'is-active':''}
-         aria-pressed={quick===item.id} onClick={()=>{setQuick(item.id);setStatus('Todos los estados')}}>
-         {item.label}<span>{item.count}</span>
-       </button>)}
-     </div>
-     <div className="op-filterbar">
+   <section className="op-table-panel op-orderboard" aria-labelledby="op-board-title">
+     <div className="op-board-topline">
        <label className="op-search">
-         <Search size={18} aria-hidden="true"/>
+         <Search size={17} aria-hidden="true"/>
          <input type="search" aria-label="Buscar solicitudes" placeholder="Buscar cliente, producto, destino o referencia..."
            value={search} onChange={e=>setSearch(e.target.value)}/>
          {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
        </label>
-       <div className="op-filter-controls">
-         <span className="op-filter-icon" title="Filtros"><Filter size={16}/></span>
-         <label className="op-select-wrap"><span className="sr-only">Estado comercial</span>
-           <select value={status} onChange={e=>setStatus(e.target.value)} aria-label="Estado comercial">
-             <option>Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}
-           </select>
-         </label>
-         <label className="op-select-wrap"><span className="sr-only">Canal de entrada</span>
-           <select value={channel} onChange={e=>setChannel(e.target.value)} aria-label="Canal de entrada">
-             <option>Todos los canales</option>{channels.map(s=><option key={s}>{s}</option>)}
-           </select>
-         </label>
-         <label className="op-select-wrap op-sort"><span className="sr-only">Ordenar por</span>
-           <select value={sort} onChange={e=>setSort(e.target.value as OpportunitySort)} aria-label="Ordenar solicitudes">
-             <option>Recientes</option><option>Antiguas</option><option>Próximo seguimiento</option>
-           </select>
-         </label>
-         <button type="button" className={'op-overdue-toggle'+(overdueOnly?' is-active':'')}
-           aria-pressed={overdueOnly} onClick={()=>setOverdueOnly(value=>!value)}>Vencidas</button>
-         {activeFilters&&<button type="button" className="op-clear" onClick={clearFilters}><X size={14}/>Limpiar</button>}
+       <Button onClick={()=>setModal(true)}><Plus size={16}/>Registrar solicitud</Button>
+     </div>
+     <header className="op-board-heading">
+       <div>
+         <span className="op-board-eyebrow">GESTIÓN COMERCIAL</span>
+         <h1 id="op-board-title">Oportunidades</h1>
+         <p><strong>{list.length}</strong> {list.length===1?'solicitud encontrada':'solicitudes encontradas'}<span className="op-count-total"> · {data.opportunities.length} en total</span></p>
+       </div>
+       <div className="op-board-stats" aria-label="Resumen de oportunidades">
+         <span><i className="op-stat-dot" aria-hidden="true"/><strong>{data.opportunities.filter(o=>o.status==='Nueva').length}</strong> sin responder</span>
+         <span><i className="op-stat-dot is-overdue" aria-hidden="true"/><strong>{data.opportunities.filter(isOverdue).length}</strong> vencidas</span>
+       </div>
+     </header>
+     <div className="op-tabs-line">
+       <div className="op-quick-tabs" role="group" aria-label="Filtrar por fase comercial">
+         {counts.map(item=><button key={item.id} type="button" className={quick===item.id?'is-active':''}
+           aria-pressed={quick===item.id} onClick={()=>{setQuick(item.id);setStatus('Todos los estados')}}>
+           {item.label}<span>{item.count}</span>
+         </button>)}
+       </div>
+       <div className="op-date-range" role="group" aria-label="Filtrar por fecha de entrada">
+         <label><span className="sr-only">Entrada desde</span><input type="date" aria-label="Fecha de entrada desde" value={dateFrom} max={dateTo||undefined} onChange={e=>setDateFrom(e.target.value)}/></label>
+         <span className="op-date-separator" aria-hidden="true">—</span>
+         <label><span className="sr-only">Entrada hasta</span><input type="date" aria-label="Fecha de entrada hasta" value={dateTo} min={dateFrom||undefined} onChange={e=>setDateTo(e.target.value)}/></label>
        </div>
      </div>
+     <div className="op-filterbar">
+       <div className="op-filter-main">
+         <button type="button" className={'op-filter-expand'+(filtersOpen?' is-active':'')}
+           aria-expanded={filtersOpen} aria-controls="op-extra-filters" onClick={()=>setFiltersOpen(open=>!open)}>
+           <Filter size={15}/> Filtros <ChevronRight size={14} className="op-filter-chevron"/>
+         </button>
+         <button type="button" className={'op-overdue-toggle'+(overdueOnly?' is-active':'')}
+           aria-pressed={overdueOnly} onClick={()=>setOverdueOnly(value=>!value)}>Solo vencidas</button>
+         {activeFilters&&<button type="button" className="op-clear" onClick={clearFilters}><X size={14}/>Limpiar</button>}
+       </div>
+       <label className="op-sort">
+         <span>Ordenar:</span>
+         <select value={sort} onChange={e=>setSort(e.target.value as OpportunitySort)} aria-label="Ordenar solicitudes">
+           <option>Recientes</option><option>Antiguas</option><option>Próximo seguimiento</option>
+         </select>
+       </label>
+     </div>
+     {filtersOpen&&<div id="op-extra-filters" className="op-extra-filters">
+       <label><span>Estado comercial</span><select value={status} onChange={e=>setStatus(e.target.value)} aria-label="Estado comercial">
+         <option>Todos los estados</option>{statuses.map(s=><option key={s}>{s}</option>)}
+       </select></label>
+       <label><span>Canal de entrada</span><select value={channel} onChange={e=>setChannel(e.target.value)} aria-label="Canal de entrada">
+         <option>Todos los canales</option>{channels.map(s=><option key={s}>{s}</option>)}
+       </select></label>
+     </div>}
      <div className="op-table-scroll" tabIndex={0} role="region" aria-label="Solicitudes, desplazar dentro de la tabla">
        <table className="op-data-table">
          <thead><tr>
-           <th scope="col">Cliente / solicitud</th><th scope="col">Producto solicitado</th>
-           <th scope="col">Canal</th><th scope="col">Estado</th>
-           <th scope="col">Próxima acción</th><th scope="col">Fecha</th>
+           <th scope="col">Ref.</th><th scope="col">Cliente / solicitud</th><th scope="col">Producto</th>
+           <th scope="col">Canal</th><th scope="col">Fecha</th><th scope="col">Estado</th>
            <th scope="col"><span className="sr-only">Abrir ficha</span></th>
          </tr></thead>
          <tbody>{list.map(o=>{
            const tone=o.status==='Nueva'?'is-new':o.status==='Aceptada'?'is-won':o.status==='Perdida'?'is-lost':'is-progress';
            return <tr key={o.id} onClick={()=>nav('/oportunidades/'+o.id)} className="op-clickable-row">
+             <td className="op-ref">{o.id}</td>
              <td><div className="op-client-cell"><Initials name={o.name}/><div>
                <Link to={'/oportunidades/'+o.id} className="op-client-name" onClick={e=>e.stopPropagation()}>{o.name}</Link>
-               <small>{o.id}{o.destination?' · '+o.destination:''}</small>
+               <small>{o.destination||'Destino por concretar'}</small>
              </div></div></td>
-             <td><span className="op-product">{o.product}</span><small className="op-sub">{o.capacity||'Capacidad por concretar'}</small></td>
+             <td><span className="op-product" title={o.product}>{o.product}</span><small className="op-sub">{o.capacity||'Capacidad por concretar'}</small></td>
              <td><span className="op-channel">{o.channel}</span></td>
+             <td><time dateTime={o.receivedAt||o.createdAt}>{dateText((o.receivedAt||o.createdAt).slice(0,10))}</time></td>
              <td><span className={'op-state '+tone}>{o.status}</span></td>
-             <td><span className="op-next-action" title={o.nextAction}>{o.nextAction||'Sin próxima acción'}</span></td>
-             <td><time className={isOverdue(o)?'op-date-overdue':''} dateTime={o.nextDate||o.createdAt}>{dateText(o.nextDate||o.createdAt)}</time></td>
              <td><Link className="op-arrow" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir solicitud '+o.name}><ChevronRight size={17}/></Link></td>
            </tr>;
          })}</tbody>
        </table>
        {!list.length&&<Empty title="Sin coincidencias" body="No hay solicitudes que coincidan con estos filtros. Puedes modificarlos o limpiar la búsqueda."/>}
      </div>
-     <footer className="op-footer"><span>Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</span>
-       <span>Desplázate dentro de la tabla para consultar el resto</span>
+     <footer className="op-footer">
+       <span>Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</span>
+       <span>Desplázate dentro de la tabla para ver más</span>
      </footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Solo datos de prueba durante el desarrollo público" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
