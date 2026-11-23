@@ -407,7 +407,7 @@
 }
 @media (max-width:660px) {
   .app-body.is-opportunities .app-main {padding-bottom:0;}
-  .app-body.is-opportunities .page.page-opportunities {padding:9px 10px 10px;}
+  .app-body.is-opportunities .page.page-opportunities {padding:9px 10px calc(65px + env(safe-area-inset-bottom));}
   .page-opportunities .page-header {flex-wrap:wrap;gap:7px;}
   .page-opportunities .page-header h1 {font-size:20px;}
   .page-opportunities .page-header p {font-size:10.8px;}
