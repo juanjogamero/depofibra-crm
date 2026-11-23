@@ -1207,3 +1207,69 @@
 .vek2-dashboard .hr-calendar-day.is-selected i {background:#fff;}
 .vek2-dashboard .hr-calendar-footer>a,
 .vek2-dashboard .hr-month-selector button {color:#01488e;}
+
+/* REG-0093 · Fechas del gráfico a escala de UI y filas estables.
+   La línea conserva su SVG interactivo, pero las fechas se pintan fuera de SVG:
+   el escalado no proporcional del gráfico deja de agrandar su tipografía. */
+.vek2-dashboard .vek2-chart-x-labels {
+  position:absolute;
+  right:0;
+  bottom:1px;
+  left:0;
+  height:17px;
+  z-index:1;
+  pointer-events:none;
+}
+.vek2-dashboard .vek2-chart-x-labels span {
+  position:absolute;
+  top:0;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  color:#728ba4;
+  font:500 11.2px/1.35 Inter,sans-serif;
+  letter-spacing:0;
+  text-align:center;
+}
+
+/* Las filas no dependen del número de resultados: al filtrar y quedar
+   una única solicitud mantiene la misma altura que con cuatro. */
+.vek2-dashboard .vek2-table {
+  height:auto;
+}
+.vek2-dashboard .vek2-table tbody tr {
+  height:clamp(55px,7.4vh,77px);
+}
+.vek2-dashboard .vek2-summary.is-filter-compact {
+  align-self:start;
+  height:auto;
+  min-height:0;
+}
+.vek2-dashboard .vek2-summary.is-filter-compact .vek2-table-area {
+  flex:0 0 auto;
+  min-height:0;
+}
+.vek2-dashboard .vek2-summary.is-filter-compact .vek2-empty {
+  flex:0 0 auto;
+  min-height:56px;
+}
+/* En portátiles bajitos, las cuatro filas siguen entrando sin scroll,
+   sin aumentar artificialmente las filas de los filtros con menos datos. */
+@media (min-width:901px) and (max-height:800px) {
+  .vek2-dashboard .vek2-table tbody tr {
+    height:clamp(49px,6.4vh,59px);
+  }
+}
+@media (max-width:900px) {
+  .vek2-dashboard .vek2-summary.is-filter-compact {
+    height:auto;
+    min-height:0;
+  }
+  .vek2-dashboard .vek2-table tbody tr {
+    height:clamp(62px,8vh,82px);
+  }
+}
+@media (max-width:660px) {
+  .vek2-dashboard .vek2-chart-x-labels span {
+    font-size:9.5px;
+  }
+}
