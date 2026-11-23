@@ -1,9 +1,9 @@
 /* Mis comisiones · banners editoriales y tabla corporativa.
    Solo /comisiones; reutiliza los componentes visuales de los listados existentes.
    Fotografías Pexels (uso gratuito en aplicaciones comerciales):
-   https://www.pexels.com/photo/a-person-working-on-the-documents-using-a-calculator-8297220/
-   https://www.pexels.com/photo/businessman-people-laptop-office-8062355/
-   https://www.pexels.com/photo/a-calculator-and-documents-on-the-table-8296948/
+   Campo con aspersores: https://www.pexels.com/photo/water-sprinklers-at-an-agricultural-field-14007496/
+   Riego junto a maizal: https://www.pexels.com/photo/a-focus-of-a-sprinkler-connected-to-a-pipe-next-to-a-corn-field-10041326/
+   Depósitos de agua en finca: https://www.pexels.com/photo/large-containers-standing-by-the-building-on-a-farm-13772681/
    Son imágenes editoriales ilustrativas, no instalaciones ni operaciones reales de Depofibra.
    Licencia: https://www.pexels.com/license/ */
 .app-body.is-commissions .page.page-commissions {
@@ -50,20 +50,20 @@
   transform:scale(1.015);
 }
 .page-commissions .commission-banner.is-generated::before {
-  background-image:url('https://images.pexels.com/photos/8297220/pexels-photo-8297220.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-image:url('https://images.pexels.com/photos/14007496/pexels-photo-14007496.jpeg?auto=compress&cs=tinysrgb&w=1000');
   background-position:center 56%;
 }
 .page-commissions .commission-banner.is-collected::before {
-  background-image:url('https://images.pexels.com/photos/8062355/pexels-photo-8062355.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-image:url('https://images.pexels.com/photos/10041326/pexels-photo-10041326.jpeg?auto=compress&cs=tinysrgb&w=1000');
   background-position:center 55%;
 }
 .page-commissions .commission-banner.is-outstanding::before {
-  background-image:url('https://images.pexels.com/photos/8296948/pexels-photo-8296948.jpeg?auto=compress&cs=tinysrgb&w=1000');
+  background-image:url('https://images.pexels.com/photos/13772681/pexels-photo-13772681.jpeg?auto=compress&cs=tinysrgb&w=1000');
   background-position:center 52%;
 }
 /* Filtro navy oscuro: el texto nunca depende del contraste original de la foto. */
 .page-commissions .commission-banner::after {
-  background:linear-gradient(102deg,rgba(0,24,49,.94) 0%,rgba(0,34,69,.86) 52%,rgba(1,45,86,.67) 100%);
+  background:linear-gradient(102deg,rgba(0,24,49,.89) 0%,rgba(0,34,69,.75) 52%,rgba(1,45,86,.51) 100%);
 }
 .page-commissions .commission-banner-heading {
   display:flex;
