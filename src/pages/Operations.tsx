@@ -7,7 +7,7 @@ import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Pan
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
 
-type ClientListGroup = 'Todos'|'Con pedidos'|'Sin pedidos'|'Con documentos';
+type ClientListGroup = 'Todos'|'Altas recientes'|'Altas anteriores'|'Datos pendientes';
 type ClientListSort = 'Recientes'|'Antiguos'|'Nombre A-Z'|'Más pedidos';
 const clientRangeDate=(iso:string)=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T12:00:00'));
 
@@ -23,15 +23,24 @@ export function Clients(){
  const [datesOpen,setDatesOpen]=useState(false);
  const [filtersOpen,setFiltersOpen]=useState(false);
  const orderCount=(id:string)=>data.orders.filter(o=>o.customerId===id).length;
- const matches=(c:{id:string;documentNames:string[]},key:ClientListGroup)=>{
-   const n=orderCount(c.id);
-   return key==='Todos'||key==='Con pedidos'&&n>0||key==='Sin pedidos'&&n===0||key==='Con documentos'&&c.documentNames.length>0;
+ const cutoff=new Date(today()+'T12:00:00');
+ cutoff.setDate(cutoff.getDate()-30);
+ const recentSince=cutoff.toISOString().slice(0,10);
+ const needsData=(client:{contact:string;destination:string})=>{
+   const needsContact=!client.contact.trim()||['por completar','cliente ficticio','pendiente'].includes(client.contact.trim().toLocaleLowerCase('es'));
+   const needsDestination=!client.destination.trim()||['por completar','pendiente'].includes(client.destination.trim().toLocaleLowerCase('es'));
+   return needsContact||needsDestination;
  };
+ const matches=(client:{createdAt:string;contact:string;destination:string},key:ClientListGroup)=>
+   key==='Todos'
+   ||key==='Altas recientes'&&client.createdAt.slice(0,10)>=recentSince
+   ||key==='Altas anteriores'&&client.createdAt.slice(0,10)<recentSince
+   ||key==='Datos pendientes'&&needsData(client);
  const groups:{id:ClientListGroup;label:string}[]=[
    {id:'Todos',label:'Todos'},
-   {id:'Con pedidos',label:'Con pedidos'},
-   {id:'Sin pedidos',label:'Sin pedidos'},
-   {id:'Con documentos',label:'Con documentos'}
+   {id:'Altas recientes',label:'Últimos 30 días'},
+   {id:'Altas anteriores',label:'Anteriores'},
+   {id:'Datos pendientes',label:'Datos pendientes'}
  ];
  const destinations=[...new Set(data.customers.map(c=>c.destination).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
  const query=search.trim().toLocaleLowerCase('es-ES');
@@ -71,7 +80,7 @@ export function Clients(){
    <div className="op-screen-heading">
      <div className="op-heading-copy">
        <h1 id="clients-title">Clientes</h1>
-       <p>Compradores registrados. Consulta sus datos, pedidos y referencias documentales.</p>
+       <p>Compradores registrados. Consulta sus datos, historial y seguimiento de clientes.</p>
      </div>
      <div className="op-heading-actions">
        <button type="button" className="op-export-button" onClick={exportClients} disabled={!list.length}
