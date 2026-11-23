@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlarmClock, ArrowRight, ChevronLeft, ChevronRight,
-  FileText, Inbox, Plus
+  ExternalLink, FileText, Inbox, Plus
 } from 'lucide-react';
 import { useCrm } from '../store';
-import { dateText, dayDiff, today, type Opportunity, type Quote, type Order, type Task } from '../domain';
+import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
 
 type Period = '8 semanas' | '6 meses';
 type Series = { label: string; consultations: number; quotations: number };
@@ -41,8 +41,8 @@ function timeSeries(opportunities: Opportunity[], quotes: Quote[], period: Perio
 function DashboardBars({ points }: { points: Series[] }) {
   const largest = Math.max(2, ...points.flatMap(p => [p.consultations, p.quotations]));
   const ceiling = Math.ceil(largest / 4) * 4 || 4;
-  const top = 18;
-  const bottom = 223;
+  const top = 22;
+  const bottom = 274;
   const xStart = 53;
   const totalWidth = 705;
   const groupWidth = totalWidth / Math.max(points.length, 1);
@@ -50,7 +50,7 @@ function DashboardBars({ points }: { points: Series[] }) {
   const ticks = [0, 1, 2, 3, 4];
 
   return <div className="hr-bars-area">
-    <svg viewBox="0 0 800 270" preserveAspectRatio="none" role="img"
+    <svg viewBox="0 0 800 312" preserveAspectRatio="xMidYMid meet" role="img"
       aria-label={'Evolución de consultas y presupuestos: ' + points.map(p => p.label + ', ' + p.consultations + ' consultas y ' + p.quotations + ' presupuestos').join('; ')}>
       {ticks.map(t => {
         const value = ceiling * t / 4;
@@ -71,7 +71,7 @@ function DashboardBars({ points }: { points: Series[] }) {
           <rect x={cx + 3} y={bottom - secondH} width={barWidth} height={secondH} rx="6" className="hr-bar-quotes">
             <title>{p.label}: {p.quotations} presupuestos</title>
           </rect>
-          <text x={cx} y="251" textAnchor="middle" className="hr-chart-label">{p.label}</text>
+          <text x={cx} y="302" textAnchor="middle" className="hr-chart-label">{p.label}</text>
         </g>;
       })}
     </svg>
@@ -99,152 +99,23 @@ function QuickStat({ icon: Icon, title, value, hint, accent, to }: {
   </Link>;
 }
 
-type AttentionItem = {
-  id: string;
-  title: string;
-  context: string;
-  label: string;
-  due?: string;
-  tone: 'late' | 'today' | 'new' | 'quote' | 'future';
-  to: string;
-  priority: number;
-};
-
-function shortDashboardDate(value?: string): string {
-  if (!value) return '';
-  const date = new Date(value + 'T12:00:00');
-  return Number.isNaN(date.getTime())
-    ? ''
-    : date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '');
-}
-
-function attentionItems(opportunities: Opportunity[], tasks: Task[], orders: Order[]): AttentionItem[] {
-  const current = today();
-  const pendingTasks = tasks.filter(t => !t.done);
-  const taskItems: AttentionItem[] = pendingTasks.map(t => {
-    const opportunity = opportunities.find(o => t.context.includes(o.id));
-    const order = orders.find(o => t.context.includes(o.id));
-    const late = Boolean(t.due && t.due < current);
-    const isToday = t.due === current;
-    return {
-      id: t.id,
-      title: t.title,
-      context: opportunity ? opportunity.name + ' · ' + opportunity.channel
-        : order ? order.buyerName + ' · Pedido'
-        : t.context || 'Agenda',
-      label: late ? 'Vencida' : isToday ? 'Hoy' : 'Próxima',
-      due: t.due || undefined,
-      tone: late ? 'late' : isToday ? 'today' : 'future',
-      to: opportunity ? '/oportunidades/' + opportunity.id
-        : order ? '/pedidos/' + order.id : '/agenda',
-      priority: late ? 0 : isToday ? 2 : 5,
-    };
-  });
-  const opportunityItems: AttentionItem[] = opportunities
-    .filter(o =>
-      (o.status === 'Nueva' || o.status === 'Por presupuestar')
-      && !pendingTasks.some(t => t.context.includes(o.id))
-    )
-    .map(o => {
-      const late = Boolean(o.nextDate && o.nextDate < current);
-      const isNew = o.status === 'Nueva';
-      return {
-        id: o.id,
-        title: o.nextAction.trim() || (isNew ? 'Responder solicitud' : 'Preparar presupuesto'),
-        context: o.name + ' · ' + o.channel,
-        label: late ? 'Vencida' : isNew ? 'Sin responder' : 'Por presupuestar',
-        due: o.nextDate || undefined,
-        tone: late ? 'late' : isNew ? 'new' : 'quote',
-        to: '/oportunidades/' + o.id,
-        priority: late ? 0 : isNew ? 1 : 3,
-      };
-    });
-  return [...taskItems, ...opportunityItems].sort((a, b) =>
-    a.priority - b.priority
-    || (a.due || '9999-12-31').localeCompare(b.due || '9999-12-31')
-    || a.id.localeCompare(b.id)
-  );
-}
-
-function PriorityWork({ opportunities, tasks, orders }: {
-  opportunities: Opportunity[];
-  tasks: Task[];
-  orders: Order[];
-}) {
-  const items = attentionItems(opportunities, tasks, orders);
-  return <section className="hr-panel hr-workpanel hr-priorities" aria-labelledby="hr-priorities-heading">
-    <div className="hr-panel-heading">
-      <div>
-        <h2 id="hr-priorities-heading">Qué atender ahora</h2>
-        <p>Respuestas y acciones pendientes, por prioridad</p>
-      </div>
-      <span className="hr-work-count" aria-label={items.length + ' pendientes'}>{items.length}</span>
-    </div>
-    <div className="hr-work-list">
-      {items.length ? items.slice(0, 3).map(item =>
-        <Link className="hr-work-row" key={item.id} to={item.to}>
-          <span className={'hr-work-accent is-' + item.tone} aria-hidden="true"/>
-          <span className="hr-work-content">
-            <strong title={item.title}>{item.title}</strong>
-            <small title={item.context}>{item.context}</small>
-          </span>
-          <span className="hr-work-aside">
-            <span className={'hr-work-status is-' + item.tone}>{item.label}</span>
-            {item.due && <time dateTime={item.due}>{shortDashboardDate(item.due)}</time>}
-          </span>
-        </Link>
-      ) : <div className="hr-work-empty">No hay acciones comerciales pendientes.</div>}
-    </div>
-    <div className="hr-work-footer">
-      <Link to="/agenda">Abrir agenda <ArrowRight size={14}/></Link>
-      <Link to="/oportunidades">Ver solicitudes <ArrowRight size={14}/></Link>
-    </div>
-  </section>;
-}
-
-function QuoteFollowUps({ opportunities, quotes }: { opportunities: Opportunity[]; quotes: Quote[] }) {
-  const candidates = quotes
-    .filter(q => {
-      const opportunity = opportunities.find(o => o.id === q.opportunityId);
-      return q.status === 'Enviado'
-        && opportunity?.status !== 'Aceptada'
-        && opportunity?.status !== 'Perdida';
-    })
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-    .slice(0, 3);
-
-  return <section className="hr-panel hr-workpanel hr-followups" aria-labelledby="hr-followups-heading">
-    <div className="hr-panel-heading">
-      <div>
-        <h2 id="hr-followups-heading">Presupuestos enviados</h2>
-        <p>Para revisar y recuperar oportunidades</p>
-      </div>
-      <Link to="/presupuestos" aria-label="Ver todos los presupuestos"><ArrowRight size={17}/></Link>
-    </div>
-    <div className="hr-follow-list">
-      {candidates.length ? candidates.map(q => {
-        const opportunity = opportunities.find(o => o.id === q.opportunityId);
-        return <Link className="hr-follow-row" key={q.id} to={'/presupuestos/' + q.id}>
-          <span className="hr-follow-content">
-            <strong title={q.name}>{q.name}</strong>
-            <small title={q.product}>{q.product}</small>
-            <span className="hr-follow-action" title={opportunity?.nextAction || 'Sin próxima acción registrada'}>
-              {opportunity?.nextAction ? 'Siguiente: ' + opportunity.nextAction : 'Sin próxima acción registrada'}
-            </span>
-          </span>
-          <span className="hr-follow-aside">
-            <span className="hr-follow-tag">Enviado</span>
-            <time dateTime={q.createdAt} title={'Presupuesto registrado: ' + dateText(q.createdAt)}>
-              {shortDashboardDate(q.createdAt)}
-            </time>
-          </span>
-        </Link>;
-      }) : <div className="hr-work-empty">No hay presupuestos enviados pendientes de revisión.</div>}
-    </div>
-    <Link to="/presupuestos" className="hr-work-footer hr-follow-footer">
-      Ver todos los presupuestos <ArrowRight size={14}/>
-    </Link>
-  </section>;
+/** Acceso comercial a la web pública. Foto libre: Pexels 32418619.
+ * Imagen de archivo, NO representa instalaciones ni productos de Depofibra. */
+function WebAccessBanner() {
+  return <a
+    className="hr-web-banner"
+    href="https://depofibra.com/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Abrir la web oficial depofibra.com en una pestaña nueva"
+  >
+    <span className="hr-web-banner-copy">
+      <span className="hr-web-banner-eyebrow">Web oficial</span>
+      <strong className="hr-web-banner-title">Acceso rápido a depofibra.com</strong>
+      <span className="hr-web-banner-description">Consulta la web y las fichas de producto en un solo clic.</span>
+      <span className="hr-web-banner-button">Abrir web <ExternalLink size={17} strokeWidth={2} aria-hidden="true"/></span>
+    </span>
+  </a>;
 }
 
 function requestInitials(name: string): string {
@@ -365,10 +236,7 @@ export default function Dashboard() {
           <QuickStat icon={FileText} title="Por presupuestar" value={forQuote} hint="Precios pendientes" accent="cyan" to="/presupuestos"/>
           <QuickStat icon={AlarmClock} title="Seguimientos vencidos" value={overdue} hint={overdue?'Requieren atención':'Al día'} accent="amber" to="/agenda"/>
         </div>
-        <div className="hr-center-panels">
-          <PriorityWork opportunities={data.opportunities} tasks={data.tasks} orders={data.orders}/>
-          <QuoteFollowUps opportunities={data.opportunities} quotes={data.quotes}/>
-        </div>
+        <WebAccessBanner/>
         <section className="hr-panel hr-chart-panel" aria-labelledby="hr-chart-heading">
           <div className="hr-panel-heading">
             <h2 id="hr-chart-heading">Evolución comercial</h2>

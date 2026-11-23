@@ -11,7 +11,7 @@ import './dashboard-reference.css';
 import './typography.css';
 import './dashboard-hr.css';
 import './crm-typography.css';
-import './dashboard-workqueue.css';
+import './dashboard-photo-banner.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
