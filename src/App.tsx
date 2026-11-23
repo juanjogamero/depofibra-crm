@@ -188,10 +188,11 @@ export default function App() {
   const onOpportunities = location.pathname === '/oportunidades';
   const onQuotesList = location.pathname === '/presupuestos';
   const onClientsList = location.pathname === '/clientes';
-  const isCompactList = onOpportunities || onQuotesList || onClientsList;
+  const onOrdersList = location.pathname === '/pedidos';
+  const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList;
   return <div className="app-root">
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
-    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '')}>
+    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '')}>
       {!onDashboard && !isCompactList && <Header onMenu={()=>setOpen(true)}/>}
       {(onDashboard || isCompactList) && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
       <main className="app-main" id="main-content"><AppRoutes/></main>
