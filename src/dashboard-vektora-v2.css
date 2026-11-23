@@ -1,168 +1,22 @@
-/* DEPOFIBRA CRM · REG-0089 · Dirección aprueba referencia Vektora como guía de
-   COMPOSICIÓN VISUAL (no se reutiliza marca ni contenido). Dos filas 2×2:
-   solicitudes / estados, evolución interactiva / calendario.
-   Base blanca y azul desde esquina INFERIOR DERECHA, sin separadores artificiales.
-   Mantener Plus Jakarta Sans + Inter corporativas. Archivo principal vigente de Inicio. */
-
-/* Marco de una sola pieza, inspirado en la imagen proporcionada. */
-.app-root.app-root-dashboard {
-  position:relative;
-  gap:0;
-  height:100vh;
-  height:100dvh;
-  min-height:0;
-  padding:clamp(10px,1.8vh,16px);
-  background:
-    radial-gradient(ellipse 72% 90% at 100% 100%,rgba(1,72,142,.28) 0%,rgba(172,211,238,.18) 36%,rgba(255,255,255,0) 72%),
-    #fff;
-  overflow:hidden;
-}
-.app-root-dashboard .sidebar.sidebar-reference {
-  flex:0 0 205px;
-  width:205px;
-  min-width:0;
-  height:100%;
-  overflow:hidden;
-  border:5px solid #082b5a;
-  border-right:0;
-  border-radius:21px 0 0 21px;
-  background:#082b5a;
-  box-shadow:0 16px 40px rgba(1,28,57,.10);
-}
-.app-root-dashboard .sidebar.sidebar-reference.is-collapsed {
-  width:68px;
-  flex-basis:68px;
-}
-.app-root-dashboard .sidebar-reference .sidebar-top {
-  min-height:76px;
-  padding:18px 17px 9px;
-  border-bottom:0;
-}
-.app-root-dashboard .sidebar-reference .brand-logo {
-  max-width:153px;
-}
-.app-root-dashboard .sidebar-reference .nav-scroll {
-  padding:8px 11px 9px;
-  scrollbar-color:#2d527e transparent;
-}
-.app-root-dashboard .sidebar-reference .nav-caption {
-  font:700 9px/1.3 Inter,sans-serif;
-  letter-spacing:.04em;
-  color:#8db2d1;
-  margin:14px 0 7px;
-  padding-left:10px;
-}
-.app-root-dashboard .sidebar-reference .nav-link {
-  min-height:35px;
-  margin:1px 0;
-  padding:0 10px;
-  gap:9px;
-  font-size:11.6px;
-  font-weight:570;
-  border-radius:9px;
-  color:#d1dfef;
-}
-.app-root-dashboard .sidebar-reference .nav-link svg {
-  width:16px;
-  height:16px;
-  flex-shrink:0;
-  color:#a7c4df;
-}
-.app-root-dashboard .sidebar-reference .nav-selection-indicator {
-  left:11px;
-  width:calc(100% - 22px);
-  border-radius:9px;
-  background:#204777;
-}
-.app-root-dashboard .sidebar-reference .nav-link.active,
-.app-root-dashboard .sidebar-reference .nav-link.active:hover {
-  color:#fff;
-  background:#204777;
-}
-.app-root-dashboard .sidebar-reference .nav-scroll.has-active-indicator .nav-link.active {
-  background:transparent;
-}
-.app-root-dashboard .sidebar-reference .nav-link.active svg {color:#fff;}
-.app-root-dashboard .sidebar-reference .sidebar-bottom {
-  padding:6px 12px 13px;
-  border:0;
-}
-.app-root-dashboard .sidebar-reference .sidebar-note {
-  padding:9px 7px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.045);
-}
-.app-root-dashboard .sidebar-reference .sidebar-note strong {font-size:10px;}
-.app-root-dashboard .sidebar-reference .sidebar-note small {font-size:9px;}
-
-.app-root-dashboard .app-body.is-dashboard {
-  min-height:0;
-  min-width:0;
-  height:100%;
-  overflow:hidden;
-  border:5px solid #082b5a;
-  border-left:0;
-  border-radius:0 21px 21px 0;
-  background:#f1f7fc;
-  box-shadow:9px 16px 40px rgba(1,28,57,.09);
-}
-.app-root-dashboard .app-body.is-dashboard .topbar {
-  position:relative;
-  z-index:15;
-  flex:0 0 63px;
-  height:63px;
-  min-height:63px;
-  padding:0 20px;
-  gap:18px;
-  background:#f1f7fc;
-  border:0;
-}
-.app-root-dashboard .app-body.is-dashboard .topbar-start {gap:13px;}
-.app-root-dashboard .app-body.is-dashboard .topbar-end {
-  flex:1 1 auto;
-  margin-left:0;
-  gap:12px;
-}
-.app-root-dashboard .app-body.is-dashboard .breadcrumb strong {
-  color:#123459;
-  font-family:"Plus Jakarta Sans",Inter,sans-serif;
-  font-size:15px;
-  font-weight:800;
-  letter-spacing:-.025em;
-}
-.app-root-dashboard .app-body.is-dashboard .global-search {
-  order:-1;
-  margin-right:auto;
-  margin-left:0;
-  width:clamp(185px,25vw,310px);
-  height:35px;
-  border-color:#eaf0f5;
-  background:#fff;
-  border-radius:8px;
-}
-.app-root-dashboard .app-body.is-dashboard .global-search input {font-size:11px;}
-.app-root-dashboard .app-body.is-dashboard .notification-button {background:#fff;border-color:#edf0f5;}
-.app-root-dashboard .app-body.is-dashboard .profile-menu {
-  padding:5px 7px;
-  border:1px solid #edf1f6;
-  border-radius:8px;
-  background:#fff;
-}
-.app-root-dashboard .app-body.is-dashboard .topbar-divider {display:none;}
-.app-root-dashboard .app-body.is-dashboard .app-main {
+/* DEPOFIBRA CRM · REG-0090
+   Se conserva SOLO el contenido 2x2 del diseño de referencia.
+   Menú, anchura lateral, cabecera y estructura de plataforma restaurados a
+   la versión anterior (PR#23). No se personaliza ni se enmarca el shell. */
+.app-body.is-dashboard .app-main {
   display:flex;
   flex:1 1 0;
   flex-direction:column;
   min-height:0;
-  height:auto;
-  max-height:none;
+  height:100%;
   overflow:hidden;
-  padding:0;
   background:
-    radial-gradient(ellipse 75% 85% at 100% 100%,rgba(1,72,142,.13) 0%,rgba(139,194,234,.07) 40%,transparent 75%),
-    #f1f7fc;
+    radial-gradient(ellipse 82% 85% at 100% 100%,
+      rgba(1,72,142,.19) 0%,
+      rgba(142,193,228,.095) 38%,
+      rgba(255,255,255,0) 78%),
+    #fff;
 }
-.app-root-dashboard .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+.app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
   display:flex;
   flex:1 1 0;
   flex-direction:column;
@@ -172,14 +26,15 @@
   min-height:0;
   min-width:0;
   max-width:none;
+  padding:clamp(12px,1.7vh,20px) clamp(13px,1.5vw,22px);
   margin:0;
-  padding:8px clamp(12px,1.5vw,20px) 16px;
   overflow:hidden;
   background:transparent;
   animation:none;
   color:#243c58;
   font-family:Inter,Arial,sans-serif;
 }
+
 .vek2-dashboard * {box-sizing:border-box;}
 .vek2-dashboard .vek2-sr-only {
   position:absolute;
@@ -702,10 +557,6 @@
 .vek2-dashboard .hr-calendar-footer>a {font-size:10px;color:#237dae;}
 .vek2-dashboard .hr-calendar-inspector {z-index:8;}
 @media (max-width:1280px) and (min-width:901px) {
-  .app-root-dashboard .sidebar.sidebar-reference {flex-basis:188px;width:188px;}
-  .app-root-dashboard .sidebar.sidebar-reference.is-collapsed {flex-basis:68px;width:68px;}
-  .app-root-dashboard .sidebar-reference .sidebar-top {padding-inline:12px;}
-  .app-root-dashboard .sidebar-reference .nav-scroll {padding-inline:8px;}
   .vek2-dashboard .vek2-grid-top {grid-template-columns:minmax(0,1.65fr) minmax(250px,.87fr);}
   .vek2-dashboard .vek2-table th:nth-child(4),
   .vek2-dashboard .vek2-table td:nth-child(4) {display:none;}
@@ -721,11 +572,6 @@
   .vek2-dashboard .vek2-legend-row {font-size:9.4px;}
 }
 @media (max-height:735px) and (min-width:901px) {
-  .app-root-dashboard .sidebar-reference .sidebar-top {min-height:61px;padding-top:8px;}
-  .app-root-dashboard .sidebar-reference .nav-caption {margin-top:8px;margin-bottom:5px;}
-  .app-root-dashboard .sidebar-reference .nav-link {min-height:30px;}
-  .app-root-dashboard .app-body.is-dashboard .topbar {min-height:52px;height:52px;flex-basis:52px;}
-  .app-root-dashboard .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {padding-bottom:10px;}
   .vek2-dashboard .vek2-grid {gap:10px;}
   .vek2-dashboard .vek2-grid-top,.vek2-dashboard .vek2-grid-bottom {gap:10px;}
   .vek2-dashboard .vek2-card-heading {min-height:48px;padding:10px 12px 6px;}
@@ -741,32 +587,6 @@
   .vek2-dashboard .hr-calendar-footer {flex-basis:33px;padding-bottom:4px;}
 }
 @media (max-width:900px) {
-  .app-root-dashboard.app-root {height:100dvh;padding:0;background:#f1f7fc;}
-  .app-root-dashboard .app-body.is-dashboard {
-    border:0;
-    border-radius:0;
-    box-shadow:none;
-  }
-  .app-root-dashboard .app-body.is-dashboard .topbar {flex-basis:60px;min-height:60px;height:60px;padding:0 14px;}
-  .app-root-dashboard .app-body.is-dashboard .app-main {
-    display:block;
-    flex:1 1 0;
-    height:auto;
-    min-height:0;
-    overflow-y:auto;
-    overflow-x:hidden;
-    overscroll-behavior-y:contain;
-    background:
-      radial-gradient(ellipse 80% 70% at 100% 100%,rgba(1,72,142,.16),transparent 74%),
-      #f1f7fc;
-  }
-  .app-root-dashboard .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
-    display:block;
-    height:auto;
-    max-height:none;
-    overflow:visible;
-    padding:13px 13px 80px;
-  }
   .vek2-dashboard .vek2-grid {
     display:flex;
     flex-direction:column;
@@ -788,23 +608,6 @@
   .vek2-dashboard .vek2-chart-plot {min-height:205px;}
 }
 @media (max-width:660px) {
-  .app-root-dashboard .app-body.is-dashboard .topbar {height:55px;min-height:55px;flex-basis:55px;}
-  .app-root-dashboard .app-body.is-dashboard .global-search {
-    order:initial;
-    width:36px;
-    min-width:36px;
-    background:transparent;
-    margin-right:0;
-    border:0;
-  }
-  .app-root-dashboard .app-body.is-dashboard .global-search:focus-within {
-    width:220px;
-    background:#fff;
-    position:absolute;
-    left:45px;
-    top:7px;
-  }
-  .app-root-dashboard .app-body.is-dashboard .topbar-end {margin-left:auto;flex:0 0 auto;}
   .vek2-dashboard .vek2-summary {min-height:315px;}
   .vek2-dashboard .vek2-table th:nth-child(3),
   .vek2-dashboard .vek2-table td:nth-child(3),
@@ -827,29 +630,37 @@
   .vek2-dashboard .vek2-legend-mark {font-size:9px;}
   .vek2-dashboard .vek2-chart-plot {margin-inline:7px;}
 }
-@media (max-height:620px) and (min-width:901px) {
-  .app-root-dashboard .app-body.is-dashboard .app-main {overflow-y:auto;}
-  .app-root-dashboard .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {min-height:610px;height:auto;max-height:none;}
-}
 /* Prioridad de accesibilidad: movimiento solo funcional, sin animaciones forzadas. */
 @media (prefers-reduced-motion:reduce) {
   .vek2-dashboard .vek2-table tbody tr {transition:none;}
 }
 
-/* Móvil: mantener el menú lateral como cajón completo y no cortar enlaces. */
-@media (max-width:840px) {
-  .app-root-dashboard .sidebar.sidebar-reference,
-  .app-root-dashboard .sidebar.sidebar-reference.is-collapsed {
-    position:fixed;
-    left:0;top:0;bottom:0;
-    z-index:40;
-    width:270px;
-    height:100dvh;
-    flex:0 0 270px;
-    border:0;
-    border-radius:0;
-    box-shadow:15px 0 35px rgba(1,27,57,.22);
+/* Recuperar desplazamiento únicamente donde la cuadrícula 2x2 no cabe.
+   El shell/menú mantienen las reglas de la plataforma anterior. */
+@media (max-width:900px) {
+  .app-body.is-dashboard .app-main {
+    display:block;
+    flex:1 1 0;
+    height:auto;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    overscroll-behavior-y:contain;
   }
-  .app-root-dashboard .sidebar-reference .nav-scroll {padding:14px 12px;}
-  .app-root-dashboard .sidebar-reference .sidebar-top {min-height:88px;padding:20px 17px 10px;}
+  .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+    display:block;
+    height:auto;
+    min-height:100%;
+    max-height:none;
+    overflow:visible;
+    padding:14px 13px 80px;
+  }
+}
+@media (max-height:620px) and (min-width:901px) {
+  .app-body.is-dashboard .app-main { overflow-y:auto; }
+  .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+    height:auto;
+    min-height:610px;
+    max-height:none;
+  }
 }
