@@ -190,7 +190,7 @@ export function ClientDetail(){
  const {id}=useParams();const {data,addDocumentName}=useCrm();const [tab,setTab]=useState('Resumen');
  const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado de demostración."/></div>;
  const orders=data.orders.filter(o=>o.customerId===c.id);
- return <div className="page"><Back to="/clientes" label="Volver a clientes"/><div className="record-hero"><div className="record-identity"><Initials name={c.name}/><div><div className="eyebrow">{c.id} · Cliente confirmado</div><h1>{c.name}</h1><div className="record-meta"><MapPin size={14}/>{c.destination}<span>·</span><Pill tone="green">Comprador</Pill></div></div></div><Pill>{orders.length} pedidos</Pill></div>
+ return <div className="page page-crm-record"><Back to="/clientes" label="Volver a clientes"/><div className="record-hero"><div className="record-identity"><Initials name={c.name}/><div><div className="eyebrow">{c.id} · Cliente confirmado</div><h1>{c.name}</h1><div className="record-meta"><MapPin size={14}/>{c.destination}<span>·</span><Pill tone="green">Comprador</Pill></div></div></div><Pill>{orders.length} pedidos</Pill></div>
  <div className="detail-tabs">{['Resumen','Pedidos','Documentos'].map(t=><button onClick={()=>setTab(t)} key={t} className={tab===t?'selected':''}>{t}</button>)}</div>
  {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de cliente"><div className="info-grid"><Info label="Cliente" value={c.name}/><Info label="Contacto" value={c.contact}/><Info label="Destino" value={c.destination}/><Info label="Desde" value={dateText(c.createdAt)}/></div><h4 className="minor-title">Observaciones</h4><div className="note-area">{c.notes||'Sin observaciones'}</div></Panel><Panel title="Resumen de compras"><div className="money-summary"><span>Pedidos registrados</span><strong>{orders.length}</strong></div><div className="summary-line"><span>Importe de operaciones</span><strong>{money(orders.reduce((a,o)=>a+o.amount,0))}</strong></div><div className="summary-line"><span>Documentos relacionados</span><strong>{c.documentNames.length}</strong></div></Panel></div>}
  {tab==='Pedidos'&&<Panel title="Historial de pedidos"><div className="simple-list">{orders.map(o=><Link to={'/pedidos/'+o.id} className="simple-item" key={o.id}><Package size={20}/><div><strong>{o.product} · {o.capacity}</strong><small>{o.id} · {dateText(o.createdAt)}</small></div><b>{money(o.amount)}</b><Status value={o.factory}/><ChevronRight size={16}/></Link>)}</div></Panel>}
@@ -386,7 +386,7 @@ export function OrderDetail(){
  const balance=Math.max(0,o.commission-o.commissionPaid);
  const tabs=role==='fabrica'?['Resumen','Fabricación','Actividad','Comisión (consulta)']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
  const selected=tabs.includes(tab)?tab:'Resumen';
- return <div className="page"><Back to="/pedidos" label="Volver a pedidos"/><div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div><h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p><div className="record-meta"><Status value={o.factory}/><span>·</span><Status value={o.paymentMode}/></div></div><Pill>{role==='fabrica'?'Gestión técnica':'Ficha de pedido'}</Pill></div>
+ return <div className="page page-crm-record"><Back to="/pedidos" label="Volver a pedidos"/><div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div><h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p><div className="record-meta"><Status value={o.factory}/><span>·</span><Status value={o.paymentMode}/></div></div><Pill>{role==='fabrica'?'Gestión técnica':'Ficha de pedido'}</Pill></div>
  <div className="order-progress">{stages.slice(1).map((s,i)=><div key={s} className={'progress-step '+(stages.indexOf(o.factory)>=i+1?'is-done':'')}><span>{i+1}</span><small>{s}</small></div>)}</div>
  <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} onClick={()=>setTab(t)}>{t}</button>)}</div>
  {selected==='Resumen'&&<div className="detail-grid"><Panel title="Información general"><div className="info-grid"><Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity}/><Info label="Fabricación" value={o.factory}/><Info label="Cliente" value={o.buyerName}/><Info label="Entrega" value={dateText(o.deliveryDate)}/></div><h4 className="minor-title">Notas de seguimiento</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
@@ -507,7 +507,22 @@ export function Commissions(){
 }
 export function FactoryHome(){
  const {data}=useCrm();const active=data.orders.filter(o=>o.factory!=='Entregado');
- return <div className="page"><PageHeader eyebrow="OFICINA DEL FABRICANTE · DEMOSTRACIÓN" title="Pedidos asignados" subtitle="Acceso de Fábrica: confirma detalles, avance de producción y entrega."/>
- <div className="kpi-grid three"><div className="kpi"><div className="kpi-top">Por revisar<Package size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='Pendiente'||o.factory==='Confirmando detalles').length}</div></div><div className="kpi"><div className="kpi-top">En fabricación<Factory size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='En fabricación').length}</div></div><div className="kpi"><div className="kpi-top">Preparado / en tránsito<Truck size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='Preparado'||o.factory==='En tránsito').length}</div></div></div>
- <Panel title="Operaciones a cargo" extra={<ActionLink to="/pedidos">Ver listado</ActionLink>}><div className="simple-list">{active.map(o=><Link className="simple-item" to={'/pedidos/'+o.id} key={o.id}><Package size={19}/><div><strong>{o.buyerName}</strong><small>{o.id} · {o.capacity}</small></div><Status value={o.factory}/><ChevronRight size={16}/></Link>)}</div></Panel><div className="inline-tip top-gap"><Shield size={16}/> Los permisos son solo una simulación visual. La autenticación real se desarrollará en el VPS.</div></div>;
+ return <div className="page page-opportunities crm-workspace page-factory">
+   <header className="op-screen-heading">
+     <div className="op-heading-copy"><h1>Pedidos asignados</h1><p>Vista de demostración de Fábrica: consulta el estado de preparación y entrega de pedidos.</p></div>
+     <div className="op-heading-actions"><Link to="/pedidos" className="op-new-button"><Package size={16}/>Ver pedidos</Link></div>
+   </header>
+   <div className="kpi-grid three crm-workspace-kpis">
+     <div className="kpi"><div className="kpi-top">Por revisar<Package size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='Pendiente'||o.factory==='Confirmando detalles').length}</div><div className="kpi-foot">Esperando confirmación</div></div>
+     <div className="kpi"><div className="kpi-top">En fabricación<Factory size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='En fabricación').length}</div><div className="kpi-foot">Preparación registrada</div></div>
+     <div className="kpi"><div className="kpi-top">Preparado / en tránsito<Truck size={20}/></div><div className="kpi-value">{active.filter(o=>o.factory==='Preparado'||o.factory==='En tránsito').length}</div><div className="kpi-foot">Seguimiento de salida y entrega</div></div>
+   </div>
+   <Panel title="Operaciones a cargo" className="factory-orders-panel" extra={<ActionLink to="/pedidos">Ver listado</ActionLink>}>
+     <div className="simple-list">{active.map(o=><Link className="simple-item" to={'/pedidos/'+o.id} key={o.id}>
+       <Package size={19}/><div><strong>{o.buyerName}</strong><small>{o.id} · {o.capacity}</small></div>
+       <Status value={o.factory}/><ChevronRight size={16}/>
+     </Link>)}{!active.length&&<Empty title="Sin pedidos en curso" body="No hay operaciones pendientes de preparación en esta vista de demostración."/>}</div>
+   </Panel>
+   <div className="inline-tip top-gap factory-demo-note"><Shield size={16}/> Los permisos son solo una simulación visual. La autenticación real se desarrollará en el VPS.</div>
+ </div>;
 }
