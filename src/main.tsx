@@ -15,6 +15,7 @@ import './dashboard-photo-banner.css';
 import './calendar-interaction.css';
 import './dashboard-requests-focus.css';
 import './dashboard-vektora-v2.css';
+import './opportunities-dashboard.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
