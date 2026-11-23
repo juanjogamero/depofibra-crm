@@ -1,0 +1,212 @@
+/* DEPOFIBRA CRM | Sistema tipográfico transversal v2.0 | 23/11/2026
+   Aprobación expresa de Dirección: estética SaaS limpia como referencia aportada.
+   Contrato para pantallas futuras: Plus Jakarta Sans en títulos, métricas y énfasis;
+   Inter para lectura, botones, navegación, formularios y tablas.
+   No se sustituyen los colores corporativos ni las funciones existentes. */
+:root {
+  --crm-font-display:"Plus Jakarta Sans",Inter,Arial,sans-serif;
+  --crm-font-body:Inter,Arial,sans-serif;
+  --crm-type-title:#0b274e;
+  --crm-type-strong:#173557;
+  --crm-type-body:#344b65;
+  --crm-type-muted:#60758a;
+  --crm-type-caption:#6c8094;
+  font-family:var(--crm-font-body);
+  font-size:14px;
+  font-optical-sizing:auto;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+html, body, .app-root {
+  font-family:var(--crm-font-body);
+  line-height:1.5;
+  font-weight:400;
+  color:var(--crm-type-body);
+}
+.app-root h1,.app-root h2,.app-root h3,.app-root h4,.app-root h5,.app-root h6 {
+  font-family:var(--crm-font-display);
+  color:var(--crm-type-title);
+  font-weight:750;
+  letter-spacing:-.028em;
+  line-height:1.28;
+}
+.app-root button,.app-root input,.app-root select,.app-root textarea {
+  font-family:var(--crm-font-body);
+  letter-spacing:normal;
+}
+.app-main .page:not(.dashboard-vektora) .page-header h1 {
+  font-family:var(--crm-font-display);
+  font-size:clamp(23px,1.7vw,27px);
+  font-weight:800;
+  letter-spacing:-.045em;
+  line-height:1.18;
+  color:#082851;
+}
+.app-main .page:not(.dashboard-vektora) .page-header p {
+  font:450 13.2px/1.53 var(--crm-font-body);
+  color:var(--crm-type-muted);
+}
+.app-main .page:not(.dashboard-vektora) .panel h3,
+.app-main .page:not(.dashboard-vektora) .minor-title {
+  font-family:var(--crm-font-display);
+  font-size:14.7px;
+  font-weight:750;
+  letter-spacing:-.022em;
+  line-height:1.35;
+  color:#163352;
+}
+.app-main .page:not(.dashboard-vektora) .panel-sub,
+.app-main .page:not(.dashboard-vektora) .cell-note,
+.app-main .page:not(.dashboard-vektora) .cell-person small {
+  font-size:11.8px;
+  font-weight:450;
+  line-height:1.45;
+  color:#61778d;
+}
+.app-main .page:not(.dashboard-vektora) .data-table th {
+  font-family:var(--crm-font-body);
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:.018em;
+  color:#4c6177;
+}
+.app-main .page:not(.dashboard-vektora) .data-table td {
+  font-family:var(--crm-font-body);
+  font-size:13px;
+  font-weight:450;
+  line-height:1.47;
+  color:#344b64;
+}
+.app-main .page:not(.dashboard-vektora) .cell-person strong,
+.app-main .page:not(.dashboard-vektora) .cell-strong,
+.app-main .page:not(.dashboard-vektora) .section-metrics strong {
+  font-family:var(--crm-font-display);
+  font-size:13.3px;
+  font-weight:750;
+  letter-spacing:-.018em;
+  color:#183757;
+}
+.app-main .page:not(.dashboard-vektora) .record-hero h1 {
+  font-family:var(--crm-font-display);
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:-.035em;
+}
+.app-main .page:not(.dashboard-vektora) .btn {
+  font-family:var(--crm-font-body);
+  font-size:12.8px;
+  font-weight:700;
+  letter-spacing:-.008em;
+}
+.app-main .page:not(.dashboard-vektora) .form-field .field-label {
+  font-size:12.5px;
+  font-weight:650;
+  letter-spacing:-.005em;
+  color:#3a526a;
+}
+.app-main .page:not(.dashboard-vektora) .form-field input,
+.app-main .page:not(.dashboard-vektora) .form-field select,
+.app-main .page:not(.dashboard-vektora) .form-field textarea {
+  font-family:var(--crm-font-body);
+  font-size:13.4px;
+  font-weight:450;
+  line-height:1.45;
+}
+.app-main .page:not(.dashboard-vektora) .pill,
+.app-main .page:not(.dashboard-vektora) .tab-count {
+  font-family:var(--crm-font-body);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0;
+}
+.app-main .page:not(.dashboard-vektora) .eyebrow {
+  font-family:var(--crm-font-body);
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.07em;
+}
+.sidebar-reference .nav-link {
+  font-family:var(--crm-font-body);
+  font-size:13.3px;
+  font-weight:550;
+  letter-spacing:-.012em;
+}
+.sidebar-reference .nav-link.active {
+  font-weight:750;
+}
+.sidebar-reference .nav-caption {
+  font-family:var(--crm-font-body);
+  font-size:10.7px;
+  font-weight:750;
+  letter-spacing:.055em;
+}
+.app-body .topbar .breadcrumb,
+.app-body .topbar .profile-copy,
+.app-body .topbar .global-search input {
+  font-family:var(--crm-font-body);
+}
+.app-body .topbar .breadcrumb strong,
+.app-body .topbar .profile-copy strong {
+  font-size:12.7px;
+  font-weight:750;
+  letter-spacing:-.01em;
+  color:#253e58;
+}
+.app-body .topbar .profile-copy small {
+  font-size:11.4px;
+  color:#61758b;
+}
+.app-body .topbar .global-search input {
+  font-size:12.8px;
+  font-weight:450;
+}
+/* Inicio: tipografía del mismo sistema, sin cambiar layout o gráficos. */
+.dashboard-hr .hr-greeting h1 {
+  font-family:var(--crm-font-display);
+  font-size:22.5px;
+  font-weight:800;
+  letter-spacing:-.04em;
+  line-height:1.16;
+  color:#0b274e;
+}
+.dashboard-hr .hr-greeting p {
+  font-size:12px;
+  line-height:1.4;
+  color:#697d92;
+}
+.dashboard-hr .hr-panel-heading h2,
+.dashboard-hr .hr-right-card .hr-panel-heading h2 {
+  font-family:var(--crm-font-display);
+  font-weight:750;
+  letter-spacing:-.025em;
+  color:#102e52;
+}
+.dashboard-hr .hr-recent-main strong,
+.dashboard-hr .hr-group-title {
+  font-family:var(--crm-font-body);
+  font-weight:700;
+}
+.dashboard-hr .hr-band-cell strong,
+.dashboard-hr .hr-donut-center strong {
+  font-family:var(--crm-font-display);
+  font-weight:800;
+  letter-spacing:-.035em;
+  font-variant-numeric:tabular-nums;
+}
+.dashboard-hr .hr-stat-label,
+.dashboard-hr .hr-stat-bottom strong {
+  font-family:var(--crm-font-display);
+}
+.dashboard-hr .hr-stat-bottom small,
+.dashboard-hr .hr-stat-badge {
+  font-family:var(--crm-font-body);
+}
+.dashboard-hr .hr-chart-label,
+.dashboard-hr .hr-chart-tick {
+  font-family:var(--crm-font-body);
+}
+@media (max-width:760px) {
+  .app-main .page:not(.dashboard-vektora) .page-header h1 { font-size:22px; }
+  .dashboard-hr .hr-greeting h1 { font-size:20px; }
+  .sidebar-reference .nav-link { font-size:13px; }
+}

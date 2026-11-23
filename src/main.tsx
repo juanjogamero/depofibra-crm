@@ -10,6 +10,7 @@ import './sidebar-motion.css';
 import './dashboard-reference.css';
 import './typography.css';
 import './dashboard-hr.css';
+import './crm-typography.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
