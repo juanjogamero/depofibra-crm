@@ -1,11 +1,15 @@
-/* REG-0096 | DEPOFIBRA CRM — tabla compacta según la última referencia.
-   Solo se estiliza /oportunidades. Shell, sidebar y demás páginas intactos.
-   Identidad: #002d59 / #01488e / #eaf2fb; Inter + Plus Jakarta Sans. */
-.app-body.is-opportunities {min-height:0;}
+/* DEPOFIBRA · REG-0097.
+   Oportunidades: cabecera propia, filtros visibles, tabla sin scroll horizontal.
+   Exclusivo del listado /oportunidades. Identidad corporativa azul. */
+.app-body.is-opportunities {
+  position:relative;
+  min-height:0;
+}
 .app-body.is-opportunities .app-main {
   flex:1 1 0;
-  min-height:0;
   height:100%;
+  min-height:0;
+  padding-bottom:0;
   overflow:hidden;
   overscroll-behavior:none;
 }
@@ -15,110 +19,151 @@
   width:100%;
   max-width:none;
   height:100%;
-  min-height:0;
   max-height:100%;
-  margin:0;
-  padding:clamp(10px,1.5vh,18px) clamp(10px,1.5vw,22px);
-  overflow:hidden;
-  background:transparent;
-}
-.page-opportunities .op-sheetboard {
-  display:flex;
-  flex:1 1 0;
-  flex-direction:column;
-  min-width:0;
   min-height:0;
-  padding:0;
-  border:1px solid #dfe7f0;
-  border-radius:15px;
-  background:#fff;
-  box-shadow:0 3px 15px rgba(10,46,86,.035);
-  overflow:hidden;
-}
-.page-opportunities .op-sheet-banner {
-  display:flex;
-  flex:0 0 58px;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  min-height:58px;
   margin:0;
-  padding:8px 16px 8px 20px;
-  border:0;
-  border-radius:13px 13px 11px 11px;
+  padding:clamp(17px,2.1vh,26px) clamp(14px,2vw,30px) 16px;
+  overflow:hidden;
+  background:linear-gradient(132deg,#e9f3fc 0%,#f5f9fc 48%,#fff 100%);
+  font-family:Inter,Arial,sans-serif;
+}
+.app-body.is-opportunities .dashboard-mobile-menu {display:none;}
+/* Encabezado sin franja: definición útil y botón de alta */
+.page-opportunities .op-screen-heading {
+  display:flex;
+  flex:0 0 auto;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  min-height:77px;
+  margin:0 0 11px;
+}
+.page-opportunities .op-heading-copy {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:0;
+}
+.page-opportunities .op-heading-copy h1 {
+  margin:0;
+  color:#002d59;
+  font:800 clamp(22px,2vw,28px)/1.2 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.047em;
+}
+.page-opportunities .op-heading-copy p {
+  margin:0;
+  color:#59748e;
+  font:500 12.6px/1.4 Inter,sans-serif;
+}
+.page-opportunities .op-heading-count {
+  color:#7c91a6;
+  font:600 11.2px/1.3 Inter,sans-serif;
+}
+.page-opportunities .op-new-button {
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:39px;
+  padding:8px 14px;
+  border:1px solid #01488e;
+  border-radius:8px;
+  background:#01488e;
+  color:#fff;
+  font:750 12px/1.25 Inter,sans-serif;
+  cursor:pointer;
+}
+.page-opportunities .op-new-button:hover,
+.page-opportunities .op-new-button:focus-visible {
+  background:#002d59;
+  border-color:#002d59;
+}
+/* Chips de estados como la referencia. Tonos semánticos suaves,
+   sin falsear ni renombrar las fases almacenadas. */
+.page-opportunities .op-phase-tabs {
+  display:flex;
+  flex:0 0 auto;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+  margin:0 0 13px;
+  padding:0;
+  min-width:0;
+}
+.page-opportunities .op-phase-tab {
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  min-height:39px;
+  padding:8px 10px 8px 12px;
+  border:1px solid #d3e1ed;
+  border-radius:9px;
+  background:#fff;
+  color:#56728b;
+  font:700 11.5px/1.25 Inter,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.page-opportunities .op-phase-tab:hover {
+  border-color:#92badc;
+  background:#f4f9fe;
+  color:#01488e;
+}
+.page-opportunities .op-phase-tab strong {
+  display:inline-grid;
+  place-items:center;
+  min-width:24px;
+  height:23px;
+  padding:0 6px;
+  border-radius:7px;
+  background:#e9f1f9;
+  color:#245e8b;
+  font:800 11.2px/1 Inter,sans-serif;
+}
+.page-opportunities .op-phase-tab.is-active {
+  border-color:#002d59;
   background:#002d59;
   color:#fff;
 }
-.page-opportunities .op-sheet-banner>div:first-child {
-  display:flex;
-  align-items:baseline;
-  gap:13px;
-  min-width:0;
-}
-.page-opportunities .op-sheet-banner h1 {
-  margin:0;
-  font:800 18px/1.2 "Plus Jakarta Sans",Inter,sans-serif;
-  letter-spacing:-.025em;
+.page-opportunities .op-phase-tab.is-active strong {
+  background:rgba(255,255,255,.16);
   color:#fff;
-  white-space:nowrap;
 }
-.page-opportunities .op-sheet-banner>div:first-child>span {
-  color:#b5cce1;
-  font:500 11px/1.3 Inter,sans-serif;
-  white-space:nowrap;
-}
-.page-opportunities .op-sheet-totals {
+.page-opportunities .op-phase-new strong {background:#e0effb;color:#17679e;}
+.page-opportunities .op-phase-working strong {background:#dff3f4;color:#287b86;}
+.page-opportunities .op-phase-quote strong {background:#fdf1df;color:#9c722c;}
+.page-opportunities .op-phase-sent strong {background:#eae6fb;color:#6457a8;}
+.page-opportunities .op-phase-won strong {background:#e0f3eb;color:#237458;}
+.page-opportunities .op-phase-lost strong {background:#fbe9e8;color:#b55556;}
+/* Buscador dedicado; criterios adicionales bajo demanda. */
+.page-opportunities .op-searchbar {
   display:flex;
+  align-items:center;
   flex:0 0 auto;
-  align-items:center;
-  gap:12px;
-  color:#c8d8eb;
-  font:600 11.6px/1.2 Inter,sans-serif;
-}
-.page-opportunities .op-sheet-totals strong {
-  display:grid;
-  place-items:center;
-  min-width:38px;
-  height:38px;
-  padding:0 8px;
-  border-radius:50%;
-  background:#fff;
-  color:#002d59;
-  font:800 16px/1 "Plus Jakarta Sans",Inter,sans-serif;
-  box-shadow:0 1px 3px rgba(0,0,0,.10);
-}
-.page-opportunities .op-sheet-controls {
-  display:flex;
-  flex:0 0 auto;
-  align-items:center;
-  gap:clamp(12px,2vw,24px);
-  padding:clamp(18px,2.8vh,30px) 18px clamp(10px,1.8vh,18px);
-  min-width:0;
-}
-.page-opportunities .op-search-form {
-  display:flex;
-  flex:1 1 330px;
-  align-items:center;
-  min-width:180px;
-  max-width:455px;
-  min-height:38px;
+  gap:9px;
+  min-height:39px;
+  margin:0 0 14px;
 }
 .page-opportunities .op-search {
   display:flex;
-  flex:1 1 auto;
+  flex:0 1 392px;
   align-items:center;
-  gap:9px;
-  height:38px;
   min-width:0;
-  padding:0 10px 0 12px;
-  border:1px solid #dbe5ed;
-  border-radius:7px 0 0 7px;
+  height:39px;
+  gap:10px;
+  padding:0 12px;
+  border:1px solid #d5e1ec;
+  border-radius:8px;
   background:#fff;
-  color:#849ab0;
+  color:#829cb2;
 }
 .page-opportunities .op-search:focus-within {
-  border-color:#93b7d4;
-  box-shadow:0 0 0 2px rgba(1,72,142,.08);
+  border-color:#8cb4d5;
+  box-shadow:0 0 0 3px rgba(1,72,142,.09);
 }
 .page-opportunities .op-search input {
   flex:1 1 auto;
@@ -129,187 +174,126 @@
   border:0;
   outline:0;
   background:transparent;
-  color:#173a5d;
+  color:#193e5e;
   font:500 12px/1.35 Inter,sans-serif;
 }
-.page-opportunities .op-search input::placeholder {color:#9aabbb;}
+.page-opportunities .op-search input::placeholder {color:#94a8b9;}
 .page-opportunities .op-search input::-webkit-search-cancel-button {display:none;}
-.page-opportunities .op-clear-search {
+.page-opportunities .op-search button {
   display:grid;
+  flex:0 0 23px;
   place-items:center;
-  flex:0 0 22px;
-  height:22px;
-  width:22px;
+  height:23px;
+  width:23px;
   padding:0;
   border:0;
-  border-radius:5px;
+  border-radius:6px;
   background:transparent;
-  color:#849ab0;
+  color:#7995af;
   cursor:pointer;
 }
-.page-opportunities .op-clear-search:hover {background:#eaf2fb;color:#01488e;}
-.page-opportunities .op-find-button {
-  flex:0 0 auto;
-  height:38px;
-  padding:0 15px;
-  border:1px solid #01488e;
-  border-radius:0 7px 7px 0;
-  background:#01488e;
-  color:#fff;
-  font:750 11.7px/1.3 Inter,sans-serif;
-  cursor:pointer;
-}
-.page-opportunities .op-find-button:hover {background:#002d59;border-color:#002d59;}
-.page-opportunities .op-sheet-filters {
-  display:flex;
-  flex:1 1 auto;
-  align-items:center;
-  justify-content:flex-end;
-  gap:7px;
-  min-width:0;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scrollbar-width:thin;
-  padding-block:2px;
-}
-.page-opportunities .op-filter-expand,
-.page-opportunities .op-clear,
+.page-opportunities .op-search button:hover {background:#eaf2fb;}
+.page-opportunities .op-filter-toggle,
+.page-opportunities .op-reset-filters,
 .page-opportunities .op-overdue-toggle {
   display:inline-flex;
   flex:0 0 auto;
   align-items:center;
-  justify-content:center;
   gap:7px;
-  min-height:36px;
-  padding:7px 11px;
-  border:1px solid #e0e8f1;
-  border-radius:7px;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid #d7e4ef;
+  border-radius:8px;
   background:#fff;
-  color:#536f8b;
-  font:650 11.6px/1.2 Inter,sans-serif;
-  white-space:nowrap;
+  color:#466d8e;
+  font:700 11.7px/1.25 Inter,sans-serif;
   cursor:pointer;
 }
-.page-opportunities .op-filter-expand:hover,
-.page-opportunities .op-clear:hover,
+.page-opportunities .op-filter-toggle:hover,
+.page-opportunities .op-reset-filters:hover,
 .page-opportunities .op-overdue-toggle:hover {background:#eaf2fb;color:#01488e;}
-.page-opportunities .op-filter-expand.is-active,
+.page-opportunities .op-filter-toggle.is-active,
 .page-opportunities .op-overdue-toggle.is-active {
-  border-color:#b6d0e8;
+  border-color:#9ebfdd;
   background:#eaf2fb;
   color:#01488e;
 }
-.page-opportunities .op-clear {border-color:transparent;color:#01488e;}
-.page-opportunities .op-select-wrap {
-  flex:0 0 auto;
-  min-width:0;
+.page-opportunities .op-reset-filters {
+  border-color:transparent;
+  background:transparent;
+  color:#01488e;
 }
-.page-opportunities .op-select-wrap select {
-  height:36px;
-  max-width:170px;
-  padding:7px 8px;
-  border:1px solid #e0e8f1;
-  border-radius:7px;
-  background:#fff;
-  color:#4a6a86;
-  font:600 11.5px/1.3 Inter,sans-serif;
-  cursor:pointer;
-}
-.page-opportunities .op-extra-filters {
+.page-opportunities .op-advanced-filters {
   display:flex;
   flex:0 0 auto;
   flex-wrap:wrap;
-  align-items:center;
-  gap:12px 16px;
-  padding:10px 20px 14px;
-  border-top:1px solid #eef2f6;
-  background:#fbfdff;
+  align-items:flex-end;
+  gap:10px 13px;
+  min-width:0;
+  padding:11px 13px 13px;
+  margin:-3px 0 12px;
+  border:1px solid #deebf5;
+  border-radius:10px;
+  background:#f9fcff;
 }
-.page-opportunities .op-extra-filters label {
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  color:#657f98;
-  font:600 11.5px/1.3 Inter,sans-serif;
+.page-opportunities .op-advanced-filters label {
+  display:flex;
+  flex:0 1 auto;
+  flex-direction:column;
+  gap:5px;
+  color:#687f95;
+  font:650 10.5px/1.3 Inter,sans-serif;
 }
-.page-opportunities .op-extra-filters input,
-.page-opportunities .op-extra-filters select {
-  height:34px;
+.page-opportunities .op-advanced-filters select,
+.page-opportunities .op-advanced-filters input {
+  height:35px;
+  max-width:200px;
+  min-width:130px;
   padding:5px 8px;
-  border:1px solid #dbe6f0;
+  border:1px solid #d8e5f0;
   border-radius:7px;
   background:#fff;
-  color:#315b7d;
-  font:550 11px/1.3 Inter,sans-serif;
+  color:#345b7b;
+  font:600 11.5px/1.3 Inter,sans-serif;
   color-scheme:light;
 }
-.page-opportunities .op-sheet-actions {
+.page-opportunities .op-advanced-filters .op-overdue-toggle {min-height:35px;}
+/* Panel adaptable: con 2/7 filas se ajusta a su contenido;
+   cuando entran muchas, se encoge dentro de la vista y solo las filas
+   obtienen scroll vertical. NUNCA scroll horizontal. */
+.page-opportunities .op-table-panel {
   display:flex;
-  flex:0 0 51px;
-  align-items:center;
-  gap:7px;
-  min-width:0;
-  padding:3px 18px 10px;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scrollbar-width:thin;
-}
-.page-opportunities .op-sheet-actions button {
-  display:inline-flex;
-  flex:0 0 auto;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  min-width:105px;
-  min-height:34px;
-  padding:7px 12px;
-  border:1px solid #dfe8f1;
-  border-radius:6px;
+  flex:0 1 auto;
+  flex-direction:column;
+  align-self:stretch;
+  width:100%;
+  max-width:100%;
+  min-height:0;
+  max-height:100%;
+  padding:0;
+  margin:0;
+  overflow:hidden;
+  border:1px solid #e0e9f1;
+  border-radius:13px;
   background:#fff;
-  box-shadow:0 2px 5px rgba(0,45,89,.035);
-  color:#355b7b;
-  font:700 11.5px/1.2 Inter,sans-serif;
-  white-space:nowrap;
-  cursor:pointer;
-}
-.page-opportunities .op-sheet-actions button:first-child {
-  color:#01488e;
-  border-color:#bed6ec;
-  background:#f4f9fe;
-}
-.page-opportunities .op-sheet-actions button:hover:not(:disabled) {
-  background:#eaf2fb;
-  border-color:#a5c8e6;
-  color:#01488e;
-}
-.page-opportunities .op-sheet-actions button:disabled {
-  cursor:not-allowed;
-  color:#aebdcb;
-  background:#f8fafc;
-  box-shadow:none;
-}
-.page-opportunities .op-sheet-actions .op-deselect {min-width:auto;}
-.page-opportunities .op-selected-count {
-  display:inline-block;
-  flex:0 0 auto;
-  margin-left:auto;
-  color:#8a9caf;
-  font:500 11px/1.3 Inter,sans-serif;
-  white-space:nowrap;
+  box-shadow:0 3px 13px rgba(0,45,89,.035);
 }
 .page-opportunities .op-table-scroll {
-  flex:1 1 0;
-  min-height:0;
+  flex:0 1 auto;
   min-width:0;
-  overflow:auto;
+  min-height:0;
+  max-width:100%;
+  overflow-x:hidden;
+  overflow-y:auto;
   overscroll-behavior:contain;
-  scrollbar-color:#90acc6 #f4f8fc;
+  scrollbar-color:#b7c8d8 #f8fbfe;
   scrollbar-width:thin;
   outline-offset:-2px;
 }
 .page-opportunities .op-data-table {
   width:100%;
-  min-width:1060px;
+  min-width:0;
+  max-width:100%;
   table-layout:fixed;
   border-collapse:collapse;
   border-spacing:0;
@@ -318,224 +302,256 @@
 }
 .page-opportunities .op-data-table thead th {
   position:sticky;
+  z-index:3;
   top:0;
-  z-index:4;
-  height:43px;
-  padding:9px 10px;
-  border-top:1px solid #eaf0f5;
-  border-bottom:1px solid #dfe8f0;
-  background:#f6f9fc;
-  color:#57738d;
-  font:750 11.5px/1.2 Inter,sans-serif;
+  height:45px;
+  padding:10px 11px;
+  border:0;
+  border-bottom:1px solid #e6edf4;
+  background:#fff;
+  color:#657e94;
   text-align:left;
+  text-transform:uppercase;
+  letter-spacing:.045em;
+  font:800 10.1px/1.2 Inter,sans-serif;
   white-space:nowrap;
 }
-.page-opportunities .op-data-table thead th:nth-child(1) {width:3.5%;}
-.page-opportunities .op-data-table thead th:nth-child(2) {width:6.5%;}
-.page-opportunities .op-data-table thead th:nth-child(3) {width:19%;}
-.page-opportunities .op-data-table thead th:nth-child(4) {width:23%;}
-.page-opportunities .op-data-table thead th:nth-child(5) {width:12%;}
-.page-opportunities .op-data-table thead th:nth-child(6) {width:16%;}
-.page-opportunities .op-data-table thead th:nth-child(7) {width:8%;}
-.page-opportunities .op-data-table thead th:nth-child(8) {width:10%;}
-.page-opportunities .op-data-table thead th:nth-child(9) {width:2%;}
+.page-opportunities .op-col-id {width:8%;}
+.page-opportunities .op-col-client {width:28%;}
+.page-opportunities .op-col-product {width:25%;}
+.page-opportunities .op-col-city {width:17%;}
+.page-opportunities .op-col-date {width:11%;}
+.page-opportunities .op-col-status {width:9%;}
+.page-opportunities .op-col-open {width:2%;}
 .page-opportunities .op-data-table tbody tr {
-  height:68px;
+  height:63px;
   cursor:pointer;
 }
 .page-opportunities .op-data-table tbody td {
-  height:68px;
-  padding:10px;
-  border-bottom:1px solid #edf1f5;
-  vertical-align:middle;
+  height:63px;
+  padding:9px 11px;
+  border:0;
+  border-bottom:1px solid #eaf0f5;
   background:#fff;
-  color:#375670;
-  font:500 12px/1.35 Inter,sans-serif;
-  transition:background-color .12s ease,color .12s ease;
-}
-.page-opportunities .op-clickable-row:hover:not(.is-selected) td,
-.page-opportunities .op-clickable-row:focus-within:not(.is-selected) td {
-  background:#f2f8fd;
-}
-.page-opportunities .op-clickable-row.is-selected td {
-  background:#01488e;
-  color:#fff;
-}
-.page-opportunities .op-check-cell {
-  text-align:center!important;
-  padding-left:10px!important;
-  padding-right:3px!important;
-}
-.page-opportunities .op-check-cell input[type="checkbox"] {
-  width:15px;
-  height:15px;
-  margin:0;
-  accent-color:#01488e;
+  color:#344f69;
   vertical-align:middle;
-  cursor:pointer;
+  font:500 12px/1.3 Inter,sans-serif;
+  transition:background .14s ease;
 }
-.page-opportunities .op-clickable-row.is-selected input[type="checkbox"] {accent-color:#fff;}
-.page-opportunities .op-row-number {
-  color:#748ba1;
+.page-opportunities .op-data-table tbody tr:last-child td {border-bottom:0;}
+.page-opportunities .op-clickable-row:hover td,
+.page-opportunities .op-clickable-row:focus-within td {background:#f2f8fd;}
+.page-opportunities .op-reference {
+  color:#58728b;
+  font:750 11.4px/1.2 Inter,sans-serif;
   font-variant-numeric:tabular-nums;
-}
-.page-opportunities .op-row-number small {
-  display:block;
-  margin-top:3px;
-  color:#9aabb9;
-  font:550 9.6px/1.2 Inter,sans-serif;
+  white-space:nowrap;
 }
 .page-opportunities .op-client-cell {
   display:flex;
-  flex-direction:column;
-  gap:4px;
+  align-items:center;
+  gap:10px;
   min-width:0;
 }
+.page-opportunities .op-client-cell .initials {
+  display:grid;
+  place-items:center;
+  flex:0 0 35px;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:#dfeffa;
+  color:#01488e;
+  font:800 10.7px/1 Inter,sans-serif;
+  box-shadow:none;
+}
+.page-opportunities .op-client-copy {display:flex;flex:1 1 auto;flex-direction:column;gap:5px;min-width:0;}
 .page-opportunities .op-client-name {
   display:block;
-  max-width:100%;
   overflow:hidden;
-  text-overflow:ellipsis;
+  max-width:100%;
   white-space:nowrap;
-  color:#173b60;
-  font:700 12.2px/1.3 Inter,sans-serif;
+  text-overflow:ellipsis;
+  color:#1c3954;
+  font:750 12.3px/1.25 Inter,sans-serif;
 }
-.page-opportunities .op-client-cell small,
-.page-opportunities .op-sub {
+.page-opportunities .op-client-name:hover {color:#01488e;text-decoration:underline;}
+.page-opportunities .op-client-sub {
   display:block;
   overflow:hidden;
-  max-width:100%;
-  min-width:0;
-  text-overflow:ellipsis;
   white-space:nowrap;
-  color:#8398ab;
-  font:500 10.8px/1.3 Inter,sans-serif;
+  text-overflow:ellipsis;
+  color:#8196ab;
+  font:500 10.5px/1.2 Inter,sans-serif;
 }
 .page-opportunities .op-product {
   display:block;
-  max-width:100%;
   overflow:hidden;
-  text-overflow:ellipsis;
   white-space:nowrap;
-  color:#315878;
-  font-weight:650;
+  text-overflow:ellipsis;
+  color:#344f67;
+  font:600 12px/1.3 Inter,sans-serif;
 }
-.page-opportunities .op-sub {margin-top:4px;}
-.page-opportunities .op-date-tag,
-.page-opportunities .op-due-tag,
-.page-opportunities .op-channel,
-.page-opportunities .op-state {
+.page-opportunities .op-product-sub {
+  display:block;
+  overflow:hidden;
+  margin-top:5px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:#8497a9;
+  font:500 10.8px/1.2 Inter,sans-serif;
+}
+.page-opportunities .op-location {
+  display:block;
+  overflow:hidden;
+  max-width:100%;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:#4b657b;
+}
+.page-opportunities .op-data-table time {
   display:inline-block;
   max-width:100%;
-  overflow:hidden;
-  padding:6px 8px;
-  border-radius:6px;
-  text-overflow:ellipsis;
   white-space:nowrap;
-  font:650 10.8px/1.2 Inter,sans-serif;
+  color:#516b83;
+  font-variant-numeric:tabular-nums;
+  font:600 11.3px/1.3 Inter,sans-serif;
 }
-.page-opportunities .op-date-tag {
-  color:#175f8e;
-  background:#e1f2f9;
+.page-opportunities .op-status-pill {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#e9f2fc;
+  color:#2c699a;
+  font:750 10.6px/1.2 Inter,sans-serif;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
 }
-.page-opportunities .op-due-tag {
-  color:#315e9a;
-  background:#eaf2fb;
-}
-.page-opportunities .op-due-tag.is-overdue {
-  color:#af4850;
-  background:#fdebef;
-}
-.page-opportunities .op-channel {
-  color:#547194;
-  background:#eef3fa;
-}
-.page-opportunities .op-state {
-  color:#345e92;
-  background:#eaf2fb;
-}
-.page-opportunities .op-state.is-new {color:#01488e;background:#dfeefa;}
-.page-opportunities .op-state.is-progress {color:#2d6b9c;background:#e5f3fa;}
-.page-opportunities .op-state.is-won {color:#247276;background:#e0f2f1;}
-.page-opportunities .op-state.is-lost {color:#66788a;background:#edf1f5;}
-.page-opportunities .op-arrow {
+.page-opportunities .op-status-pill.is-new {background:#e1f1fe;color:#146a9e;}
+.page-opportunities .op-status-pill.is-working {background:#def3f3;color:#257783;}
+.page-opportunities .op-status-pill.is-quote {background:#fff0d8;color:#956a23;}
+.page-opportunities .op-status-pill.is-sent {background:#ede9fb;color:#6a59a3;}
+.page-opportunities .op-status-pill.is-won {background:#e0f4ec;color:#267756;}
+.page-opportunities .op-status-pill.is-lost {background:#fcebe9;color:#b64f54;}
+.page-opportunities .op-row-open {
   display:grid;
   place-items:center;
-  color:#618bad;
+  color:#3e83b5;
 }
-.page-opportunities .op-clickable-row.is-selected .op-client-name,
-.page-opportunities .op-clickable-row.is-selected .op-product,
-.page-opportunities .op-clickable-row.is-selected .op-client-cell small,
-.page-opportunities .op-clickable-row.is-selected .op-sub,
-.page-opportunities .op-clickable-row.is-selected .op-row-number,
-.page-opportunities .op-clickable-row.is-selected .op-row-number small,
-.page-opportunities .op-clickable-row.is-selected .op-arrow {color:#fff;}
-.page-opportunities .op-clickable-row.is-selected .op-date-tag,
-.page-opportunities .op-clickable-row.is-selected .op-due-tag,
-.page-opportunities .op-clickable-row.is-selected .op-channel,
-.page-opportunities .op-clickable-row.is-selected .op-state {
-  color:#fff;
-  background:rgba(255,255,255,.17);
-}
-.page-opportunities .op-footer {
+.page-opportunities .op-row-open:hover {color:#01488e;}
+.page-opportunities .op-table-footer {
   display:flex;
-  flex:0 0 37px;
+  flex:0 0 34px;
   align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  min-height:37px;
-  padding:7px 17px;
-  border-top:1px solid #dfe8f1;
-  background:#fff;
-  color:#8196aa;
-  font:500 11px/1.3 Inter,sans-serif;
+  justify-content:flex-start;
+  gap:4px;
+  min-height:34px;
+  padding:6px 14px;
+  border-top:1px solid #e7edf4;
+  color:#8396a9;
+  font:500 10.8px/1.3 Inter,sans-serif;
 }
-.page-opportunities .op-footer strong {color:#01488e;font-weight:750;}
-.page-opportunities .op-table-scroll .empty-state {min-width:320px;}
-@media (max-width:1240px) {
-  .page-opportunities .op-sheet-controls {flex-wrap:wrap;gap:8px;padding-top:14px;}
-  .page-opportunities .op-search-form {flex:1 1 100%;max-width:none;}
-  .page-opportunities .op-sheet-filters {justify-content:flex-start;flex:1 1 100%;}
-  .page-opportunities .op-sheet-actions {margin-top:4px;}
+.page-opportunities .op-table-footer strong {color:#275e87;font-weight:750;}
+.page-opportunities .op-table-scroll .empty-state {min-width:0;}
+/* Las columnas menos prioritarias se ocultan progresivamente.
+   La tabla nunca necesita desplazarse a izquierda/derecha. */
+@media (max-width:1180px) {
+  .page-opportunities .op-col-id {width:9%;}
+  .page-opportunities .op-col-client {width:30%;}
+  .page-opportunities .op-col-product {width:27%;}
+  .page-opportunities .op-col-city {display:none;}
+  .page-opportunities .op-col-date {width:15%;}
+  .page-opportunities .op-col-status {width:16%;}
+  .page-opportunities .op-col-open {width:3%;}
+}
+@media (max-width:920px) {
+  .page-opportunities .op-phase-tabs {gap:6px;margin-bottom:10px;}
+  .page-opportunities .op-phase-tab {min-height:35px;padding:6px 9px;font-size:10.8px;gap:7px;}
+  .page-opportunities .op-phase-tab strong {height:21px;min-width:21px;font-size:10.5px;}
 }
 @media (max-width:840px) {
-  .page-opportunities .op-sheet-banner>div:first-child>span {display:none;}
-  .page-opportunities .op-sheet-totals>span {font-size:10.5px;}
-  .page-opportunities .op-sheet-controls {padding:12px 12px 8px;}
-  .page-opportunities .op-extra-filters {padding:8px 12px 10px;}
-  .page-opportunities .op-sheet-actions {padding:4px 12px 8px;}
-  .page-opportunities .op-sheet-actions button {min-width:90px;}
-  .page-opportunities .op-footer>span:last-child {display:none;}
+  .app-body.is-opportunities .dashboard-mobile-menu {
+    position:absolute;
+    z-index:12;
+    top:11px;
+    right:13px;
+    display:grid;
+    place-items:center;
+    width:36px;
+    height:36px;
+    border:1px solid #d3e2f1;
+    border-radius:9px;
+    background:#fff;
+    color:#01488e;
+    box-shadow:0 2px 8px rgba(0,45,89,.07);
+    cursor:pointer;
+  }
+  .page-opportunities .op-screen-heading {padding-right:47px;flex-wrap:wrap;gap:9px;}
+  .page-opportunities .op-new-button {min-height:35px;}
+}
+@media (max-width:780px) {
+  .page-opportunities .op-col-id {width:10%;}
+  .page-opportunities .op-col-client {width:39%;}
+  .page-opportunities .op-col-product {width:31%;}
+  .page-opportunities .op-col-date {display:none;}
+  .page-opportunities .op-col-status {width:16%;}
+  .page-opportunities .op-col-open {width:4%;}
+  .page-opportunities .op-data-table thead th,
+  .page-opportunities .op-data-table tbody td {padding-left:7px;padding-right:7px;}
+  .page-opportunities .op-client-cell {gap:7px;}
+  .page-opportunities .op-client-cell .initials {flex-basis:30px;width:30px;height:30px;font-size:10px;}
+  .page-opportunities .op-status-pill {font-size:10.1px;padding:4px 6px;}
 }
 @media (max-width:660px) {
   .app-body.is-opportunities .page.page-opportunities {
-    padding:7px 8px calc(62px + env(safe-area-inset-bottom));
+    padding:10px 9px calc(60px + env(safe-area-inset-bottom));
   }
-  .page-opportunities .op-sheet-banner {min-height:48px;flex-basis:48px;padding:6px 12px;}
-  .page-opportunities .op-sheet-banner h1 {font-size:16px;}
-  .page-opportunities .op-sheet-totals {gap:7px;}
-  .page-opportunities .op-sheet-totals>span {display:none;}
-  .page-opportunities .op-sheet-totals strong {height:32px;min-width:32px;font-size:13px;}
-  .page-opportunities .op-sheet-controls {padding:8px 9px 6px;}
-  .page-opportunities .op-search-form {min-height:34px;}
-  .page-opportunities .op-search,.page-opportunities .op-find-button {height:34px;}
-  .page-opportunities .op-sheet-filters {gap:5px;}
-  .page-opportunities .op-filter-expand,.page-opportunities .op-clear,
-  .page-opportunities .op-select-wrap select {height:33px;min-height:33px;font-size:10.7px;}
-  .page-opportunities .op-sheet-actions {min-height:39px;flex-basis:42px;padding-bottom:5px;}
-  .page-opportunities .op-sheet-actions button {min-height:29px;font-size:10.5px;padding:5px 9px;}
-  .page-opportunities .op-selected-count {font-size:10px;}
-  .page-opportunities .op-data-table {min-width:985px;}
-  .page-opportunities .op-data-table thead th {height:37px;font-size:10.6px;}
-  .page-opportunities .op-data-table tbody tr,.page-opportunities .op-data-table tbody td {height:60px;}
-  .page-opportunities .op-data-table tbody td {padding:8px;font-size:11px;}
-  .page-opportunities .op-footer {min-height:32px;flex-basis:32px;padding:6px 10px;font-size:10px;}
+  .page-opportunities .op-heading-copy h1 {font-size:21px;}
+  .page-opportunities .op-heading-copy p {font-size:11px;}
+  .page-opportunities .op-heading-count {font-size:10.5px;}
+  .page-opportunities .op-screen-heading {margin-bottom:8px;min-height:0;}
+  .page-opportunities .op-phase-tab {font-size:10.4px;padding:5px 8px;min-height:32px;}
+  .page-opportunities .op-phase-tabs {gap:5px;margin-bottom:9px;}
+  .page-opportunities .op-searchbar {gap:6px;margin-bottom:10px;}
+  .page-opportunities .op-search {height:36px;flex:1 1 0;padding:0 8px;}
+  .page-opportunities .op-search input {font-size:10.7px;}
+  .page-opportunities .op-filter-toggle,.page-opportunities .op-reset-filters {
+    min-height:35px;padding:6px 8px;font-size:10.6px;
+  }
+  .page-opportunities .op-reset-filters {padding:5px;}
+  .page-opportunities .op-advanced-filters {gap:7px;padding:9px;}
+  .page-opportunities .op-advanced-filters label {flex:1 1 40%;}
+  .page-opportunities .op-advanced-filters select,
+  .page-opportunities .op-advanced-filters input {width:100%;min-width:0;}
+  .page-opportunities .op-table-panel {border-radius:11px;}
+  .page-opportunities .op-data-table tbody tr,.page-opportunities .op-data-table tbody td {height:58px;}
+  .page-opportunities .op-data-table thead th {height:37px;font-size:9.4px;}
+  .page-opportunities .op-data-table tbody td {font-size:11px;}
+  .page-opportunities .op-reference {font-size:10.5px;}
+  .page-opportunities .op-client-name,.page-opportunities .op-product {font-size:11px;}
+  .page-opportunities .op-product-sub,.page-opportunities .op-client-sub {font-size:9.5px;}
+  .page-opportunities .op-table-footer {min-height:30px;flex-basis:30px;font-size:10px;}
 }
-@media (max-height:700px) and (min-width:661px) {
-  .page-opportunities .op-sheet-controls {padding-top:10px;padding-bottom:7px;}
-  .page-opportunities .op-sheet-actions {flex-basis:43px;padding-bottom:5px;}
-  .page-opportunities .op-data-table tbody td,.page-opportunities .op-data-table tbody tr {height:59px;}
+@media (max-width:520px) {
+  .page-opportunities .op-col-id {width:16%;}
+  .page-opportunities .op-col-client {width:49%;}
+  .page-opportunities .op-col-product {display:none;}
+  .page-opportunities .op-col-status {width:29%;}
+  .page-opportunities .op-col-open {width:6%;}
+  .page-opportunities .op-client-name {font-size:10.9px;}
+}
+@media (max-height:640px) and (min-width:661px) {
+  .app-body.is-opportunities .page.page-opportunities {padding-top:9px;}
+  .page-opportunities .op-screen-heading {min-height:61px;margin-bottom:5px;}
+  .page-opportunities .op-phase-tab {min-height:33px;padding:5px 8px;}
+  .page-opportunities .op-phase-tabs {margin-bottom:7px;}
+  .page-opportunities .op-searchbar {margin-bottom:8px;}
+  .page-opportunities .op-data-table tbody tr,.page-opportunities .op-data-table tbody td {height:56px;}
 }
 @media (prefers-reduced-motion:reduce) {
-  .page-opportunities .op-data-table tbody td {transition:none;}
+  .page-opportunities .op-phase-tab,.page-opportunities .op-data-table tbody td {transition:none;}
 }
