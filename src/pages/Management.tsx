@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, CircleAlert, Clock3, CreditCard, Factory, FileText, Inbox, Landmark, Layers3, Package, Plus, Search, Shield, TrendingUp, Truck, Wallet } from 'lucide-react';
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
@@ -8,16 +8,91 @@ import { ActionLink, Button, DataBar, Empty, Field, Modal, NoteDemo, PageHeader,
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
   const {data,addTask,toggleTask}=useCrm();
-  const [modal,setModal]=useState(false),[filter,setFilter]=useState('Pendientes');
-  const [title,setTitle]=useState(''),[due,setDue]=useState(today()),[context,setContext]=useState('');
-  const tasks=data.tasks.filter(t=>filter==='Todas'||(filter==='Pendientes'?!t.done:t.done));
-  const save=(e:FormEvent)=>{e.preventDefault();if(title.trim()){addTask(title.trim(),due,context);setModal(false);setTitle('');setContext('')}};
-  return <div className="page"><PageHeader eyebrow="ORGANIZACIÓN PERSONAL" title="Agenda y notas" subtitle="Planifica llamadas, seguimientos, tareas y anotaciones comerciales." actions={<Button onClick={()=>setModal(true)}><Plus size={17}/>Nueva tarea</Button>}/>
-    <div className="detail-grid agenda-layout"><Panel title="Tareas de trabajo" extra={<div className="segmented small">{['Pendientes','Hechas','Todas'].map(x=><button key={x} className={filter===x?'seg-active':''} onClick={()=>setFilter(x)}>{x}</button>)}</div>}><div className="task-full-list">{tasks.map(t=><label className={'agenda-task '+(t.done?'is-complete':'')} key={t.id}><input type="checkbox" checked={t.done} onChange={()=>toggleTask(t.id)}/><div><strong>{t.title}</strong><small>{t.context}</small></div><time className={t.due<today()&&!t.done?'overdue':''}>{t.done?'Realizada':dateText(t.due)}</time></label>)}{!tasks.length&&<Empty title="Sin tareas en esta vista" body="Registra una llamada o un seguimiento con fecha."/>}</div></Panel>
-    <div className="right-stack"><Panel title="Próximos siete días"><div className="calendar-strip">{Array.from({length:7},(_,i)=>{const day=dt(i);return <div className="calendar-day" key={day}><small>{new Date(day+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short'})}</small><strong>{new Date(day+'T12:00:00').getDate()}</strong><i className={data.tasks.some(t=>t.due===day&&!t.done)?'has-event':''}/></div>})}</div><p className="muted">Los puntos indican tareas registradas en esa fecha.</p></Panel><Panel title="Notas y condiciones"><div className="knowledge-note"><CircleAlert size={19}/><div><strong>Comprobaciones pendientes</strong><p>Suplementos, garantías, precios o accesorios comunicados verbalmente deben verificarse con proveedor antes de ofertar.</p></div></div><Link to="/oportunidades" className="link-action">Consultar oportunidades <ChevronRight size={15}/></Link></Panel></div></div>
-    {modal&&<Modal title="Nueva tarea o llamada" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}><Field label="Qué tienes que hacer"><input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ej. Llamar para seguimiento"/></Field><div className="form-grid"><Field label="Fecha"><input type="date" required value={due} onChange={e=>setDue(e.target.value)}/></Field><Field label="Cliente / operación asociada"><input value={context} onChange={e=>setContext(e.target.value)} placeholder="OP, cliente o pedido"/></Field></div><div className="modal-actions"><Button variant="outline" onClick={()=>setModal(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar tarea</Button></div></form></Modal>}
+  const [searchParams,setSearchParams]=useSearchParams();
+  const requestedDay=searchParams.get('fecha');
+  const isValidDate=(value:string|null): value is string => {
+    if(!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const check=new Date(value+'T12:00:00');
+    return !Number.isNaN(check.getTime()) && check.getFullYear()===Number(value.slice(0,4))
+      && check.getMonth()+1===Number(value.slice(5,7)) && check.getDate()===Number(value.slice(8,10));
+  };
+  const selectedDay=isValidDate(requestedDay)?requestedDay:null;
+  const [modal,setModal]=useState(()=>searchParams.get('nueva')==='1' && Boolean(selectedDay));
+  const [filter,setFilter]=useState('Pendientes');
+  const [title,setTitle]=useState('');
+  const [due,setDue]=useState(selectedDay||today());
+  const [context,setContext]=useState('');
+  const tasks=data.tasks.filter(t=>
+    (!selectedDay || t.due===selectedDay)
+    && (filter==='Todas'||(filter==='Pendientes'?!t.done:t.done))
+  );
+  const closeModal=()=>{
+    setModal(false);
+    if(searchParams.get('nueva')==='1' && selectedDay) setSearchParams({fecha:selectedDay},{replace:true});
+  };
+  const save=(e:FormEvent)=>{
+    e.preventDefault();
+    if(title.trim()){
+      addTask(title.trim(),due,context);
+      closeModal();
+      setTitle('');
+      setContext('');
+    }
+  };
+  return <div className="page">
+    <PageHeader eyebrow="ORGANIZACIÓN PERSONAL" title="Agenda y notas"
+      subtitle="Planifica llamadas, seguimientos, tareas y anotaciones comerciales."
+      actions={<Button onClick={()=>{setDue(selectedDay||today());setModal(true)}}><Plus size={17}/>Nueva tarea</Button>}/>
+    {selectedDay&&<div className="agenda-selected-day" role="status">
+      <div><CalendarDays size={17} aria-hidden="true"/><span>Mostrando tareas del <strong>{dateText(selectedDay)}</strong></span></div>
+      <button type="button" onClick={()=>setSearchParams({},{replace:true})}>Ver todas las fechas</button>
+    </div>}
+    <div className="detail-grid agenda-layout">
+      <Panel title={selectedDay?'Tareas del día':'Tareas de trabajo'}
+        extra={<div className="segmented small">{['Pendientes','Hechas','Todas'].map(x=><button key={x} className={filter===x?'seg-active':''} onClick={()=>setFilter(x)}>{x}</button>)}</div>}>
+        <div className="task-full-list">
+          {tasks.map(t=><label className={'agenda-task '+(t.done?'is-complete':'')} key={t.id}>
+            <input type="checkbox" checked={t.done} onChange={()=>toggleTask(t.id)}/>
+            <div><strong>{t.title}</strong><small>{t.context}</small></div>
+            <time className={t.due<today()&&!t.done?'overdue':''}>{t.done?'Realizada':dateText(t.due)}</time>
+          </label>)}
+          {!tasks.length&&<Empty title="Sin tareas en esta vista" body={selectedDay?'Este día no tiene tareas para el filtro seleccionado. Puedes crear una nueva.':'Registra una llamada o un seguimiento con fecha.'}/>}
+        </div>
+      </Panel>
+      <div className="right-stack">
+        <Panel title="Próximos siete días">
+          <div className="calendar-strip">{Array.from({length:7},(_,i)=>{
+            const day=dt(i);
+            return <button type="button" className={'calendar-day agenda-strip-day'+(selectedDay===day?' is-selected':'')}
+              key={day} aria-pressed={selectedDay===day}
+              aria-label={'Ver tareas del '+dateText(day)}
+              onClick={()=>setSearchParams({fecha:day})}>
+              <small>{new Date(day+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short'})}</small>
+              <strong>{new Date(day+'T12:00:00').getDate()}</strong>
+              <i className={data.tasks.some(t=>t.due===day&&!t.done)?'has-event':''}/>
+            </button>;
+          })}</div>
+          <p className="muted">Selecciona un día para consultar sus tareas; los puntos indican pendientes.</p>
+        </Panel>
+        <Panel title="Notas y condiciones">
+          <div className="knowledge-note"><CircleAlert size={19}/><div><strong>Comprobaciones pendientes</strong><p>Suplementos, garantías, precios o accesorios comunicados verbalmente deben verificarse con proveedor antes de ofertar.</p></div></div>
+          <Link to="/oportunidades" className="link-action">Consultar oportunidades <ChevronRight size={15}/></Link>
+        </Panel>
+      </div>
+    </div>
+    {modal&&<Modal title="Nueva tarea o llamada" onClose={closeModal}>
+      <form className="modal-form" onSubmit={save}>
+        <Field label="Qué tienes que hacer"><input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ej. Llamar para seguimiento"/></Field>
+        <div className="form-grid">
+          <Field label="Fecha"><input type="date" required value={due} onChange={e=>setDue(e.target.value)}/></Field>
+          <Field label="Cliente / operación asociada"><input value={context} onChange={e=>setContext(e.target.value)} placeholder="OP, cliente o pedido"/></Field>
+        </div>
+        <div className="modal-actions"><Button variant="outline" onClick={closeModal}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar tarea</Button></div>
+      </form>
+    </Modal>}
   </div>;
 }
+
 export function Results(){
   const {data}=useCrm();
   const n=data.opportunities.length,won=data.opportunities.filter(o=>o.status==='Aceptada').length,lost=data.opportunities.filter(o=>o.status==='Perdida').length;
