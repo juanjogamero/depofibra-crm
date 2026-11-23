@@ -14,6 +14,7 @@ import './crm-typography.css';
 import './dashboard-photo-banner.css';
 import './calendar-interaction.css';
 import './dashboard-requests-focus.css';
+import './dashboard-vektora-v2.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
