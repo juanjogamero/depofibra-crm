@@ -191,10 +191,11 @@ export default function App() {
   const onOrdersList = location.pathname === '/pedidos';
   const onCommissionsList = location.pathname === '/comisiones';
   const onAgendaList = location.pathname === '/agenda';
-  const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList;
+  const onResultsList = location.pathname === '/resultados';
+  const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList || onResultsList;
   return <div className="app-root">
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
-    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '')}>
+    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '')}>
       {!onDashboard && !isCompactList && <Header onMenu={()=>setOpen(true)}/>}
       {(onDashboard || isCompactList) && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
       <main className="app-main" id="main-content"><AppRoutes/></main>
