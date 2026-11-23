@@ -39,39 +39,44 @@ function timeSeries(opportunities: Opportunity[], quotes: Quote[], period: Perio
 }
 
 function DashboardBars({ points }: { points: Series[] }) {
+  // El mismo histórico, dibujado para la columna lateral sin texto deformado.
   const largest = Math.max(2, ...points.flatMap(p => [p.consultations, p.quotations]));
-  const ceiling = Math.ceil(largest / 4) * 4 || 4;
-  const top = 22;
-  const bottom = 274;
-  const xStart = 53;
-  const totalWidth = 705;
+  const ceiling = Math.max(4, Math.ceil(largest / 4) * 4);
+  const top = 12;
+  const bottom = 143;
+  const xStart = 28;
+  const totalWidth = 302;
   const groupWidth = totalWidth / Math.max(points.length, 1);
-  const barWidth = Math.min(22, groupWidth * .27);
-  const ticks = [0, 1, 2, 3, 4];
-
+  const barWidth = Math.min(12, groupWidth * .29);
+  const ticks = [0,1,2,3,4];
   return <div className="hr-bars-area">
-    <svg viewBox="0 0 800 312" preserveAspectRatio="xMidYMid meet" role="img"
-      aria-label={'Evolución de consultas y presupuestos: ' + points.map(p => p.label + ', ' + p.consultations + ' consultas y ' + p.quotations + ' presupuestos').join('; ')}>
-      {ticks.map(t => {
-        const value = ceiling * t / 4;
-        const y = bottom - (value / ceiling) * (bottom - top);
+    <svg viewBox="0 0 340 199" preserveAspectRatio="xMidYMid meet" role="img"
+      aria-label={'Evolución de consultas y presupuestos: '+points.map(p=>p.label+', '+p.consultations+' consultas y '+p.quotations+' presupuestos').join('; ')}>
+      {ticks.map(t=>{
+        const value=ceiling*t/4;
+        const y=bottom-(value/ceiling)*(bottom-top);
         return <g key={t}>
-          <line x1={xStart} y1={y} x2={xStart + totalWidth} y2={y} className="hr-chart-gridline"/>
-          <text x={xStart - 13} y={y + 4} textAnchor="end" className="hr-chart-tick">{value}</text>
+          <line x1={xStart} y1={y} x2={xStart+totalWidth} y2={y} className="hr-chart-gridline"/>
+          <text x={xStart-9} y={y+4} textAnchor="end" className="hr-chart-tick">{value}</text>
         </g>;
       })}
-      {points.map((p, i) => {
-        const cx = xStart + groupWidth * (i + .5);
-        const firstH = (p.consultations / ceiling) * (bottom - top);
-        const secondH = (p.quotations / ceiling) * (bottom - top);
+      {points.map((p,i)=>{
+        const cx=xStart+groupWidth*(i+.5);
+        const firstH=(p.consultations/ceiling)*(bottom-top);
+        const secondH=(p.quotations/ceiling)*(bottom-top);
+        const labelParts=p.label.split(' ');
         return <g key={p.label}>
-          <rect x={cx - barWidth - 3} y={bottom - firstH} width={barWidth} height={firstH} rx="6" className="hr-bar-consultations">
+          <rect x={cx-barWidth-2} y={bottom-firstH} width={barWidth} height={firstH} rx="3" className="hr-bar-consultations">
             <title>{p.label}: {p.consultations} consultas</title>
           </rect>
-          <rect x={cx + 3} y={bottom - secondH} width={barWidth} height={secondH} rx="6" className="hr-bar-quotes">
+          <rect x={cx+2} y={bottom-secondH} width={barWidth} height={secondH} rx="3" className="hr-bar-quotes">
             <title>{p.label}: {p.quotations} presupuestos</title>
           </rect>
-          <text x={cx} y="302" textAnchor="middle" className="hr-chart-label">{p.label}</text>
+          <text x={cx} y="174" textAnchor="middle" className="hr-chart-label">
+            {labelParts.length>1
+              ? <><tspan x={cx}>{labelParts[0]}</tspan><tspan x={cx} dy="12">{labelParts[1].slice(0,3)}</tspan></>
+              : p.label}
+          </text>
         </g>;
       })}
     </svg>
@@ -139,8 +144,8 @@ function requestDate(o: Opportunity) {
 function RecentRequests({ opportunities }: { opportunities: Opportunity[] }) {
   const recent = [...opportunities]
     .sort((a, b) => (b.receivedAt || b.createdAt).localeCompare(a.receivedAt || a.createdAt))
-    .slice(0, 4);
-  return <section className="hr-right-card hr-recent" aria-labelledby="hr-recent-heading">
+    .slice(0, 5);
+  return <section className="hr-right-card hr-recent hr-recent-main-panel" aria-labelledby="hr-recent-heading">
     <div className="hr-panel-heading">
       <div><h2 id="hr-recent-heading">Últimas solicitudes</h2><p>Entradas recientes por canal</p></div>
       <Link to="/oportunidades" aria-label="Ver todas las solicitudes"><ArrowRight size={17}/></Link>
@@ -151,11 +156,18 @@ function RecentRequests({ opportunities }: { opportunities: Opportunity[] }) {
         return <Link key={o.id} to={'/oportunidades/' + o.id} className="hr-recent-row"
           aria-label={'Abrir solicitud de ' + o.name + ', ' + o.channel + ', ' + when.fullDate + (when.shortTime ? ' a las ' + when.shortTime : '')}>
           <span className="hr-recent-avatar" aria-hidden="true">{requestInitials(o.name)}</span>
-          <span className="hr-recent-main"><strong title={o.name}>{o.name}</strong><small>{o.channel}</small></span>
-          <time className="hr-recent-date" dateTime={o.receivedAt || o.createdAt} title={when.fullDate}>
-            <span>{when.shortDate}</span>
-            {when.shortTime && <small>{when.shortTime}</small>}
-          </time>
+          <span className="hr-recent-main">
+            <strong title={o.name}>{o.name}</strong>
+            <small><span className="hr-recent-channel">{o.channel}</span>
+              <span className="hr-recent-product"> · {o.product}{o.capacity ? ' · '+o.capacity : ''}</span>
+            </small>
+          </span>
+          <span className="hr-recent-meta">
+            <span className={'hr-recent-status'+(o.status==='Nueva'?' is-new':o.status==='Por presupuestar'?' is-pending':'')}>{o.status}</span>
+            <time className="hr-recent-date" dateTime={o.receivedAt || o.createdAt} title={when.fullDate}>
+              <span>{when.shortDate}</span>{when.shortTime && <small>{when.shortTime}</small>}
+            </time>
+          </span>
         </Link>;
       }) : <div className="hr-empty">Todavía no hay solicitudes registradas.</div>}
     </div>
@@ -265,30 +277,30 @@ export default function Dashboard() {
           <QuickStat icon={AlarmClock} title="Seguimientos vencidos" value={overdue} hint={overdue?'Requieren atención':'Al día'} accent="amber" to="/agenda"/>
         </div>
         <WebAccessBanner/>
-        <section className="hr-panel hr-chart-panel" aria-labelledby="hr-chart-heading">
-          <div className="hr-panel-heading">
-            <h2 id="hr-chart-heading">Evolución comercial</h2>
-            <div className="hr-chart-controls">
-              <span className="hr-chart-legend"><i className="hr-dot-leads"/>Consultas</span>
-              <span className="hr-chart-legend"><i className="hr-dot-quotes"/>Presupuestos</span>
-              <label className="hr-period">
-                <span className="sr-only">Período de evolución comercial</span>
-                <select value={period} onChange={e=>setPeriod(e.target.value as Period)}>
-                  <option value="8 semanas">8 semanas</option>
-                  <option value="6 meses">6 meses</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <DashboardBars points={periods}/>
-        </section>
+        <RecentRequests opportunities={data.opportunities}/>
       </div>
-      <aside className="hr-side-column" aria-label="Solicitudes recientes y calendario">
+      <aside className="hr-side-column" aria-label="Evolución comercial y calendario">
         <div className="hr-side-top">
           <span>Planificación</span>
           <Link to="/oportunidades/nueva"><Plus size={16}/> Nueva solicitud</Link>
         </div>
-        <RecentRequests opportunities={data.opportunities}/>
+        <section className="hr-panel hr-chart-panel hr-chart-compact" aria-labelledby="hr-chart-heading">
+          <div className="hr-panel-heading">
+            <h2 id="hr-chart-heading">Evolución comercial</h2>
+            <label className="hr-period">
+              <span className="sr-only">Período de evolución comercial</span>
+              <select value={period} onChange={e=>setPeriod(e.target.value as Period)}>
+                <option value="8 semanas">8 semanas</option>
+                <option value="6 meses">6 meses</option>
+              </select>
+            </label>
+          </div>
+          <div className="hr-chart-legend-row">
+            <span className="hr-chart-legend"><i className="hr-dot-leads"/>Consultas</span>
+            <span className="hr-chart-legend"><i className="hr-dot-quotes"/>Presupuestos</span>
+          </div>
+          <DashboardBars points={periods}/>
+        </section>
         <MiniCalendar tasks={data.tasks}/>
       </aside>
     </div>

@@ -1,0 +1,285 @@
+/* REG-0088 · Inicio: solicitudes como información principal; evolución compacta en lateral.
+   Preserva los datos y enlaces existentes, el banner, el fondo corporativo y el no-scroll
+   de escritorio. Esta capa solo modifica el reparto de tarjetas del Dashboard. */
+
+.dashboard-hr .hr-recent-main-panel {
+  display:flex;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  flex-direction:column;
+  border:1px solid #e1eaf3;
+  border-radius:18px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 2px 12px rgba(0,45,89,.035);
+}
+.dashboard-hr .hr-recent-main-panel .hr-panel-heading {
+  flex:0 0 auto;
+  min-height:59px;
+  padding:15px 19px 9px;
+}
+.dashboard-hr .hr-recent-main-panel .hr-panel-heading h2 {
+  font-family:var(--crm-font-display,"Plus Jakarta Sans",Inter,sans-serif);
+  color:#173658;
+  font-size:15.6px;
+  letter-spacing:-.03em;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-list {
+  min-height:0;
+  flex:1 1 auto;
+  padding:0 18px;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-row {
+  flex:1 1 0;
+  min-height:0;
+  gap:13px;
+  padding:5px 2px;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-avatar {
+  width:39px;
+  height:39px;
+  flex:0 0 39px;
+  font-size:11.3px;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-main {
+  gap:5px;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-main strong {
+  color:#203c5d;
+  font-size:13.2px;
+  font-weight:750;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-main small {
+  display:block;
+  max-width:100%;
+  color:#71869b;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.dashboard-hr .hr-recent-channel {
+  color:#497f9c;
+  font-weight:700;
+}
+.dashboard-hr .hr-recent-product {
+  color:#8b9cad;
+  font-weight:450;
+}
+.dashboard-hr .hr-recent-meta {
+  display:flex;
+  flex:0 0 145px;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  min-width:0;
+  gap:6px;
+}
+.dashboard-hr .hr-recent-status {
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  padding:4px 9px;
+  border-radius:7px;
+  background:#edf3f8;
+  color:#536b81;
+  font:700 10px/1.2 Inter,sans-serif;
+}
+.dashboard-hr .hr-recent-status.is-new {
+  background:#eaf6fc;
+  color:#2171a1;
+}
+.dashboard-hr .hr-recent-status.is-pending {
+  background:#fdf3e4;
+  color:#9b742d;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-date {
+  display:inline-flex;
+  flex:0 0 auto;
+  flex-direction:row;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  color:#60758b;
+  font-size:11px;
+  font-weight:650;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-date small {
+  font-size:10.6px;
+  color:#8a9cac;
+}
+.dashboard-hr .hr-recent-main-panel .hr-recent-footer {
+  flex:0 0 35px;
+  min-height:35px;
+  margin:5px 17px 12px;
+  border-radius:10px;
+  font-size:11.5px;
+}
+/* La gráfica se aloja encima del calendario y mantiene sus dos series/filtro. */
+.dashboard-hr .hr-chart-compact {
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  min-height:0;
+  border:1px solid #e1eaf3;
+  border-radius:16px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 2px 12px rgba(0,45,89,.035);
+  overflow:hidden;
+}
+.dashboard-hr .hr-chart-compact .hr-panel-heading {
+  display:flex;
+  flex:0 0 auto;
+  min-height:51px;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  padding:12px 13px 7px;
+}
+.dashboard-hr .hr-chart-compact .hr-panel-heading h2 {
+  color:#173658;
+  font-family:var(--crm-font-display,"Plus Jakarta Sans",Inter,sans-serif);
+  font-size:13.3px;
+  font-weight:800;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+}
+.dashboard-hr .hr-chart-compact .hr-period {
+  flex:0 0 auto;
+}
+.dashboard-hr .hr-chart-compact .hr-period select {
+  min-height:28px;
+  padding:4px 5px;
+  border-radius:7px;
+  font-size:10.4px;
+  background:#fff;
+}
+.dashboard-hr .hr-chart-legend-row {
+  display:flex;
+  align-items:center;
+  gap:13px;
+  flex:0 0 auto;
+  min-height:18px;
+  padding:0 13px 1px;
+}
+.dashboard-hr .hr-chart-legend-row .hr-chart-legend {
+  color:#6d8297;
+  font-size:10px;
+  font-weight:550;
+}
+.dashboard-hr .hr-chart-legend-row .hr-dot-leads,
+.dashboard-hr .hr-chart-legend-row .hr-dot-quotes {
+  width:7px;
+  height:7px;
+  flex:0 0 7px;
+}
+.dashboard-hr .hr-chart-compact .hr-bars-area {
+  flex:1 1 auto;
+  height:0;
+  min-height:0;
+  padding:0 10px 7px;
+  overflow:hidden;
+}
+.dashboard-hr .hr-chart-compact .hr-bars-area svg {
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  min-width:0;
+  min-height:0;
+}
+.dashboard-hr .hr-chart-compact .hr-chart-label,
+.dashboard-hr .hr-chart-compact .hr-chart-tick {
+  font:11px Inter,sans-serif;
+}
+/* Alturas fluidas, sin scroll ni recorte de la tarjeta de solicitudes en escritorio. */
+.app-body.is-dashboard .dashboard-hr .hr-main-column {
+  grid-template-rows:minmax(36px,.36fr) minmax(101px,1.18fr) minmax(125px,1.48fr) minmax(195px,3.55fr);
+}
+.app-body.is-dashboard .dashboard-hr .hr-side-column {
+  grid-template-rows:minmax(34px,.44fr) minmax(0,2.85fr) minmax(0,3.85fr);
+}
+.app-body.is-dashboard .dashboard-hr .hr-chart-compact {
+  min-height:0;
+  height:100%;
+}
+.app-body.is-dashboard .dashboard-hr .hr-recent-main-panel {
+  min-height:0;
+  height:100%;
+}
+@media (min-width:761px) and (max-width:1150px) {
+  .app-body.is-dashboard .dashboard-hr .hr-side-column {
+    grid-template-rows:minmax(34px,.44fr) minmax(0,2.9fr) minmax(0,3.8fr);
+  }
+  .dashboard-hr .hr-recent-main-panel .hr-recent-meta {flex-basis:112px;}
+  .dashboard-hr .hr-recent-main-panel .hr-recent-main strong {font-size:12.4px;}
+}
+@media (min-width:761px) and (max-height:710px) {
+  .dashboard-hr .hr-recent-main-panel .hr-panel-heading {
+    min-height:44px;
+    padding:8px 12px 4px;
+  }
+  .dashboard-hr .hr-recent-main-panel .hr-recent-avatar {
+    width:31px;
+    height:31px;
+    flex-basis:31px;
+  }
+  .dashboard-hr .hr-recent-main-panel .hr-recent-row {padding:2px 0;}
+  .dashboard-hr .hr-recent-main-panel .hr-recent-footer {
+    min-height:27px;
+    flex-basis:27px;
+    margin:3px 12px 7px;
+  }
+  .dashboard-hr .hr-chart-compact .hr-panel-heading {
+    min-height:42px;
+    padding:7px 10px 4px;
+  }
+  .dashboard-hr .hr-chart-legend-row {min-height:15px; padding-inline:10px;}
+  .dashboard-hr .hr-chart-compact .hr-bars-area {padding:0 7px 4px;}
+}
+/* En móvil el orden natural es solicitudes, gráfica y calendario.
+   Se mantiene el scroll intencionado para no ocultar tareas ni controles. */
+@media (max-width:760px) {
+  .app-body.is-dashboard .dashboard-hr .hr-recent-main-panel {
+    min-height:380px;
+    height:auto;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-recent-main-panel .hr-recent-row {
+    min-height:54px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-chart-compact {
+    height:270px;
+    min-height:270px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-chart-compact .hr-bars-area {
+    min-height:0;
+    height:0;
+    overflow:hidden;
+    padding:0 9px 8px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-chart-compact .hr-bars-area svg {
+    height:100%;
+    width:100%;
+    min-width:0;
+    min-height:0;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-side-column {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding-top:3px;
+  }
+  .app-body.is-dashboard .dashboard-hr .hr-side-top {min-height:41px;}
+}
+@media (max-width:480px) {
+  .dashboard-hr .hr-recent-main-panel .hr-recent-meta {flex-basis:108px;}
+  .dashboard-hr .hr-recent-main-panel .hr-recent-product {display:none;}
+  .dashboard-hr .hr-recent-main-panel .hr-recent-main strong {font-size:11.8px;}
+  .dashboard-hr .hr-recent-main-panel .hr-recent-status {font-size:9.2px;}
+  .dashboard-hr .hr-chart-compact .hr-panel-heading h2 {font-size:12.5px;}
+}
