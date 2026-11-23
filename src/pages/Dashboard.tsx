@@ -218,14 +218,14 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
         <button type="button" onClick={()=>setDetailsOpen(false)} aria-label="Cerrar detalles del calendario"><X size={16}/></button>
       </div>
       <div className="hr-calendar-inspector-list">
-        {selectedTasks.length ? selectedTasks.slice(0,3).map(t=>
+        {selectedTasks.length ? selectedTasks.slice(0,2).map(t=>
           <Link key={t.id} to={agendaUrl} className="hr-calendar-task-link" title={'Ver la tarea en Agenda: '+t.title}>
             <span className="hr-calendar-task-dot" aria-hidden="true"/>
             <span className="hr-calendar-task-copy"><strong>{t.title}</strong>{t.context&&<small>{t.context}</small>}</span>
             <ArrowRight size={13} aria-hidden="true"/>
           </Link>
         ) : <p className="hr-calendar-no-tasks">No hay tareas pendientes en esta fecha.</p>}
-        {selectedTasks.length>3&&<span className="hr-calendar-task-more">Y {selectedTasks.length-3} más en Agenda</span>}
+        {selectedTasks.length>2&&<span className="hr-calendar-task-more">Y {selectedTasks.length-2} más en Agenda</span>}
       </div>
       <Link className="hr-calendar-open-day" to={selectedTasks.length?agendaUrl:agendaUrl+'&nueva=1'}>
         {selectedTasks.length?'Ver todas las tareas del día':'Crear tarea para este día'} <ArrowRight size={14}/>
