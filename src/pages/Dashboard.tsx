@@ -101,10 +101,10 @@ function RecentTable({opportunities}:{opportunities:Opportunity[]}) {
 
 function OpportunityStatus({opportunities,tasks}:{opportunities:Opportunity[];tasks:Task[]}) {
   const segments:Segment[]=[
-    {label:'Sin responder',value:opportunities.filter(o=>o.status==='Nueva').length,color:'#0d4fa0'},
-    {label:'En gestión',value:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length,color:'#18b794'},
-    {label:'Presupuestadas',value:opportunities.filter(o=>o.status==='Presupuesto enviado').length,color:'#e1bf43'},
-    {label:'Cerradas',value:opportunities.filter(o=>['Aceptada','Perdida'].includes(o.status)).length,color:'#76cbd0'}
+    {label:'Sin responder',value:opportunities.filter(o=>o.status==='Nueva').length,color:'#002d59'},
+    {label:'En gestión',value:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length,color:'#01488e'},
+    {label:'Presupuestadas',value:opportunities.filter(o=>o.status==='Presupuesto enviado').length,color:'#2e80bb'},
+    {label:'Cerradas',value:opportunities.filter(o=>['Aceptada','Perdida'].includes(o.status)).length,color:'#92bedf'}
   ];
   const total=opportunities.length;
   const circumference=2*Math.PI*49;
@@ -192,8 +192,8 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
       <svg viewBox="0 0 720 212" preserveAspectRatio="none" onMouseLeave={()=>setHover(null)} aria-label={'Evolución: '+points.map(p=>p.label+' '+p.consultations+' consultas '+p.quotations+' presupuestos').join('; ')}>
         {[0,1,2,3,4].map(i=><line key={i} x1="42" x2="670" y1={y(ceiling*i/4)} y2={y(ceiling*i/4)} className="vek2-chart-gridline"/>)}
         {hover!==null&&<g aria-hidden="true">
-          <rect x={marker-22} y="25" width="44" height="150" fill="#e4f5f8" opacity=".46"/>
-          <line x1={marker} x2={marker} y1="22" y2="173" stroke="#8ac9d3" strokeWidth="1" strokeDasharray="4 5"/>
+          <rect x={marker-22} y="25" width="44" height="150" fill="#eaf2fb" opacity=".46"/>
+          <line x1={marker} x2={marker} y1="22" y2="173" stroke="#76aad1" strokeWidth="1" strokeDasharray="4 5"/>
         </g>}
         <path d={smoothLine(consultations,x,y)} className="vek2-line is-consultations"/>
         <path d={smoothLine(quotations,x,y)} className="vek2-line is-quotations"/>
@@ -204,11 +204,11 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
             onMouseEnter={()=>setHover(i)} onMouseMove={()=>setHover(i)}
             onClick={()=>setHover(i)}/>
           <circle cx={x(i)} cy={y(p.consultations)} r={hover===i?6:3.7}
-            fill="#17b396" stroke="#fff" strokeWidth="2" tabIndex={0} role="button"
+            fill="#01488e" stroke="#fff" strokeWidth="2" tabIndex={0} role="button"
             aria-label={p.label+': '+p.consultations+' consultas y '+p.quotations+' presupuestos'}
             onFocus={()=>setHover(i)} onBlur={()=>setHover(null)}/>
           <circle cx={x(i)} cy={y(p.quotations)} r={hover===i?6:3.7}
-            fill="#e1bf43" stroke="#fff" strokeWidth="2"/>
+            fill="#4295c7" stroke="#fff" strokeWidth="2"/>
         </g>)}
       </svg>
       {active&&<div className="vek2-chart-tooltip" style={{left:tooltipX+'%'}} role="status">

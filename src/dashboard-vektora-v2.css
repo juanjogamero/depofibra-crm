@@ -1026,3 +1026,184 @@
   .vek2-dashboard .hr-calendar .hr-panel-heading {min-height:46px;padding:8px 10px 5px;}
   .vek2-dashboard .hr-calendar-footer {flex-basis:30px;padding:3px 9px;}
 }
+
+
+/* REG-0092 · Corrección solicitada por Dirección sobre captura 23/11/2026:
+   usar TAMBIÉN el espacio superior libre del calendario, sin ensancharlo.
+   Paleta exclusiva del Dashboard: #002d59 / #01488e / #2e80bb / #eaf2fb.
+   El shell corporativo y los demás módulos no se modifican. */
+
+/* Mantener a la derecha una columna estrecha, pero ocupar TODO el alto
+   de la fila inferior, igual que la gráfica, sin hueco encima. */
+@media (min-width:901px) {
+  .vek2-dashboard .vek2-grid-bottom {
+    align-items:stretch;
+  }
+  .vek2-dashboard .hr-calendar.vek2-calendar {
+    align-self:stretch;
+    justify-self:stretch;
+    width:100%;
+    max-width:none;
+    height:100%;
+    min-height:0;
+    max-height:none;
+    margin:0;
+  }
+  .vek2-dashboard .hr-calendar .hr-panel-heading {
+    flex:0 0 66px;
+    min-height:66px;
+    padding:18px 14px 11px;
+    gap:7px;
+  }
+  .vek2-dashboard .hr-calendar-weekdays,
+  .vek2-dashboard .hr-calendar-days {margin-inline:16px;}
+  .vek2-dashboard .hr-calendar-weekdays {
+    flex:0 0 31px;
+    min-height:31px;
+  }
+  .vek2-dashboard .hr-calendar-days {
+    flex:1 1 auto;
+    min-height:0;
+    align-content:stretch;
+    grid-auto-rows:minmax(27px,1fr);
+  }
+  .vek2-dashboard .hr-calendar-day {
+    width:min(100%,38px);
+    border-radius:10px;
+    font-size:13px;
+  }
+  .vek2-dashboard .hr-calendar-footer {
+    flex:0 0 45px;
+    padding:7px 11px 9px;
+    gap:4px;
+  }
+  .vek2-dashboard .hr-calendar-footer .hr-selected-date,
+  .vek2-dashboard .hr-calendar-footer .hr-selected-tasks,
+  .vek2-dashboard .hr-calendar-footer>a {font-size:11.3px;}
+  .vek2-dashboard .hr-calendar-inspector {
+    height:min(236px,70%);
+    max-height:calc(100% - 90px);
+    bottom:44px;
+  }
+}
+@media (min-width:901px) and (max-height:745px) {
+  .vek2-dashboard .hr-calendar .hr-panel-heading {
+    flex-basis:54px;
+    min-height:54px;
+    padding:10px 12px 7px;
+  }
+  .vek2-dashboard .hr-calendar-weekdays {
+    flex-basis:25px;
+    min-height:25px;
+  }
+  .vek2-dashboard .hr-calendar-days {
+    grid-auto-rows:minmax(21px,1fr);
+  }
+  .vek2-dashboard .hr-calendar-footer {
+    flex-basis:36px;
+    padding:5px 10px;
+  }
+  .vek2-dashboard .hr-calendar-inspector {bottom:35px;}
+}
+@media (max-width:900px) {
+  .vek2-dashboard .hr-calendar.vek2-calendar {
+    width:min(100%,292px);
+    min-height:324px;
+    height:324px;
+    max-height:none;
+    align-self:end;
+    justify-self:end;
+    margin-left:auto;
+  }
+  .vek2-dashboard .hr-calendar-days {
+    min-height:205px;
+    grid-auto-rows:minmax(27px,1fr);
+  }
+  .vek2-dashboard .hr-calendar-day {font-size:12.6px;}
+}
+
+/* Indicadores, filtros y botones unificados en la identidad azul Depofibra. */
+.vek2-dashboard .vek2-primary-action {
+  background:#01488e;
+  color:#fff;
+}
+.vek2-dashboard .vek2-primary-action:hover,
+.vek2-dashboard .vek2-primary-action:focus-visible {
+  background:#002d59;
+}
+.vek2-dashboard .vek2-secondary-action {
+  background:#eaf2fb;
+  color:#01488e;
+}
+.vek2-dashboard .vek2-secondary-action:hover,
+.vek2-dashboard .vek2-secondary-action:focus-visible {
+  background:#dcebf9;
+}
+.vek2-dashboard .vek2-text-link {color:#01488e;}
+.vek2-dashboard .vek2-tabs button.is-active {
+  color:#01488e;
+  border-bottom-color:#01488e;
+}
+.vek2-dashboard .vek2-tabs button:hover {color:#002d59;}
+.vek2-dashboard .vek2-client-avatar {
+  background:#e7f1fb;
+  color:#01488e;
+}
+.vek2-dashboard .vek2-table tr:nth-child(3n+2) .vek2-client-avatar {
+  background:#dcebf8;
+  color:#002d59;
+}
+.vek2-dashboard .vek2-status.is-new {
+  background:#e0effb;
+  color:#01488e;
+}
+.vek2-dashboard .vek2-status.is-progress {
+  background:#edf5fc;
+  color:#2e6d9f;
+}
+.vek2-dashboard .vek2-status.is-won {
+  background:#dcebf8;
+  color:#1e5f93;
+}
+.vek2-dashboard .vek2-status.is-lost {
+  background:#eef1f5;
+  color:#607387;
+}
+.vek2-dashboard .vek2-foot-icon.is-green {
+  background:#eaf2fb;
+  color:#01488e;
+}
+.vek2-dashboard .vek2-foot-icon.is-blue {
+  background:#dcebf8;
+  color:#2e80bb;
+}
+.vek2-dashboard .vek2-legend-mark i.is-consultations,
+.vek2-dashboard .vek2-chart-tooltip i.is-consultations {
+  background:#01488e;
+}
+.vek2-dashboard .vek2-legend-mark i.is-quotations,
+.vek2-dashboard .vek2-chart-tooltip i.is-quotations {
+  background:#4295c7;
+}
+.vek2-dashboard .vek2-line.is-consultations {stroke:#01488e;}
+.vek2-dashboard .vek2-line.is-quotations {stroke:#4295c7;}
+.vek2-dashboard .vek2-chart-gridline {stroke:#e3edf6;}
+.vek2-dashboard .vek2-period select {
+  border-color:#d9e6f2;
+  background:#f6faff;
+  color:#01488e;
+}
+.vek2-dashboard .hr-calendar-day.is-today {
+  background:#eaf2fb;
+  color:#01488e;
+}
+.vek2-dashboard .hr-calendar-day.is-selected {
+  background:#01488e;
+  color:#fff;
+}
+.vek2-dashboard .hr-calendar-day i {
+  background:#4295c7;
+}
+.vek2-dashboard .hr-calendar-day.is-selected i {background:#fff;}
+.vek2-dashboard .hr-calendar-footer>a,
+.vek2-dashboard .hr-month-selector button {color:#01488e;}
