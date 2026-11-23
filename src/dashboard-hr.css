@@ -908,3 +908,143 @@
   .dashboard-hr .hr-stat,.dashboard-hr .hr-side-top>a,.dashboard-hr .hr-recent-row,
   .dashboard-hr .hr-calendar-day { transition:none !important; }
 }
+
+/* REG-0082 · KPI aprobadas visualmente por Dirección (referencia SaaS premium).
+   El diseño se integra en la cuadrícula real; no se reutiliza la imagen.
+   Estados calculados desde los conteos, nunca porcentajes o tendencias ficticias. */
+.dashboard-hr .hr-main-column {
+  grid-template-rows:46px 145px minmax(216px,.99fr) minmax(232px,1.21fr);
+}
+.dashboard-hr .hr-stats {
+  gap:14px;
+  align-items:stretch;
+}
+.dashboard-hr .hr-stat {
+  gap:8px;
+  justify-content:space-between;
+  padding:19px 20px 18px;
+  border:1px solid #e2e9f1;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,45,89,.045);
+  color:#081f46;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.dashboard-hr .hr-stat-blue { background:#ffffff; }
+.dashboard-hr .hr-stat-cyan { background:#fcfdfe; border-color:#e3ebef; }
+.dashboard-hr .hr-stat-amber { background:#fffdfb; border-color:#eee9e3; }
+.dashboard-hr .hr-stat:hover,
+.dashboard-hr .hr-stat:focus-visible,
+.dashboard-hr .hr-stat-cyan:hover,
+.dashboard-hr .hr-stat-cyan:focus-visible,
+.dashboard-hr .hr-stat-amber:hover,
+.dashboard-hr .hr-stat-amber:focus-visible {
+  background:#fff;
+  border-color:#bad0e3;
+  box-shadow:0 6px 18px rgba(0,45,89,.075);
+  transform:translateY(-1px);
+}
+.dashboard-hr .hr-stat-label {
+  max-width:calc(100% - 43px);
+  color:#0c254d;
+  font-family:"Plus Jakarta Sans",Inter,sans-serif;
+  font-size:13.4px;
+  font-weight:750;
+  line-height:1.32;
+  letter-spacing:-.035em;
+}
+.dashboard-hr .hr-stat-icon,
+.dashboard-hr .hr-stat-cyan .hr-stat-icon,
+.dashboard-hr .hr-stat-amber .hr-stat-icon {
+  top:16px;
+  right:16px;
+  display:grid;
+  width:38px;
+  height:38px;
+  border-radius:12px;
+}
+.dashboard-hr .hr-stat-blue .hr-stat-icon { color:#01488e; background:#e9f2fe; }
+.dashboard-hr .hr-stat-cyan .hr-stat-icon { color:#447d79; background:#eaf6f1; }
+.dashboard-hr .hr-stat-amber .hr-stat-icon { color:#977450; background:#f8f0e6; }
+.dashboard-hr .hr-stat-bottom {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-end;
+  gap:6px;
+  min-width:0;
+}
+.dashboard-hr .hr-stat-numberline {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.dashboard-hr .hr-stat-bottom strong {
+  color:#071f49;
+  font-family:"Plus Jakarta Sans",Inter,sans-serif;
+  font-size:35px;
+  line-height:.99;
+  font-weight:800;
+  letter-spacing:-.055em;
+  font-variant-numeric:tabular-nums;
+}
+.dashboard-hr .hr-stat-badge {
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 9px;
+  border-radius:9px;
+  background:#e6f8ed;
+  color:#227947;
+  font:700 10.4px/1.15 Inter,sans-serif;
+  white-space:nowrap;
+}
+.dashboard-hr .hr-stat-cyan .hr-stat-badge { background:#fff3e0; color:#98601b; }
+.dashboard-hr .hr-stat-amber .hr-stat-badge { background:#ffebec; color:#b13e43; }
+.dashboard-hr .hr-stat-clear .hr-stat-badge { background:#edf2f6; color:#597083; }
+.dashboard-hr .hr-stat-bottom small,
+.dashboard-hr .hr-stat-amber .hr-stat-bottom small {
+  color:#61738a;
+  font:500 11.6px/1.25 Inter,sans-serif;
+  white-space:normal;
+}
+@media (max-width:1470px) and (min-width:1241px) {
+  .dashboard-hr .hr-main-column {
+    grid-template-rows:44px 137px minmax(215px,.98fr) minmax(232px,1.2fr);
+  }
+  .dashboard-hr .hr-stat { padding:15px 13px 14px; }
+  .dashboard-hr .hr-stat-label { font-size:12.2px; }
+  .dashboard-hr .hr-stat-icon { top:12px; right:12px; width:33px; height:33px; }
+  .dashboard-hr .hr-stat-bottom strong { font-size:32px; }
+  .dashboard-hr .hr-stat-badge { font-size:9.6px; padding:4px 7px; }
+}
+@media (max-width:1240px) and (min-width:761px) {
+  .dashboard-hr .hr-main-column { grid-template-rows:50px 150px 240px 310px; }
+}
+@media (max-width:760px) {
+  .dashboard-hr .hr-stats { min-height:0; }
+  .dashboard-hr .hr-stat { min-height:134px; }
+}
+@media (max-width:680px) {
+  .dashboard-hr .hr-stats { grid-template-columns:1fr; gap:10px; }
+  .dashboard-hr .hr-stat {
+    min-height:125px;
+    padding:16px 19px 15px;
+  }
+  .dashboard-hr .hr-stat-label { font-size:13.7px; }
+  .dashboard-hr .hr-stat-icon,
+  .dashboard-hr .hr-stat-cyan .hr-stat-icon,
+  .dashboard-hr .hr-stat-amber .hr-stat-icon {
+    top:15px; right:17px; display:grid; width:37px; height:37px;
+  }
+  .dashboard-hr .hr-stat-bottom { flex-direction:column; gap:5px; }
+  .dashboard-hr .hr-stat-bottom strong { font-size:34px; }
+  .dashboard-hr .hr-stat-bottom small { font-size:11.7px; }
+}
+@media (min-width:1241px) and (max-height:785px) {
+  .dashboard-hr .hr-main-column { grid-template-rows:48px 144px 242px 295px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .dashboard-hr .hr-stat { transform:none !important; transition:none !important; }
+}
