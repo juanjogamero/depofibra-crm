@@ -61,7 +61,7 @@ function RecentTable({opportunities}:{opportunities:Opportunity[]}) {
     ||(tab==='cerradas'&&['Aceptada','Perdida'].includes(o.status));
   const latest=sorted.filter(filter).slice(0,4);
   const tabs:[Tab,string][]=[['todas','Todas'],['nuevas','Sin responder'],['gestion','En gestión'],['cerradas','Cerradas']];
-  return <section className="vek2-card vek2-summary" aria-labelledby="vek2-summary-heading">
+  return <section className={"vek2-card vek2-summary"+(latest.length<4?" is-filter-compact":"")} aria-labelledby="vek2-summary-heading">
     <div className="vek2-card-heading">
       <div><h2 id="vek2-summary-heading">Solicitudes recientes</h2><p>Control de entradas y oportunidades</p></div>
       <div className="vek2-heading-actions">
@@ -198,7 +198,6 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
         <path d={smoothLine(consultations,x,y)} className="vek2-line is-consultations"/>
         <path d={smoothLine(quotations,x,y)} className="vek2-line is-quotations"/>
         {points.map((p,i)=><g key={p.label}>
-          <text className="vek2-axis-label" x={x(i)} y="203" textAnchor="middle">{p.label}</text>
           <rect x={x(i)-Math.max(21,628/Math.max(points.length-1,1)/2)} y="20"
             width={Math.max(42,628/Math.max(points.length-1,1))} height="155" fill="transparent"
             onMouseEnter={()=>setHover(i)} onMouseMove={()=>setHover(i)}
@@ -211,6 +210,7 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
             fill="#4295c7" stroke="#fff" strokeWidth="2"/>
         </g>)}
       </svg>
+      <div className="vek2-chart-x-labels" aria-hidden="true">{points.map((p,i)=><span key={p.label} style={{left:(x(i)/720*100)+"%"}}>{p.label}</span>)}</div>
       {active&&<div className="vek2-chart-tooltip" style={{left:tooltipX+'%'}} role="status">
         <strong>{active.label}</strong>
         <span><i className="is-consultations"/>{active.consultations} consultas</span>
