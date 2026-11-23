@@ -1,0 +1,123 @@
+/* REG-0102 — Pedidos: diseño consistente con Oportunidades, Presupuestos y Clientes.
+   Gestión logística y cobros anotados. Solo aplica a /pedidos. */
+.app-body.is-orders .page.page-orders {
+  background:linear-gradient(135deg,#fff 36%,#f5f9fd 100%);
+}
+.page-orders .op-heading-copy p {max-width:720px;}
+.page-orders .op-phase-tabs {margin-bottom:19px;}
+.page-orders .orders-data-table .op-col-id {width:10%;}
+.page-orders .orders-data-table .op-col-client {width:23%;}
+.page-orders .orders-data-table .op-col-product {width:23%;}
+.page-orders .orders-data-table .orders-col-payment {width:16%;}
+.page-orders .orders-data-table .orders-col-factory {width:19%;}
+.page-orders .orders-data-table .orders-col-date {width:7%;}
+.page-orders .orders-data-table .op-col-open {width:2%;}
+.page-orders .orders-data-table td,
+.page-orders .orders-data-table th {max-width:100%;}
+.page-orders .orders-data-table .op-client-copy {min-width:0;}
+.page-orders .orders-data-table .op-client-name,
+.page-orders .orders-data-table .op-client-sub,
+.page-orders .orders-data-table .op-product,
+.page-orders .orders-data-table .op-product-sub {
+  display:block;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.page-orders .orders-status {
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  padding:5px 8px;
+  border-radius:999px;
+  color:#2c6c9c;
+  background:#e8f2fb;
+  font:700 10.6px/1.2 Inter,sans-serif;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.page-orders .orders-status.is-draft,
+.page-orders .orders-status.is-pending {color:#876838;background:#faf0e2;}
+.page-orders .orders-status.is-progress,
+.page-orders .orders-status.is-advance {color:#236fa2;background:#e0f0fc;}
+.page-orders .orders-status.is-shipping {color:#315c93;background:#e7ecfb;}
+.page-orders .orders-status.is-won,
+.page-orders .orders-status.is-paid {color:#247654;background:#e1f4ea;}
+.page-orders .orders-delivery {
+  display:block;
+  max-width:100%;
+  margin-top:5px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:#8197ac;
+  font:500 10px/1.3 Inter,sans-serif;
+}
+.page-orders .orders-data-table .orders-col-date time {
+  display:inline-block;
+  max-width:100%;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  color:#516d86;
+  font:600 10.9px/1.3 Inter,sans-serif;
+}
+.page-orders .op-table-footer {gap:4px;flex-wrap:wrap;}
+.page-orders .orders-footer-note {
+  margin-left:auto;
+  color:#8fa2b5;
+  font:500 10.4px/1.3 Inter,sans-serif;
+}
+.page-orders .op-advanced-filters select {max-width:225px;}
+/* Los anchos siempre suman 100% y no existe desplazamiento lateral. */
+@media (max-width:1180px) {
+  .page-orders .orders-data-table .op-col-id {width:12%;}
+  .page-orders .orders-data-table .op-col-client {width:26%;}
+  .page-orders .orders-data-table .op-col-product {width:25%;}
+  .page-orders .orders-data-table .orders-col-payment {width:16%;}
+  .page-orders .orders-data-table .orders-col-factory {width:18%;}
+  .page-orders .orders-data-table .orders-col-date {display:none;}
+  .page-orders .orders-data-table .op-col-open {width:3%;}
+}
+@media (max-width:940px) {
+  .page-orders .op-heading-copy h1 {font-size:27px;}
+  .page-orders .op-phase-tabs {margin-bottom:13px;}
+}
+@media (max-width:780px) {
+  .page-orders .orders-data-table .op-col-id {width:13%;}
+  .page-orders .orders-data-table .op-col-client {width:37%;}
+  .page-orders .orders-data-table .op-col-product {width:28%;}
+  .page-orders .orders-data-table .orders-col-payment {display:none;}
+  .page-orders .orders-data-table .orders-col-factory {width:18%;}
+  .page-orders .orders-data-table .op-col-open {width:4%;}
+  .page-orders .orders-data-table td,
+  .page-orders .orders-data-table th {padding-left:7px;padding-right:7px;}
+  .page-orders .orders-status {font-size:10px;padding:4px 6px;}
+  .page-orders .orders-footer-note {display:none;}
+}
+@media (max-width:660px) {
+  .page-orders .op-screen-heading {align-items:flex-start;flex-wrap:wrap;padding-right:43px;}
+  .page-orders .op-heading-copy h1 {font-size:22px;}
+  .page-orders .op-heading-copy p {font-size:11px;}
+  .page-orders .op-heading-actions {margin-left:0;}
+  .page-orders .op-new-button,.page-orders .op-export-button {min-height:35px;padding:7px 9px;font-size:10.6px;}
+  .page-orders .op-phase-tabs {gap:0 9px;margin-bottom:10px;}
+  .page-orders .op-phase-tab {min-height:37px;padding:6px 4px 8px;font-size:10.5px;}
+  .page-orders .op-table-footer {font-size:10px;}
+}
+@media (max-width:520px) {
+  .page-orders .orders-data-table .op-col-id {width:15%;}
+  .page-orders .orders-data-table .op-col-client {width:51%;}
+  .page-orders .orders-data-table .op-col-product {display:none;}
+  .page-orders .orders-data-table .orders-col-factory {width:28%;}
+  .page-orders .orders-data-table .op-col-open {width:6%;}
+  .page-orders .orders-data-table td,
+  .page-orders .orders-data-table th {padding-inline:5px;}
+  .page-orders .orders-data-table .op-client-cell .initials {width:29px;height:29px;flex-basis:29px;}
+  .page-orders .orders-data-table .op-client-name {font-size:10.8px;}
+  .page-orders .orders-data-table .op-client-sub {font-size:9.5px;}
+  .page-orders .orders-data-table .orders-status {font-size:9.8px;padding:4px;}
+  .page-orders .orders-data-table .orders-delivery {font-size:9px;}
+}
