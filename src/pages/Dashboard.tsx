@@ -140,9 +140,9 @@ function CommercialRows({ opportunities, quotes }: { opportunities: Opportunity[
 function OpportunityDonut({ opportunities }: { opportunities: Opportunity[] }) {
   const slices: StatusSlice[] = [
     { label:'Sin responder', count:opportunities.filter(o=>o.status==='Nueva').length, color:'#01488e' },
-    { label:'En gestión', count:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length, color:'#3995d1' },
-    { label:'Presupuestadas', count:opportunities.filter(o=>o.status==='Presupuesto enviado').length, color:'#f3c35a' },
-    { label:'Cerradas', count:opportunities.filter(isClosed).length, color:'#cddfea' },
+    { label:'En gestión', count:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length, color:'#638ca4' },
+    { label:'Presupuestadas', count:opportunities.filter(o=>o.status==='Presupuesto enviado').length, color:'#c7a262' },
+    { label:'Cerradas', count:opportunities.filter(isClosed).length, color:'#d2dae0' },
   ];
   const total = slices.reduce((n, x) => n + x.count, 0);
   const length = Math.PI * 2 * 65;

@@ -699,6 +699,117 @@
 }
 .dashboard-hr .hr-calendar-footer>a:hover { text-decoration:underline; }
 
+/* Refinamiento corporativo: diferencia suave de superficies, sin tres
+   tarjetas del mismo azul. La señal visual es el dato, no el fondo.
+   Se modifica sólo la fila de KPI y las dos tarjetas centrales. */
+.dashboard-hr .hr-stat {
+  border-color:#e4e9ee;
+  background:#ffffff;
+  box-shadow:0 1px 2px rgba(20,42,67,.025);
+}
+.dashboard-hr .hr-stat:hover,
+.dashboard-hr .hr-stat:focus-visible {
+  background:#ffffff;
+  border-color:#b9cbd9;
+}
+.dashboard-hr .hr-stat-blue {
+  background:#ffffff;
+}
+.dashboard-hr .hr-stat-cyan {
+  background:#f7f9fa;
+  border-color:#e6ebec;
+}
+.dashboard-hr .hr-stat-cyan:hover,
+.dashboard-hr .hr-stat-cyan:focus-visible { background:#f7f9fa; }
+.dashboard-hr .hr-stat-amber {
+  background:#faf9f6;
+  border-color:#eeece6;
+}
+.dashboard-hr .hr-stat-amber:hover,
+.dashboard-hr .hr-stat-amber:focus-visible { background:#faf9f6; }
+.dashboard-hr .hr-stat-label {
+  color:#586a7a;
+  font-size:12.5px;
+  font-weight:700;
+}
+.dashboard-hr .hr-stat-icon {
+  color:#325e86;
+  background:#eaf1f7;
+  border-radius:9px;
+}
+.dashboard-hr .hr-stat-cyan .hr-stat-icon {
+  color:#587c80;
+  background:#e9f0ee;
+}
+.dashboard-hr .hr-stat-amber .hr-stat-icon {
+  color:#967e56;
+  background:#f4efe5;
+}
+.dashboard-hr .hr-stat-bottom strong { color:#202e3e; }
+.dashboard-hr .hr-stat-bottom small,
+.dashboard-hr .hr-stat-amber .hr-stat-bottom small {
+  color:#687a89;
+  font-size:10.8px;
+  font-weight:550;
+}
+
+/* Paneles centrales sin baños de azul repetidos. */
+.dashboard-hr .hr-activity {
+  background:#ffffff;
+  border-color:#e8edf1;
+}
+.dashboard-hr .hr-opportunities {
+  background:#f9fafb;
+  border-color:#ebedef;
+}
+.dashboard-hr .hr-activity-groups {
+  gap:13px;
+}
+.dashboard-hr .hr-group-title {
+  color:#4d6276;
+  font-size:11.8px;
+  font-weight:750;
+}
+.dashboard-hr .hr-activity-group:first-child .hr-metric-band {
+  background:#f1f4f6;
+}
+.dashboard-hr .hr-activity-group:last-child .hr-metric-band {
+  background:#edf3f6;
+}
+.dashboard-hr .hr-metric-band {
+  border:1px solid #e7edf1;
+  border-radius:8px;
+}
+.dashboard-hr .hr-activity-group:first-child .hr-band-cell {
+  border-color:#dce4e9;
+}
+.dashboard-hr .hr-activity-group:last-child .hr-band-cell {
+  border-color:#d7e2e8;
+}
+.dashboard-hr .hr-band-cell strong {
+  color:#25384a;
+  font-size:20px;
+}
+.dashboard-hr .hr-band-cell span {
+  color:#5b6d7c;
+  font-size:10.8px;
+  font-weight:600;
+}
+
+/* El donut mantiene un único acento azul sólido, y el resto son tonos
+   secundarios desaturados; números/leyenda con contraste suficiente. */
+.dashboard-hr .hr-donut-center strong { color:#213549; }
+.dashboard-hr .hr-donut-center span { color:#657a8c; }
+.dashboard-hr .hr-legend-row {
+  color:#526879;
+  font-size:10.8px;
+  font-weight:600;
+}
+.dashboard-hr .hr-legend-row strong {
+  color:#263b4d;
+  font-size:11.5px;
+}
+
 /* Ancho habitual de portátiles. No reducir fuentes a tamaños minúsculos. */
 @media (max-width:1470px) {
   .dashboard-hr .hr-workspace { grid-template-columns:minmax(0,1.7fr) minmax(315px,1fr); gap:13px; padding:14px; }
