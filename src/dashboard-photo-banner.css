@@ -4,12 +4,18 @@
    Foto genérica de archivo: no corresponde a stock, instalaciones ni productos de Depofibra.
    La imagen se carga desde Pexels; queda un color azul accesible si la red la bloquea. */
 
-/* Degradado azul suave de la plataforma (sin afectar sidebar ni barra superior). */
+/* REG-0086: fondo blanco; el azul corporativo nace de una esquina y se
+   desvanece sobre la MISMA superficie en ambos lados del Dashboard.
+   Sin degradados separados bajo la zona de calendario/solicitudes. */
 .app-body .app-main {
-  background:
-    radial-gradient(ellipse at 5% 3%, rgba(1,72,142,.16), transparent 42%),
-    radial-gradient(ellipse at 95% 86%, rgba(0,45,89,.12), transparent 48%),
-    linear-gradient(135deg,#f5faff 0%,#eaf2fb 57%,#f7fbff 100%);
+  background-color:#fff;
+  background-image:radial-gradient(
+    ellipse 105% 110% at 0% 0%,
+    rgba(1,72,142,.24) 0%,
+    rgba(59,147,224,.18) 23%,
+    rgba(170,211,248,.12) 48%,
+    rgba(255,255,255,0) 76%
+  );
 }
 .page.page-dashboard.dashboard-hr {
   height:auto;
@@ -27,10 +33,12 @@
   min-height:820px;
 }
 .dashboard-hr .hr-side-column {
-  border-left-color:rgba(1,72,142,.10);
+  border-left:0;
+  padding-left:0;
 }
 .dashboard-hr .hr-side-column::before {
-  background:rgba(226,239,251,.59);
+  display:none;
+  content:none;
 }
 
 /* Sustituye exclusivamente los dos paneles centrales: banner único y fotográfico. */
@@ -224,7 +232,7 @@
   height:100%;
   min-height:0;
   max-height:100%;
-  gap:clamp(10px,1.1vw,16px);
+  gap:clamp(8px,.85vw,12px);
   padding:clamp(9px,1.35vh,16px);
   grid-template-columns:minmax(0,1fr) clamp(300px,26.5vw,365px);
   align-items:stretch;
@@ -241,12 +249,12 @@
   grid-template-columns:minmax(0,1fr);
   grid-template-rows: minmax(34px,.44fr) minmax(0,3.5fr) minmax(0,3.25fr);
   gap:clamp(8px,1.2vh,14px);
-  padding:0 0 0 12px;
-  border-left:1px solid rgba(1,72,142,.10);
+  padding:0;
+  border-left:0;
 }
 .app-body.is-dashboard .dashboard-hr .hr-side-column::before {
-  inset:-12px -12px -12px 0;
-  border-radius:0;
+  content:none;
+  display:none;
 }
 .app-body.is-dashboard .dashboard-hr .hr-greeting {
   min-height:0;
@@ -301,6 +309,10 @@
 .app-body.is-dashboard .dashboard-hr .hr-right-card {
   height:100%;
   min-height:0;
+  border:1px solid #e1eaf3;
+  border-radius:16px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 2px 12px rgba(0,45,89,.035);
 }
 .app-body.is-dashboard .dashboard-hr .hr-recent-list,
 .app-body.is-dashboard .dashboard-hr .hr-calendar-days {
@@ -317,7 +329,7 @@
   .app-body.is-dashboard .dashboard-hr .hr-main-column {
     grid-template-rows:minmax(36px,.35fr) minmax(98px,1.1fr) minmax(124px,1.4fr) minmax(195px,3.6fr);
   }
-  .app-body.is-dashboard .dashboard-hr .hr-side-column { padding-left:8px; }
+  .app-body.is-dashboard .dashboard-hr .hr-side-column { padding-left:0; }
   .app-body.is-dashboard .dashboard-hr .hr-stat-label { font-size:11.4px; }
   .app-body.is-dashboard .dashboard-hr .hr-stat-icon { display:none; }
   .app-body.is-dashboard .dashboard-hr .hr-stat-badge { padding:3px 6px; }
