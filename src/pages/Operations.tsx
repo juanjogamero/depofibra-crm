@@ -198,13 +198,185 @@ export function ClientDetail(){
  </div>;
 }
 
+type OrderListGroup = 'Todos'|'Por confirmar'|'En preparación'|'En tránsito'|'Entregados';
+type OrderListSort = 'Recientes'|'Antiguos'|'Entrega más próxima'|'Mayor importe';
+const orderGroupMatches=(order:Order,group:OrderListGroup)=>
+ group==='Todos'
+ ||group==='Por confirmar'&&['Pendiente','Confirmando detalles'].includes(order.factory)
+ ||group==='En preparación'&&['En fabricación','Preparado'].includes(order.factory)
+ ||group==='En tránsito'&&order.factory==='En tránsito'
+ ||group==='Entregados'&&order.factory==='Entregado';
+
 export function Orders(){
- const {data}=useCrm();const nav=useNavigate();const [search,setSearch]=useState(''),[status,setStatus]=useState('Todos');
- const list=data.orders.filter(o=>(status==='Todos'||o.factory===status)&&(o.id+o.buyerName+o.product).toLocaleLowerCase('es').includes(search.toLocaleLowerCase('es')));
- return <div className="page"><PageHeader eyebrow="OPERACIONES Y ENTREGA" title="Pedidos" subtitle="Ventas formalizadas, documentos, fabricación y liquidación; cada pedido tiene su ficha."/>
- <div className="section-metrics"><span><strong>{data.orders.length}</strong> pedidos</span><i/><span><strong>{data.orders.filter(o=>o.factory!=='Entregado').length}</strong> activos</span><i/><span><strong>{data.orders.filter(o=>o.factory==='Entregado').length}</strong> entregados</span></div>
- <Panel className="table-panel"><div className="table-toolbar"><div className="table-search"><Search size={17}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar pedidos o compradores..."/></div><select aria-label="Filtrar fabricación" value={status} onChange={e=>setStatus(e.target.value)}><option>Todos</option>{stages.map(x=><option key={x}>{x}</option>)}</select></div>
- <div className="table-scroll"><table className="data-table"><thead><tr><th>Pedido / comprador</th><th>Producto</th><th>Formalización</th><th>Fábrica / entrega</th><th>Fecha</th><th></th></tr></thead><tbody>{list.map(o=><tr className="clickable-row" key={o.id} onClick={()=>nav('/pedidos/'+o.id)}><td><div className="cell-person"><Initials name={o.buyerName}/><span><strong>{o.buyerName}</strong><small>{o.id}</small></span></div></td><td><span className="cell-strong">{o.product}</span><small className="cell-note">{o.capacity}</small></td><td><Status value={o.paymentMode}/></td><td><Status value={o.factory}/></td><td>{dateText(o.createdAt)}</td><td><ChevronRight size={16}/></td></tr>)}</tbody></table>{!list.length&&<Empty title="No hay pedidos" body="Prueba a cambiar el filtro de fabricación."/>}</div><div className="table-footer">La formalización y los datos técnicos se gestionan en apartados separados.</div></Panel></div>;
+ const {data}=useCrm();
+ const nav=useNavigate();
+ const [search,setSearch]=useState('');
+ const [group,setGroup]=useState<OrderListGroup>('Todos');
+ const [sort,setSort]=useState<OrderListSort>('Recientes');
+ const [factory,setFactory]=useState('Todas las fases');
+ const [payment,setPayment]=useState('Todos los pagos');
+ const [dateFrom,setDateFrom]=useState('');
+ const [dateTo,setDateTo]=useState('');
+ const [datesOpen,setDatesOpen]=useState(false);
+ const [filtersOpen,setFiltersOpen]=useState(false);
+ const groups:{id:OrderListGroup;label:string}[]=[
+   {id:'Todos',label:'Todos'},
+   {id:'Por confirmar',label:'Por confirmar'},
+   {id:'En preparación',label:'En preparación'},
+   {id:'En tránsito',label:'En tránsito'},
+   {id:'Entregados',label:'Entregados'}
+ ];
+ const query=search.trim().toLocaleLowerCase('es-ES');
+ const list=data.orders.filter(o=>
+   orderGroupMatches(o,group)
+   &&(factory==='Todas las fases'||o.factory===factory)
+   &&(payment==='Todos los pagos'||o.paymentMode===payment)
+   &&(!dateFrom||o.createdAt.slice(0,10)>=dateFrom)
+   &&(!dateTo||o.createdAt.slice(0,10)<=dateTo)
+   &&[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.factory,o.paymentMode]
+       .join(' ').toLocaleLowerCase('es-ES').includes(query)
+ ).sort((a,b)=>{
+   if(sort==='Entrega más próxima')return (a.deliveryDate||'9999-12-31').localeCompare(b.deliveryDate||'9999-12-31')
+     ||b.createdAt.localeCompare(a.createdAt);
+   if(sort==='Mayor importe')return b.amount-a.amount||b.createdAt.localeCompare(a.createdAt);
+   const diff=b.createdAt.localeCompare(a.createdAt);
+   return sort==='Antiguos'?-diff:diff;
+ });
+ const activeFilters=Boolean(query||group!=='Todos'||sort!=='Recientes'||factory!=='Todas las fases'||payment!=='Todos los pagos'||dateFrom||dateTo);
+ const clearFilters=()=>{setSearch('');setGroup('Todos');setSort('Recientes');setFactory('Todas las fases');setPayment('Todos los pagos');setDateFrom('');setDateTo('');};
+ const dateLabel=dateFrom&&dateTo?clientRangeDate(dateFrom)+' – '+clientRangeDate(dateTo):dateFrom?'Desde '+clientRangeDate(dateFrom):dateTo?'Hasta '+clientRangeDate(dateTo):'Todas las fechas';
+ const exportOrders=()=>{
+   if(!list.length)return;
+   const headers=['Pedido','Presupuesto','Comprador','Producto','Capacidad','Importe del pedido (EUR)','Registro de pago','Estado de preparación','Fecha de registro','Entrega prevista anotada'];
+   const safeCell=(raw:string)=>{
+     const value=String(raw??'');
+     const safe=/^\s*[=+@-]/.test(value)?"'"+value:value;
+     return '"'+safe.replace(/"/g,'""')+'"';
+   };
+   const rows=list.map(o=>[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.amount.toFixed(2).replace('.',','),o.paymentMode,o.factory,o.createdAt.slice(0,10),o.deliveryDate||'']);
+   const csv='\uFEFF'+[headers,...rows].map(row=>row.map(safeCell).join(';')).join('\r\n');
+   const file=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(file);
+   const a=document.createElement('a');
+   a.href=url;a.download='depofibra-pedidos-'+today()+'.csv';
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),1000);
+ };
+ return <div className="page page-opportunities page-orders">
+   <div className="op-screen-heading">
+     <div className="op-heading-copy">
+       <h1 id="orders-title">Pedidos</h1>
+       <p>Seguimiento de pedidos registrados: preparación, estado de pago y entrega.</p>
+     </div>
+     <div className="op-heading-actions">
+       <button type="button" className="op-export-button" disabled={!list.length}
+         onClick={exportOrders} title="Exportar pedidos filtrados sin comisiones ni costes privados">
+         <Download size={16}/>Exportar
+       </button>
+       <Link to="/presupuestos" className="op-new-button"><FileText size={17}/>Ver presupuestos</Link>
+     </div>
+   </div>
+   <nav className="op-phase-tabs" aria-label="Filtrar pedidos por fase de preparación">
+     {groups.map(g=><button type="button" key={g.id}
+       className={'op-phase-tab'+(group===g.id?' is-active':'')}
+       aria-pressed={group===g.id} onClick={()=>{setGroup(g.id);setFactory('Todas las fases')}}>
+       <span>{g.label}</span><strong>{data.orders.filter(o=>orderGroupMatches(o,g.id)).length}</strong>
+     </button>)}
+   </nav>
+   <div className="op-searchbar">
+     <label className="op-search">
+       <Search size={18} aria-hidden="true"/>
+       <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
+         aria-label="Buscar pedido, comprador o producto" placeholder="Buscar pedido, comprador o producto"/>
+       {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
+     </label>
+     <div className="op-searchbar-actions">
+       <div className="op-date-range-control">
+         <button type="button" className={'op-date-range-trigger'+(dateFrom||dateTo?' has-range':'')}
+           aria-expanded={datesOpen} aria-controls="orders-date-range"
+           onClick={()=>{setDatesOpen(v=>!v);setFiltersOpen(false)}}>
+           <CalendarDays size={17}/><span>{dateLabel}</span><ChevronDown size={15}/>
+         </button>
+         {datesOpen&&<div className="op-date-popover" id="orders-date-range" role="group" aria-label="Filtrar por fecha de registro">
+           <strong>Fecha de registro</strong>
+           <div className="op-date-fields">
+             <label><span>Desde</span><input type="date" value={dateFrom} max={dateTo||undefined}
+               aria-label="Pedidos desde" onChange={e=>setDateFrom(e.target.value)}/></label>
+             <label><span>Hasta</span><input type="date" value={dateTo} min={dateFrom||undefined}
+               aria-label="Pedidos hasta" onChange={e=>setDateTo(e.target.value)}/></label>
+           </div>
+           <div className="op-date-buttons">
+             <button type="button" onClick={()=>{setDateFrom('');setDateTo('')}}>Borrar fechas</button>
+             <button type="button" onClick={()=>setDatesOpen(false)}>Listo</button>
+           </div>
+         </div>}
+       </div>
+       <button type="button" className={'op-filter-toggle'+(filtersOpen?' is-active':'')}
+         aria-expanded={filtersOpen} aria-controls="orders-advanced-filters"
+         onClick={()=>{setFiltersOpen(v=>!v);setDatesOpen(false)}}>
+         <Filter size={16}/>Filtros
+       </button>
+       {activeFilters&&<button type="button" className="op-reset-filters" onClick={clearFilters}>Limpiar</button>}
+     </div>
+   </div>
+   {filtersOpen&&<div className="op-advanced-filters" id="orders-advanced-filters">
+     <label><span>Fase exacta</span><select aria-label="Filtrar por fase logística"
+       value={factory} onChange={e=>setFactory(e.target.value)}>
+       <option>Todas las fases</option>{stages.map(s=><option key={s}>{s}</option>)}
+     </select></label>
+     <label><span>Pago registrado</span><select aria-label="Filtrar por estado de pago"
+       value={payment} onChange={e=>setPayment(e.target.value)}>
+       <option>Todos los pagos</option>
+       <option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option>
+     </select></label>
+     <label><span>Ordenar por</span><select aria-label="Ordenar pedidos"
+       value={sort} onChange={e=>setSort(e.target.value as OrderListSort)}>
+       <option>Recientes</option><option>Antiguos</option><option>Entrega más próxima</option><option>Mayor importe</option>
+     </select></label>
+   </div>}
+   <section className="op-table-panel" aria-labelledby="orders-title">
+     <div className="op-table-scroll" tabIndex={0} role="region"
+       aria-label="Listado de pedidos con desplazamiento vertical">
+       <table className="op-data-table orders-data-table">
+         <thead><tr>
+           <th scope="col" className="op-col-id">Pedido</th>
+           <th scope="col" className="op-col-client">Comprador</th>
+           <th scope="col" className="op-col-product">Producto</th>
+           <th scope="col" className="orders-col-payment">Estado de pago</th>
+           <th scope="col" className="orders-col-factory">Preparación / entrega</th>
+           <th scope="col" className="orders-col-date">Fecha</th>
+           <th scope="col" className="op-col-open" aria-label="Acceso a la ficha"></th>
+         </tr></thead>
+         <tbody>{list.map(o=>{
+           const factoryTone=o.factory==='Entregado'?'won':o.factory==='En tránsito'?'shipping':o.factory==='Pendiente'?'draft':'progress';
+           const paymentTone=o.paymentMode==='Pendiente'?'pending':o.paymentMode==='Anticipo verificado'?'advance':'paid';
+           return <tr key={o.id} className="op-clickable-row" onClick={()=>nav('/pedidos/'+o.id)}>
+             <td className="op-col-id"><span className="op-reference">{o.id}</span></td>
+             <td className="op-col-client"><div className="op-client-cell">
+               <Initials name={o.buyerName}/>
+               <div className="op-client-copy">
+                 <Link to={'/pedidos/'+o.id} className="op-client-name"
+                   onClick={e=>e.stopPropagation()}>{o.buyerName}</Link>
+                 <span className="op-client-sub">Presupuesto {o.quoteId}</span>
+               </div>
+             </div></td>
+             <td className="op-col-product"><span className="op-product" title={o.product}>{o.product}</span><span className="op-product-sub">{o.capacity||'Por concretar'}</span></td>
+             <td className="orders-col-payment"><span className={'orders-status is-'+paymentTone}>{o.paymentMode}</span></td>
+             <td className="orders-col-factory"><span className={'orders-status is-'+factoryTone}>{o.factory}</span>
+               <span className="orders-delivery">{o.deliveryDate?'Entrega indicada: '+dateText(o.deliveryDate):'Entrega por confirmar'}</span></td>
+             <td className="orders-col-date"><time dateTime={o.createdAt}>{dateText(o.createdAt)}</time></td>
+             <td className="op-col-open"><Link className="op-row-open" to={'/pedidos/'+o.id}
+               onClick={e=>e.stopPropagation()} aria-label={'Abrir pedido '+o.id}><ChevronRight size={17}/></Link></td>
+           </tr>;
+         })}</tbody>
+       </table>
+       {!list.length&&<Empty title="No hay pedidos" body="Prueba otra búsqueda o modifica los filtros."/>}
+     </div>
+     <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.orders.length}</strong> pedidos
+       <span className="orders-footer-note">Pago y fechas: anotaciones del CRM de demostración.</span>
+     </footer>
+   </section>
+ </div>;
 }
 
 export function OrderDetail(){
