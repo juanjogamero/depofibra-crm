@@ -90,11 +90,14 @@ function QuickStat({ icon: Icon, title, value, hint, accent, to }: {
   accent: 'blue' | 'cyan' | 'amber';
   to: string;
 }) {
-  return <Link className={'hr-stat hr-stat-' + accent} to={to}>
+  const statusLabel = value === 0 ? 'Al día' : accent === 'blue' ? 'Nuevo' : accent === 'cyan' ? 'Pendiente' : 'Urgente';
+  return <Link className={'hr-stat hr-stat-' + accent + (value === 0 ? ' hr-stat-clear' : '')} to={to}>
     <span className="hr-stat-label">{title}</span>
-    <span className="hr-stat-icon"><Icon size={22} strokeWidth={1.8}/></span>
+    <span className="hr-stat-icon" aria-hidden="true"><Icon size={21} strokeWidth={1.85}/></span>
     <span className="hr-stat-bottom">
-      <strong>{value}</strong>
+      <span className="hr-stat-numberline">
+        <strong>{value}</strong><span className="hr-stat-badge">{statusLabel}</span>
+      </span>
       <small>{hint}</small>
     </span>
   </Link>;
