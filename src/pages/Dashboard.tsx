@@ -189,7 +189,7 @@ function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[
       </div>
     </div>
     <div className="vek2-chart-plot">
-      <svg viewBox="0 0 720 212" preserveAspectRatio="none" aria-label={'Evolución: '+points.map(p=>p.label+' '+p.consultations+' consultas '+p.quotations+' presupuestos').join('; ')}>
+      <svg viewBox="0 0 720 212" preserveAspectRatio="none" onMouseLeave={()=>setHover(null)} aria-label={'Evolución: '+points.map(p=>p.label+' '+p.consultations+' consultas '+p.quotations+' presupuestos').join('; ')}>
         {[0,1,2,3,4].map(i=><line key={i} x1="42" x2="670" y1={y(ceiling*i/4)} y2={y(ceiling*i/4)} className="vek2-chart-gridline"/>)}
         {hover!==null&&<g aria-hidden="true">
           <rect x={marker-22} y="25" width="44" height="150" fill="#e4f5f8" opacity=".46"/>
