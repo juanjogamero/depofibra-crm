@@ -5,14 +5,10 @@ import {
   FileText, Inbox, Plus
 } from 'lucide-react';
 import { useCrm } from '../store';
-import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
+import { dateText, dayDiff, today, type Opportunity, type Quote, type Order, type Task } from '../domain';
 
 type Period = '8 semanas' | '6 meses';
 type Series = { label: string; consultations: number; quotations: number };
-type StatusSlice = { label: string; count: number; color: string };
-
-const isClosed = (o: Opportunity) => o.status === 'Aceptada' || o.status === 'Perdida';
-
 function makeKey(year: number, month: number, date: number) {
   return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(date).padStart(2, '0');
 }
@@ -103,81 +99,151 @@ function QuickStat({ icon: Icon, title, value, hint, accent, to }: {
   </Link>;
 }
 
-function CommercialRows({ opportunities, quotes }: { opportunities: Opportunity[]; quotes: Quote[] }) {
-  const oppMetrics = [
-    { title: 'Nuevas', n: opportunities.filter(o => o.status === 'Nueva').length },
-    { title: 'En seguimiento', n: opportunities.filter(o => o.status === 'Seguimiento').length },
-    { title: 'Presupuestadas', n: opportunities.filter(o => o.status === 'Presupuesto enviado').length },
-  ];
-  const quoteMetrics = [
-    { title: 'Borradores', n: quotes.filter(q => q.status === 'Borrador').length },
-    { title: 'Enviados', n: quotes.filter(q => q.status === 'Enviado').length },
-    { title: 'Aceptados', n: quotes.filter(q => q.status === 'Aceptado').length },
-  ];
-  return <section className="hr-panel hr-activity" aria-labelledby="hr-activity-heading">
+type AttentionItem = {
+  id: string;
+  title: string;
+  context: string;
+  label: string;
+  due?: string;
+  tone: 'late' | 'today' | 'new' | 'quote' | 'future';
+  to: string;
+  priority: number;
+};
+
+function shortDashboardDate(value?: string): string {
+  if (!value) return '';
+  const date = new Date(value + 'T12:00:00');
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '');
+}
+
+function attentionItems(opportunities: Opportunity[], tasks: Task[], orders: Order[]): AttentionItem[] {
+  const current = today();
+  const pendingTasks = tasks.filter(t => !t.done);
+  const taskItems: AttentionItem[] = pendingTasks.map(t => {
+    const opportunity = opportunities.find(o => t.context.includes(o.id));
+    const order = orders.find(o => t.context.includes(o.id));
+    const late = Boolean(t.due && t.due < current);
+    const isToday = t.due === current;
+    return {
+      id: t.id,
+      title: t.title,
+      context: opportunity ? opportunity.name + ' · ' + opportunity.channel
+        : order ? order.buyerName + ' · Pedido'
+        : t.context || 'Agenda',
+      label: late ? 'Vencida' : isToday ? 'Hoy' : 'Próxima',
+      due: t.due || undefined,
+      tone: late ? 'late' : isToday ? 'today' : 'future',
+      to: opportunity ? '/oportunidades/' + opportunity.id
+        : order ? '/pedidos/' + order.id : '/agenda',
+      priority: late ? 0 : isToday ? 2 : 5,
+    };
+  });
+  const opportunityItems: AttentionItem[] = opportunities
+    .filter(o =>
+      (o.status === 'Nueva' || o.status === 'Por presupuestar')
+      && !pendingTasks.some(t => t.context.includes(o.id))
+    )
+    .map(o => {
+      const late = Boolean(o.nextDate && o.nextDate < current);
+      const isNew = o.status === 'Nueva';
+      return {
+        id: o.id,
+        title: o.nextAction.trim() || (isNew ? 'Responder solicitud' : 'Preparar presupuesto'),
+        context: o.name + ' · ' + o.channel,
+        label: late ? 'Vencida' : isNew ? 'Sin responder' : 'Por presupuestar',
+        due: o.nextDate || undefined,
+        tone: late ? 'late' : isNew ? 'new' : 'quote',
+        to: '/oportunidades/' + o.id,
+        priority: late ? 0 : isNew ? 1 : 3,
+      };
+    });
+  return [...taskItems, ...opportunityItems].sort((a, b) =>
+    a.priority - b.priority
+    || (a.due || '9999-12-31').localeCompare(b.due || '9999-12-31')
+    || a.id.localeCompare(b.id)
+  );
+}
+
+function PriorityWork({ opportunities, tasks, orders }: {
+  opportunities: Opportunity[];
+  tasks: Task[];
+  orders: Order[];
+}) {
+  const items = attentionItems(opportunities, tasks, orders);
+  return <section className="hr-panel hr-workpanel hr-priorities" aria-labelledby="hr-priorities-heading">
     <div className="hr-panel-heading">
-      <h2 id="hr-activity-heading">Actividad comercial</h2>
-      <Link to="/oportunidades">Ver todas <ArrowRight size={15}/></Link>
+      <div>
+        <h2 id="hr-priorities-heading">Qué atender ahora</h2>
+        <p>Respuestas y acciones pendientes, por prioridad</p>
+      </div>
+      <span className="hr-work-count" aria-label={items.length + ' pendientes'}>{items.length}</span>
     </div>
-    <div className="hr-activity-groups">
-      <div className="hr-activity-group">
-        <Link to="/oportunidades" className="hr-group-title">Solicitudes <ArrowRight size={13}/></Link>
-        <div className="hr-metric-band">
-          {oppMetrics.map(m => <div className="hr-band-cell" key={m.title}>
-            <strong>{m.n}</strong><span>{m.title}</span>
-          </div>)}
-        </div>
-      </div>
-      <div className="hr-activity-group">
-        <Link to="/presupuestos" className="hr-group-title">Presupuestos <ArrowRight size={13}/></Link>
-        <div className="hr-metric-band">
-          {quoteMetrics.map(m => <div className="hr-band-cell" key={m.title}>
-            <strong>{m.n}</strong><span>{m.title}</span>
-          </div>)}
-        </div>
-      </div>
+    <div className="hr-work-list">
+      {items.length ? items.slice(0, 3).map(item =>
+        <Link className="hr-work-row" key={item.id} to={item.to}>
+          <span className={'hr-work-accent is-' + item.tone} aria-hidden="true"/>
+          <span className="hr-work-content">
+            <strong title={item.title}>{item.title}</strong>
+            <small title={item.context}>{item.context}</small>
+          </span>
+          <span className="hr-work-aside">
+            <span className={'hr-work-status is-' + item.tone}>{item.label}</span>
+            {item.due && <time dateTime={item.due}>{shortDashboardDate(item.due)}</time>}
+          </span>
+        </Link>
+      ) : <div className="hr-work-empty">No hay acciones comerciales pendientes.</div>}
+    </div>
+    <div className="hr-work-footer">
+      <Link to="/agenda">Abrir agenda <ArrowRight size={14}/></Link>
+      <Link to="/oportunidades">Ver solicitudes <ArrowRight size={14}/></Link>
     </div>
   </section>;
 }
 
-function OpportunityDonut({ opportunities }: { opportunities: Opportunity[] }) {
-  const slices: StatusSlice[] = [
-    { label:'Sin responder', count:opportunities.filter(o=>o.status==='Nueva').length, color:'#01488e' },
-    { label:'En gestión', count:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length, color:'#638ca4' },
-    { label:'Presupuestadas', count:opportunities.filter(o=>o.status==='Presupuesto enviado').length, color:'#c7a262' },
-    { label:'Cerradas', count:opportunities.filter(isClosed).length, color:'#d2dae0' },
-  ];
-  const total = slices.reduce((n, x) => n + x.count, 0);
-  const length = Math.PI * 2 * 65;
-  let offset = 0;
-  return <section className="hr-panel hr-opportunities" aria-labelledby="hr-status-heading">
+function QuoteFollowUps({ opportunities, quotes }: { opportunities: Opportunity[]; quotes: Quote[] }) {
+  const candidates = quotes
+    .filter(q => {
+      const opportunity = opportunities.find(o => o.id === q.opportunityId);
+      return q.status === 'Enviado'
+        && opportunity?.status !== 'Aceptada'
+        && opportunity?.status !== 'Perdida';
+    })
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .slice(0, 3);
+
+  return <section className="hr-panel hr-workpanel hr-followups" aria-labelledby="hr-followups-heading">
     <div className="hr-panel-heading">
-      <h2 id="hr-status-heading">Estado de oportunidades</h2>
-      <Link to="/oportunidades" aria-label="Abrir oportunidades"><ArrowRight size={16}/></Link>
-    </div>
-    <div className="hr-donut-layout">
-      <div className="hr-donut" role="img"
-        aria-label={'Total ' + total + ' oportunidades: ' + slices.map(s=>s.label + ' ' + s.count).join(', ')}>
-        <svg viewBox="0 0 190 190" aria-hidden="true">
-          <circle cx="95" cy="95" r="65" fill="none" stroke="#e8f0f6" strokeWidth="20"/>
-          {total > 0 && slices.filter(s=>s.count > 0).map(s => {
-            const piece = s.count / total * length;
-            const current = offset;
-            offset += piece;
-            return <circle key={s.label} cx="95" cy="95" r="65" fill="none"
-              stroke={s.color} strokeWidth="20"
-              strokeDasharray={piece + ' ' + (length - piece)}
-              strokeDashoffset={-current} transform="rotate(-90 95 95)"/>;
-          })}
-        </svg>
-        <div className="hr-donut-center"><strong>{total}</strong><span>consultas</span></div>
+      <div>
+        <h2 id="hr-followups-heading">Presupuestos enviados</h2>
+        <p>Para revisar y recuperar oportunidades</p>
       </div>
-      <div className="hr-donut-legend">
-        {slices.map(s => <div className="hr-legend-row" key={s.label}>
-          <i style={{backgroundColor:s.color}}/><span>{s.label}</span><strong>{s.count}</strong>
-        </div>)}
-      </div>
+      <Link to="/presupuestos" aria-label="Ver todos los presupuestos"><ArrowRight size={17}/></Link>
     </div>
+    <div className="hr-follow-list">
+      {candidates.length ? candidates.map(q => {
+        const opportunity = opportunities.find(o => o.id === q.opportunityId);
+        return <Link className="hr-follow-row" key={q.id} to={'/presupuestos/' + q.id}>
+          <span className="hr-follow-content">
+            <strong title={q.name}>{q.name}</strong>
+            <small title={q.product}>{q.product}</small>
+            <span className="hr-follow-action" title={opportunity?.nextAction || 'Sin próxima acción registrada'}>
+              {opportunity?.nextAction ? 'Siguiente: ' + opportunity.nextAction : 'Sin próxima acción registrada'}
+            </span>
+          </span>
+          <span className="hr-follow-aside">
+            <span className="hr-follow-tag">Enviado</span>
+            <time dateTime={q.createdAt} title={'Presupuesto registrado: ' + dateText(q.createdAt)}>
+              {shortDashboardDate(q.createdAt)}
+            </time>
+          </span>
+        </Link>;
+      }) : <div className="hr-work-empty">No hay presupuestos enviados pendientes de revisión.</div>}
+    </div>
+    <Link to="/presupuestos" className="hr-work-footer hr-follow-footer">
+      Ver todos los presupuestos <ArrowRight size={14}/>
+    </Link>
   </section>;
 }
 
@@ -300,8 +366,8 @@ export default function Dashboard() {
           <QuickStat icon={AlarmClock} title="Seguimientos vencidos" value={overdue} hint={overdue?'Requieren atención':'Al día'} accent="amber" to="/agenda"/>
         </div>
         <div className="hr-center-panels">
-          <CommercialRows opportunities={data.opportunities} quotes={data.quotes}/>
-          <OpportunityDonut opportunities={data.opportunities}/>
+          <PriorityWork opportunities={data.opportunities} tasks={data.tasks} orders={data.orders}/>
+          <QuoteFollowUps opportunities={data.opportunities} quotes={data.quotes}/>
         </div>
         <section className="hr-panel hr-chart-panel" aria-labelledby="hr-chart-heading">
           <div className="hr-panel-heading">
