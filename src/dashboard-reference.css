@@ -691,3 +691,196 @@
   .dashboard-vektora .vek-table .vek-name,
   .dashboard-vektora .vek-table .vek-action span { white-space:normal; }
 }
+
+
+/* 2026-11-23 · Ajustes específicos solicitados por Dirección
+   La distribución y las cuatro secciones se mantienen intactas.
+   Una cuadrícula elástica ocupa la altura disponible en escritorio. */
+
+/* Etiquetas accesibles de los filtros: el texto sólo debe escucharse,
+   no competir con el título ni montarse sobre el selector. */
+.dashboard-vektora .sr-only {
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
+
+/* Selectores discretos, con espacio propio y área pulsable suficiente. */
+.dashboard-vektora .vek-select-wrap {
+  display:inline-flex;
+  align-items:center;
+  position:relative;
+  flex:0 0 auto;
+  min-width:0;
+  max-width:100%;
+  height:36px;
+  border-radius:7px;
+  transition:box-shadow 150ms ease;
+}
+.dashboard-vektora .vek-select-wrap select {
+  appearance:none;
+  width:auto;
+  min-width:96px;
+  max-width:100%;
+  min-height:36px;
+  height:36px;
+  padding:0 32px 0 12px;
+  border:1px solid #dce6ef;
+  border-radius:7px;
+  background:#f9fbfd;
+  color:#264663;
+  font-family:Inter,Arial,sans-serif;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.2;
+  cursor:pointer;
+  box-shadow:0 1px 2px #0c37600b;
+  transition:border-color 150ms ease,background-color 150ms ease,box-shadow 150ms ease;
+}
+.dashboard-vektora .vek-select-wrap select:hover {
+  background:#fff;
+  border-color:#b4cadc;
+}
+.dashboard-vektora .vek-select-wrap select:focus-visible {
+  outline:2px solid #85b4dd;
+  outline-offset:2px;
+  background:#fff;
+}
+.dashboard-vektora .vek-select-wrap svg {
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:14px;
+  height:14px;
+  flex:0 0 14px;
+  pointer-events:none;
+  color:#5a7897;
+}
+.dashboard-vektora .vek-statistics .vek-card-header,
+.dashboard-vektora .vek-evolution .vek-card-header {
+  flex-wrap:wrap;
+  align-content:center;
+  row-gap:9px;
+}
+.dashboard-vektora .vek-statistics .vek-card-header > h2,
+.dashboard-vektora .vek-evolution .vek-card-header > h2 {
+  min-width:0;
+}
+.dashboard-vektora .vek-statistics .vek-select-wrap { margin-left:auto; }
+.dashboard-vektora .vek-chart-controls {
+  flex:0 1 auto;
+  min-width:0;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px 12px;
+}
+.dashboard-vektora .vek-chart-controls .vek-select-wrap { margin-left:2px; }
+
+@media (min-width:851px) and (min-height:761px) {
+  .page.page-dashboard.dashboard-vektora {
+    box-sizing:border-box;
+    height:100%;
+    min-height:0;
+    padding:16px 19px 18px;
+    overflow:hidden;
+  }
+  .dashboard-vektora .vek-grid {
+    box-sizing:border-box;
+    width:100%;
+    height:100%;
+    min-height:0;
+    grid-template-rows:minmax(310px,1.02fr) minmax(324px,.98fr);
+    gap:14px;
+    align-content:stretch;
+  }
+  /* Eliminar las alturas absolutas de la revisión anterior. */
+  .dashboard-vektora .vek-attention,
+  .dashboard-vektora .vek-statistics,
+  .dashboard-vektora .vek-evolution,
+  .dashboard-vektora .vek-agenda {
+    height:100%;
+    min-height:0;
+    align-self:stretch;
+  }
+
+  /* Los cuatro contactos se presentan como una tabla completa,
+     sin desplazamiento interno ni espacio residual inútil. */
+  .dashboard-vektora .vek-attention .vek-table-scroll {
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:visible;
+  }
+  .dashboard-vektora .vek-attention .vek-table {
+    flex:1 1 auto;
+    height:100%;
+  }
+
+  /* Las cuatro tareas se reparten proporcionalmente la altura libre. */
+  .dashboard-vektora .vek-agenda-list {
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:visible;
+    padding-top:0;
+    padding-bottom:0;
+  }
+  .dashboard-vektora .vek-agenda-list .vek-agenda-item {
+    flex:1 1 0;
+    min-height:52px;
+    padding:8px 0;
+  }
+  .dashboard-vektora .vek-donut {
+    max-width:238px;
+  }
+}
+
+/* En alturas bajas o en móvil, es preferible el scroll de la página
+   a comprimir, recortar texto o recuperar scrolls dentro de cada tarjeta. */
+@media (min-width:851px) and (max-height:760px) {
+  .page.page-dashboard.dashboard-vektora {
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+  .dashboard-vektora .vek-grid {
+    height:auto;
+    grid-template-rows:352px 360px;
+  }
+}
+@media (min-width:851px) and (max-width:1270px) {
+  .dashboard-vektora .vek-statistics .vek-card-header {
+    align-items:flex-start;
+  }
+  .dashboard-vektora .vek-statistics .vek-select-wrap {
+    margin-left:0;
+  }
+  .dashboard-vektora .vek-evolution .vek-card-header {
+    align-items:flex-start;
+  }
+  .dashboard-vektora .vek-chart-controls {
+    width:100%;
+    justify-content:flex-start;
+  }
+}
+@media (max-width:850px) {
+  .dashboard-vektora .vek-statistics .vek-select-wrap {
+    margin-left:auto;
+  }
+  .dashboard-vektora .vek-chart-controls {
+    justify-content:flex-start;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .dashboard-vektora .vek-select-wrap,
+  .dashboard-vektora .vek-select-wrap select { transition:none; }
+}
