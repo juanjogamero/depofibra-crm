@@ -11,6 +11,8 @@ export type Opportunity = {
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
+  /** Optional reference to chosen catalog variant; quoted amount and name stay as historical snapshot. */
+  productId?: string;
 };
 export type Customer = { id: string; name: string; contact: string; destination: string; createdAt: string; notes: string; documentNames: string[] };
 export type Order = {
@@ -22,11 +24,23 @@ export type Order = {
 };
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
 export type Task = { id: string; title: string; due: string; context: string; done: boolean };
-export type Product = { id: string; name: string; family: string; capacity: string; price: number; active: boolean };
+export type CatalogAttribute = { id: string; label: string; value: string };
+export type ProductCategory = {
+  id: string; name: string; family: string; attributes: CatalogAttribute[];
+};
+export type Product = {
+  id: string; name: string; family: string; capacity: string;
+  /** Precio de venta interno configurado manualmente; 0 = sin precio. Nunca coste de compra. */
+  price: number; active: boolean;
+  /** Optional for legacy CRM products; populated by catalog migration without losing existing data. */
+  categoryId?: string;
+};
 export type TransportSettings = { smallRate: number; largeRate: number; buffer: number; distanceLimit: number; specialExtra: number };
 export type CrmState = {
   opportunities: Opportunity[]; quotes: Quote[]; customers: Customer[]; orders: Order[];
   tasks: Task[]; products: Product[]; transport: TransportSettings;
+  /** Categorías editables con atributos comunes; opcional para demos anteriores. */
+  productCategories?: ProductCategory[];
   /** Fechas verificadas para nuevas liquidaciones. Opcional para datos locales anteriores. */
   commissionPayments?: CommissionPayment[];
 };
