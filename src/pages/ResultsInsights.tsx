@@ -76,40 +76,150 @@ function windowSeries(leads:Opportunity[],quotes:Quote[],period:Period): {points
   });
   return {points,caption:period==='all'?'Tendencia de las últimas 8 semanas; el resto de indicadores incluye todo el historial':'Actividad semanal del periodo elegido'};
 }
+
 function linePath(rows:TrendPoint[],key:'leads'|'quotes',max:number):string{
-  return rows.map((item,i)=>{
-    const x=30+i*660/Math.max(1,rows.length-1);
-    const y=180-item[key]*135/Math.max(1,max);
-    return (i?'L ':'M ')+x.toFixed(2)+' '+y.toFixed(2);
-  }).join(' ');
+  if(!rows.length)return '';
+  const x=(i:number)=>36+i*648/Math.max(1,rows.length-1);
+  const y=(v:number)=>198-(v/Math.max(max,1))*155;
+  let path='M '+x(0)+' '+y(rows[0][key]);
+  for(let i=1;i<rows.length;i++){
+    const middle=(x(i-1)+x(i))/2;
+    path+=' C '+middle+' '+y(rows[i-1][key])+' '+middle+' '+y(rows[i][key])+' '+x(i)+' '+y(rows[i][key]);
+  }
+  return path;
 }
 function TrendChart({points}:{points:TrendPoint[]}) {
+  const [chosen,setChosen]=useState(-1);
+  const [showLeads,setShowLeads]=useState(true);
+  const [showQuotes,setShowQuotes]=useState(true);
+  const index=chosen>=0&&chosen<points.length?chosen:Math.max(0,points.length-1);
+  const selected=points[index];
   const peak=Math.max(2,...points.flatMap(p=>[p.leads,p.quotes]));
-  const middle=Math.ceil((points.length-1)/2);
-  return <div className="ri-trend">
-    <div className="ri-trend-key"><span><i className="is-lead"/>Consultas</span><span><i className="is-quote"/>Presupuestos</span></div>
-    <svg viewBox="0 0 720 216" preserveAspectRatio="none" role="img"
-      aria-label={'Evolución de consultas y presupuestos: '+points.map(p=>p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos').join('; ')}>
-      {[0,1,2,3].map(t=><line key={t} x1="30" x2="690" y1={45+t*45} y2={45+t*45} stroke="#e5edf4" strokeWidth="1"/>)}
-      <path d={linePath(points,'leads',peak)} stroke="#01488e" strokeWidth="3.4" fill="none" strokeLinejoin="round" strokeLinecap="round"/>
-      <path d={linePath(points,'quotes',peak)} stroke="#57a8d3" strokeWidth="2.8" fill="none" strokeLinejoin="round" strokeLinecap="round"/>
-      {points.map((p,i)=><g key={i}>
-        <circle cx={30+i*660/Math.max(1,points.length-1)} cy={180-p.leads*135/peak} r="3.7" fill="#01488e" stroke="#fff" strokeWidth="1.4"/>
-        <circle cx={30+i*660/Math.max(1,points.length-1)} cy={180-p.quotes*135/peak} r="3.3" fill="#57a8d3" stroke="#fff" strokeWidth="1.4"/>
-      </g>)}
+  const x=(i:number)=>36+i*648/Math.max(1,points.length-1);
+  const y=(n:number)=>198-n*155/peak;
+  const keys=[{key:'leads' as const,name:'Consultas',visible:showLeads,color:'#01488e'},
+              {key:'quotes' as const,name:'Presupuestos',visible:showQuotes,color:'#57a8d3'}];
+  return <div className="ri-trend ri-trend-interactive">
+    <div className="ri-trend-key" aria-label="Series que se muestran">
+      <button type="button" className={'ri-series-toggle'+(showLeads?' is-on':'')} aria-pressed={showLeads}
+        onClick={()=>{if(showQuotes||!showLeads)setShowLeads(!showLeads)}}><i className="is-lead"/>Consultas</button>
+      <button type="button" className={'ri-series-toggle'+(showQuotes?' is-on':'')} aria-pressed={showQuotes}
+        onClick={()=>{if(showLeads||!showQuotes)setShowQuotes(!showQuotes)}}><i className="is-quote"/>Presupuestos</button>
+    </div>
+    <svg className="ri-trend-svg" viewBox="0 0 720 240" role="img" aria-label={'Evolución comercial interactiva. '+points.map(p=>p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos').join('; ')}>
+      {[0,1,2,3,4].map(t=>{
+        const value=Math.round(peak*(4-t)/4);
+        return <g key={t}>
+          <line x1="36" x2="684" y1={43+t*38.75} y2={43+t*38.75} stroke="#e5edf4" strokeWidth="1"/>
+          <text x="27" y={47+t*38.75} textAnchor="end" fontSize="11" fill="#8ba2b5">{value}</text>
+        </g>;
+      })}
+      {keys.filter(k=>k.visible).map(k=><path key={k.key} d={linePath(points,k.key,peak)} fill="none" stroke={k.color}
+        strokeWidth={k.key==='leads'?3.6:3.1} strokeLinecap="round" strokeLinejoin="round"/>)}
+      {points.length>0&&<line x1={x(index)} y1="39" x2={x(index)} y2="203" stroke="#a0bcd5" strokeWidth="1.5" strokeDasharray="4 5"/>}
+      {keys.filter(k=>k.visible).flatMap(k=>points.map((p,i)=><circle key={k.key+i} cx={x(i)} cy={y(p[k.key])}
+          r={index===i?6:4.4} fill={k.color} stroke="#fff" strokeWidth="2.2" pointerEvents="none"/>))}
+      {points.map((p,i)=><rect key={p.label+i} x={i===0?28:(x(i)+x(i-1))/2}
+        y="32" width={i===0?(x(1)-x(0))/2: i===points.length-1?684-(x(i)+x(i-1))/2:
+          (x(i+1)-x(i-1))/2} height="184" fill="transparent" tabIndex={0} role="button"
+        aria-label={p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos'}
+        onPointerEnter={()=>setChosen(i)} onClick={()=>setChosen(i)}
+        onFocus={()=>setChosen(i)}
+        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setChosen(i)}}}/>)}
     </svg>
-    <div className="ri-trend-dates"><span>{points[0]?.label||'—'}</span><span>{points[middle]?.label||'—'}</span><span>{points[points.length-1]?.label||'—'}</span></div>
+    <div className="ri-trend-dates"><span>{points[0]?.label||'—'}</span><span>{points[Math.floor((points.length-1)/2)]?.label||'—'}</span><span>{points[points.length-1]?.label||'—'}</span></div>
+    {selected&&<div className="ri-chart-inspector" aria-live="polite">
+      <div><span>Periodo seleccionado</span><strong>{selected.label}</strong></div>
+      <div><span><i className="is-lead"/>Consultas</span><strong>{selected.leads}</strong></div>
+      <div><span><i className="is-quote"/>Presupuestos</span><strong>{selected.quotes}</strong></div>
+    </div>}
+    <p className="ri-chart-hint">Pasa el ratón sobre un punto o selecciónalo con el teclado para ver sus cifras. Puedes ocultar una serie.</p>
   </div>;
 }
-function RankedBars({items,tone='blue',empty='No hay registros en este periodo.',limit=6,unit=''}:
-  {items:Count[];tone?:'blue'|'teal'|'amber';empty?:string;limit?:number;unit?:string}) {
+function RankedBars({items,tone='blue',empty='No hay registros en este periodo.',limit=6,unit='',destination}:
+  {items:Count[];tone?:'blue'|'teal'|'amber';empty?:string;limit?:number;unit?:string;destination?:string}) {
+  const [chosen,setChosen]=useState<string|null>(null);
   const max=Math.max(1,...items.map(item=>item.count));
-  return items.length?<div className="ri-ranks">
-    {items.slice(0,limit).map((item,i)=><div className="ri-rank" key={item.label}>
-      <div className="ri-rank-head"><span title={item.label}><i>{String(i+1).padStart(2,'0')}</i>{item.label}</span><strong>{nf.format(item.count)}{unit}</strong></div>
-      <div className="ri-track"><span className={'ri-fill ri-fill-'+tone} style={{width:(item.count/max*100)+'%'}}/></div>
-    </div>)}
+  const total=items.reduce((sum,item)=>sum+item.count,0);
+  const selection=items.find(item=>item.label===chosen);
+  return items.length?<div className="ri-ranked-interactive">
+    <div className="ri-ranks">
+      {items.slice(0,limit).map((item,i)=><button type="button" className={'ri-rank ri-rank-button'+(item.label===chosen?' is-selected':'')}
+        key={item.label} aria-pressed={item.label===chosen} title={'Examinar '+item.label}
+        onClick={()=>setChosen(item.label===chosen?null:item.label)}>
+        <div className="ri-rank-head"><span title={item.label}><i>{String(i+1).padStart(2,'0')}</i>{item.label}</span><strong>{nf.format(item.count)}{unit}</strong></div>
+        <div className="ri-track"><span className={'ri-fill ri-fill-'+tone} style={{width:(item.count/max*100)+'%'}}/></div>
+      </button>)}
+    </div>
+    {selection&&<div className="ri-ranking-inspector" aria-live="polite">
+      <div><span>Detalle seleccionado</span><strong>{selection.label}</strong></div>
+      <div className="ri-ranking-stat"><strong>{nf.format(selection.count)}</strong><span>registros · {total?Math.round(selection.count/total*100):0}% del total</span></div>
+      {destination&&<Link to={destination}>Ver registros <ArrowRight size={15}/></Link>}
+    </div>}
   </div>:<div className="ri-empty">{empty}</div>;
+}
+function ChannelDonut({channels}:{channels:{channel:Channel;total:number;wins:number}[]}) {
+  const [selected,setSelected]=useState<Channel|null>(null);
+  const total=channels.reduce((sum,x)=>sum+x.total,0);
+  const active=channels.find(c=>c.channel===selected)||channels[0];
+  const colors=['#01488e','#2c7bb7','#53a9d0','#66b6ae','#8b88c9','#b5c8df'];
+  const radius=76,circumference=2*Math.PI*radius;
+  let offset=0;
+  if(!channels.length)return <div className="ri-empty">No hay consultas con canal en este periodo.</div>;
+  return <div className="ri-channel-visual">
+    <div className="ri-donut-layout">
+      <svg className="ri-donut-svg" viewBox="0 0 240 240" role="img" aria-label="Canales de consultas; selecciona un segmento para ver su detalle">
+        <circle cx="120" cy="120" r={radius} fill="none" stroke="#edf3f8" strokeWidth="28"/>
+        {channels.map((item,i)=>{
+          const portion=item.total/total*circumference;
+          const prior=offset;offset+=portion;
+          return <circle key={item.channel} cx="120" cy="120" r={radius} fill="none" stroke={colors[i%colors.length]}
+            strokeWidth={active?.channel===item.channel?32:27}
+            strokeDasharray={portion+' '+(circumference-portion)}
+            strokeDashoffset={-prior}
+            transform="rotate(-90 120 120)" className="ri-donut-segment"
+            tabIndex={0} role="button" aria-label={item.channel+': '+item.total+' consultas'}
+            onPointerEnter={()=>setSelected(item.channel)} onFocus={()=>setSelected(item.channel)} onClick={()=>setSelected(item.channel)}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelected(item.channel)}}}>
+            <title>{item.channel}: {item.total} consultas</title>
+          </circle>;
+        })}
+        <text x="120" y="109" textAnchor="middle" className="ri-donut-total">{active.total}</text>
+        <text x="120" y="129" textAnchor="middle" className="ri-donut-caption">{active.channel}</text>
+        <text x="120" y="147" textAnchor="middle" className="ri-donut-percent">{Math.round(active.total/total*100)}% de consultas</text>
+      </svg>
+      <div className="ri-donut-legend" role="group" aria-label="Seleccionar canal">
+        {channels.map((item,i)=><button type="button" key={item.channel} className={'ri-donut-choice'+(active.channel===item.channel?' is-selected':'')}
+          onClick={()=>setSelected(item.channel)} aria-pressed={active.channel===item.channel}>
+          <span><i style={{backgroundColor:colors[i%colors.length]}}/>{item.channel}</span>
+          <strong>{item.total}<small> ({Math.round(item.total/total*100)}%)</small></strong>
+        </button>)}
+      </div>
+    </div>
+    <div className="ri-channel-selected" aria-live="polite">
+      <span><strong>{active.channel}</strong> · {active.total} {active.total===1?'consulta':'consultas'} · {active.wins} {active.wins===1?'aceptada':'aceptadas'}</span>
+      <Link to="/oportunidades">Ver oportunidades <ArrowRight size={15}/></Link>
+    </div>
+  </div>;
+}
+function FunnelExplorer({stages}:{stages:Count[]}) {
+  const [index,setIndex]=useState(0);
+  const active=stages[Math.min(index,stages.length-1)];
+  const max=Math.max(1,...stages.map(stage=>stage.count));
+  return <div className="ri-funnel-explorer">
+    <div className="ri-funnel">
+      {stages.map((stage,i)=><button type="button" className={'ri-funnel-row ri-funnel-button'+(index===i?' is-selected':'')}
+        key={stage.label} onClick={()=>setIndex(i)} aria-pressed={index===i}>
+        <div><span>{i+1}. {stage.label}</span><strong>{stage.count}</strong></div>
+        <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(stage.count/max*100)+'%'}}/></div>
+      </button>)}
+    </div>
+    {active&&<div className="ri-funnel-inspector" aria-live="polite">
+      <span>Etapa seleccionada</span><strong>{active.label}</strong>
+      <p>{active.count} {active.count===1?'oportunidad':'oportunidades'} · {stages[0]?.count?Math.round(active.count/stages[0].count*100):0}% de las consultas del periodo</p>
+      <Link to="/oportunidades">Consultar oportunidades <ArrowRight size={15}/></Link>
+    </div>}
+  </div>;
 }
 function Panel({title,subtitle,children,extra,className=''}:{title:string;subtitle:string;children:ReactNode;extra?:ReactNode;className?:string}){
   return <section className={'ri-panel '+className}>
@@ -150,6 +260,7 @@ export default function ResultsInsights(){
     const familyDemand=countBy(leads,o=>o.product||'Sin producto');
     const capacityDemand=countBy(leads,o=>o.capacity||'Sin capacidad');
     const orderTypes=countBy(orders,o=>productVariant(o.product,o.capacity));
+    const orderStatuses=countBy(orders,o=>o.factory||'Sin estado');
     const areaLeads=countBy(leads,o=>o.destination||'Destino sin indicar');
     const areaOrders=countBy(orders,o=>orderDestination(o,data));
     const overdue=open.filter(o=>o.nextDate&&o.nextDate<today()).length;
@@ -162,7 +273,7 @@ export default function ResultsInsights(){
       {label:'Oportunidades aceptadas',count:accepted.length},
       {label:'Con pedido vinculado',count:linkedOrders.length}
     ];
-    return {leads,quotes,orders,accepted,lost,open,channels,lossReasons,familyDemand,capacityDemand,orderTypes,areaLeads,areaOrders,overdue,unlinkedOrders,amount,delivered,stageCounts};
+    return {leads,quotes,orders,accepted,lost,open,channels,lossReasons,familyDemand,capacityDemand,orderTypes,orderStatuses,areaLeads,areaOrders,overdue,unlinkedOrders,amount,delivered,stageCounts};
   },[data,period]);
   const times=useMemo(()=>windowSeries(insights.leads,insights.quotes,period),[insights.leads,insights.quotes,period]);
   const total=insights.leads.length;
@@ -199,69 +310,66 @@ export default function ResultsInsights(){
       <div className="ri-kpi"><span className="ri-kpi-head"><span>Tasa de aceptación</span><TrendingUp size={18}/></span><strong>{conversion}%</strong><small>Aceptadas / consultas del periodo</small></div>
       <div className="ri-kpi"><span className="ri-kpi-head"><span>Importe de pedidos</span><BarChart3 size={18}/></span><strong>{money(insights.amount)}</strong><small>Importes registrados; no facturación propia</small></div>
     </section>
-    <div className="ri-section-title"><div><h2>Productos y demanda</h2><p>Diferenciamos interés comercial de pedidos realmente registrados.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="Productos más consultados" subtitle="Familias o tipos solicitados en las oportunidades" extra={<Package size={19}/>}>
-        <RankedBars items={insights.familyDemand} limit={6} empty="Aún no hay productos consultados en el periodo."/>
-      </Panel>
-      <Panel title="Productos con más pedidos" subtitle="Referencias y capacidades con pedidos registrados; no implica entrega" extra={<Package size={19}/>}>
-        <RankedBars items={insights.orderTypes} tone="teal" limit={6} empty="No se han registrado pedidos en este periodo."/>
-        {insights.orders.length>0&&<div className="ri-inline-note">Entregados: <strong>{insights.delivered}</strong> de {insights.orders.length}. Los demás pueden estar en curso.</div>}
-      </Panel>
+
+    <div className="ri-section-title ri-section-overview">
+      <div><h2>Panorama comercial</h2><p>Selecciona puntos, canales y periodos para profundizar en los registros.</p></div><span>Fuente · CRM</span>
     </div>
-    <div className="ri-grid-two">
-      <Panel title="Capacidades más solicitadas" subtitle="Litros o tamaños indicados en las consultas" extra={<BarChart3 size={19}/>}>
-        <RankedBars items={insights.capacityDemand} tone="amber" limit={6} empty="Sin capacidades registradas para este periodo."/>
-      </Panel>
-      <Panel title="Origen de las consultas" subtitle="Canales anotados al registrar la oportunidad" extra={<Inbox size={19}/>}>
-        {insights.channels.length?<div className="ri-channels">
-          {insights.channels.map(({channel,total:count,wins})=><div className="ri-channel" key={channel}>
-            <div className="ri-channel-line"><strong>{channel}</strong><span>{count} {count===1?'consulta':'consultas'} · {wins} {wins===1?'aceptada':'aceptadas'}</span></div>
-            <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(count/maxChannel*100)+'%'}}/></div>
-          </div>)}
-        </div>:<div className="ri-empty">No hay consultas con canal en este periodo.</div>}
-        <div className="ri-inline-note">Aceptadas por canal: estado registrado en la oportunidad, no atribución de Analytics.</div>
-      </Panel>
-    </div>
-    <div className="ri-section-title"><div><h2>Zonas y compradores</h2><p>Destinos escritos en las fichas. No se infiere la ubicación real del usuario de la web.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="¿De dónde llegan las consultas?" subtitle="Destino solicitado por cada oportunidad" extra={<MapPin size={19}/>}>
-        <RankedBars items={insights.areaLeads} limit={7} empty="No hay destinos de consultas registrados."/>
-      </Panel>
-      <Panel title="¿Dónde compran nuestros clientes?" subtitle="Destino vinculado a los pedidos del periodo" extra={<MapPin size={19}/>}>
-        <RankedBars items={insights.areaOrders} tone="teal" limit={7} empty="Sin destinos de pedidos registrados en este periodo."/>
-        <div className="ri-inline-note">Se usa la dirección de cliente vinculada y, si falta, el destino de su oportunidad. No equivale a residencia.</div>
-      </Panel>
-    </div>
-    <div className="ri-section-title"><div><h2>Evolución y cierre comercial</h2><p>Volumen, oportunidades aceptadas y motivos de pérdida.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two ri-grid-trend">
-      <Panel title="Evolución de la actividad" subtitle={times.caption} extra={<TrendingUp size={19}/>}>
+    <div className="ri-grid-two ri-grid-performance">
+      <Panel title="Evolución de consultas y presupuestos" subtitle={times.caption} extra={<TrendingUp size={21}/>} className="ri-panel-primary">
         <TrendChart points={times.points}/>
-        <div className="ri-inline-note">Los registros se agrupan por su fecha de creación. No incluyen visitas web.</div>
+        <div className="ri-inline-note">Los registros se agrupan por fecha de creación. La gráfica no incluye sesiones de la web.</div>
       </Panel>
-      <Panel title="De la consulta al pedido" subtitle="Seguimiento de oportunidades del periodo con vínculos verificables" extra={<CheckCircle2 size={19}/>}>
-        <div className="ri-funnel">
-          {insights.stageCounts.map((s,i)=><div className="ri-funnel-row" key={s.label}>
-            <div><span>{i+1}. {s.label}</span><strong>{s.count}</strong></div>
-            <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(s.count/maxStage*100)+'%'}}/></div>
-          </div>)}
-        </div>
-        <div className="ri-inline-note">{insights.unlinkedOrders?insights.unlinkedOrders+' pedidos del periodo no tienen presupuesto vinculado; no se les atribuye un origen.':'El embudo enlaza oportunidades, presupuestos y pedidos cuando existe referencia.'} El estado actual puede ser posterior al periodo seleccionado.</div>
+      <Panel title="Origen de las consultas" subtitle="Selecciona un canal para ver su aportación" extra={<Inbox size={21}/>} className="ri-panel-channels">
+        <ChannelDonut channels={insights.channels}/>
+        <div className="ri-inline-note">Canal anotado en la oportunidad: no es atribución automática de Analytics.</div>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Productos y demanda</h2><p>Qué productos interesan y cuáles tienen más pedidos registrados.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-two">
+      <Panel title="Productos más consultados" subtitle="Tipos solicitados en las oportunidades" extra={<Package size={21}/>}>
+        <RankedBars items={insights.familyDemand} limit={6} destination="/oportunidades" empty="Aún no hay productos consultados en el periodo."/>
+      </Panel>
+      <Panel title="Productos con más pedidos" subtitle="Referencias y capacidades registradas; no implica entrega" extra={<Package size={21}/>}>
+        <RankedBars items={insights.orderTypes} tone="teal" limit={6} destination="/pedidos" empty="No se han registrado pedidos en este periodo."/>
+        {insights.orders.length>0&&<div className="ri-inline-note">Pedidos entregados: <strong>{insights.delivered}</strong> de {insights.orders.length}. Los demás pueden estar en curso.</div>}
       </Panel>
     </div>
     <div className="ri-grid-two">
-      <Panel title="Motivos de pérdida" subtitle={insights.lost.length+' oportunidades marcadas como perdidas'} extra={<CircleAlert size={19}/>}>
-        <RankedBars items={insights.lossReasons} tone="amber" empty="No hay oportunidades perdidas en este periodo."/>
-        <div className="ri-inline-note">Un motivo «precio» no demuestra que la competencia venda más barato.</div>
+      <Panel title="Capacidades más solicitadas" subtitle="Volúmenes indicados por los interesados" extra={<BarChart3 size={21}/>}>
+        <RankedBars items={insights.capacityDemand} tone="amber" limit={6} destination="/oportunidades" empty="Sin capacidades registradas para este periodo."/>
       </Panel>
-      <Panel title="Seguimientos pendientes" subtitle="Señales para revisar la actividad comercial" extra={<CalendarDays size={19}/>}>
+      <Panel title="Situación de los pedidos" subtitle="Último estado de gestión anotado en cada pedido" extra={<Package size={21}/>}>
+        <RankedBars items={insights.orderStatuses} tone="teal" destination="/pedidos" empty="No hay pedidos registrados en este periodo."/>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Zonas y compradores</h2><p>Destinos guardados en las fichas; no son datos de geolocalización web.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-two">
+      <Panel title="Destinos de las consultas" subtitle="Dónde se solicita el producto" extra={<MapPin size={21}/>}>
+        <RankedBars items={insights.areaLeads} limit={7} destination="/oportunidades" empty="No hay destinos de consultas registrados."/>
+      </Panel>
+      <Panel title="Destinos de los pedidos" subtitle="Zonas vinculadas a operaciones registradas" extra={<MapPin size={21}/>}>
+        <RankedBars items={insights.areaOrders} tone="teal" limit={7} destination="/pedidos" empty="Sin destinos de pedidos registrados en este periodo."/>
+        <div className="ri-inline-note">Se utiliza el destino de cliente vinculado o el de la consulta relacionada. No equivale a lugar de residencia.</div>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Conversión y seguimiento</h2><p>Un embudo consultable y las señales que requieren intervención comercial.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-three">
+      <Panel title="De la consulta al pedido" subtitle="Etapas con vínculos de CRM comprobables" extra={<CheckCircle2 size={21}/>}>
+        <FunnelExplorer stages={insights.stageCounts}/>
+        <div className="ri-inline-note">{insights.unlinkedOrders?insights.unlinkedOrders+' pedidos carecen de presupuesto vinculado y no se les atribuye origen.':'Los pedidos solo se vinculan si existe una referencia válida.'} Los estados actuales pueden haber cambiado después del periodo.</div>
+      </Panel>
+      <Panel title="Motivos de pérdida" subtitle={insights.lost.length+' oportunidades marcadas como perdidas'} extra={<CircleAlert size={21}/>}>
+        <RankedBars items={insights.lossReasons} tone="amber" destination="/oportunidades" empty="No hay oportunidades perdidas en este periodo."/>
+        <div className="ri-inline-note">Un motivo «precio» no prueba que otro proveedor venda más barato.</div>
+      </Panel>
+      <Panel title="Actividad pendiente" subtitle="Datos para priorizar seguimientos y posventa" extra={<CalendarDays size={21}/>}>
         <div className="ri-signals">
           <div><span>Oportunidades abiertas</span><strong>{insights.open.length}</strong></div>
-          <div><span>Con seguimiento vencido</span><strong>{insights.overdue}</strong></div>
+          <div><span>Seguimientos vencidos</span><strong>{insights.overdue}</strong></div>
           <div><span>Oportunidades perdidas</span><strong>{insights.lost.length}</strong></div>
           <div><span>Pedidos entregados</span><strong>{insights.delivered}</strong></div>
         </div>
-        <Link to="/agenda" className="ri-panel-link">Abrir agenda y seguimientos <ArrowRight size={15}/></Link>
+        <Link to="/agenda" className="ri-panel-link">Abrir agenda y seguimientos <ArrowRight size={16}/></Link>
       </Panel>
     </div>
     <div className="ri-section-title"><div><h2>Analítica web y perfil de audiencia</h2><p>Preparado para cruzar captación digital y rendimiento comercial cuando existan conexiones verificadas.</p></div><span>Fuentes · Pendientes</span></div>
