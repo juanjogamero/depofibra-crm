@@ -30,6 +30,7 @@ import './dashboard-centered.css';
 import './results-insights.css';
 import './finance-analytics.css';
 import './catalog-manager.css';
+import './transport-route.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
