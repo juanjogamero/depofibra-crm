@@ -4,7 +4,7 @@ import {ArrowRight,Layers3,Package,ShoppingCart,Truck} from 'lucide-react';
 type Count={label:string;count:number};
 const format=new Intl.NumberFormat('es-ES');
 const percent=(value:number,total:number)=>total?format.format(Math.round(value/total*100))+'%':'0%';
-function ProductRankCard({items,title,subtitle,to,kind}:{
+export function ProductRankCard({items,title,subtitle,to,kind}:{
  items:Count[];title:string;subtitle:string;to:string;kind:'consultas'|'pedidos'
 }){
  const [chosen,setChosen]=useState<string|null>(null);
@@ -83,7 +83,7 @@ function SelectableDonut({items,title,empty}:{items:Count[];title:string;empty:s
   </div>
  </div>;
 }
-function DistributionCard({items,title,subtitle,kind,to}:{
+export function DistributionCard({items,title,subtitle,kind,to}:{
  items:Count[];title:string;subtitle:string;kind:'capacidades'|'estados';to:string
 }){
  const total=items.reduce((s,i)=>s+i.count,0);
@@ -109,23 +109,4 @@ function DistributionCard({items,title,subtitle,kind,to}:{
    <Link to={to}>Ver detalle <ArrowRight size={15}/></Link>
   </footer>
  </section>;
-}
-export default function ResultsProductPanels({familyDemand,orderTypes,capacityDemand,orderStatuses}:{
- familyDemand:Count[];orderTypes:Count[];capacityDemand:Count[];orderStatuses:Count[]
-}){
- return <>
-  <div className="ri-product-card-grid">
-   <ProductRankCard title="Productos más consultados" subtitle="Tipos solicitados en oportunidades"
-    items={familyDemand} kind="consultas" to="/oportunidades"/>
-   <ProductRankCard title="Productos con más pedidos" subtitle="Referencias y capacidades; no implica entrega"
-    items={orderTypes} kind="pedidos" to="/pedidos"/>
-  </div>
-  <div className="ri-product-secondary">
-   <DistributionCard items={capacityDemand} kind="capacidades" title="Capacidades más solicitadas"
-    subtitle="Volúmenes indicados por los interesados" to="/oportunidades"/>
-   <div className="ri-product-map-slot" id="ri-product-map-slot"/>
-   <DistributionCard items={orderStatuses} kind="estados" title="Situación de los pedidos"
-    subtitle="Estado de gestión anotado en el CRM" to="/pedidos"/>
-  </div>
- </>;
 }
