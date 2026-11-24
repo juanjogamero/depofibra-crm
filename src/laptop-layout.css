@@ -382,3 +382,180 @@
 @media (prefers-reduced-motion:reduce) {
   .page-opportunities .op-data-table tbody td {transition:none;}
 }
+
+
+/* REG-0109 · Corrección de regresión de scroll tras REG-0108 (24/11/2026).
+   El ancho útil de portátil sigue gobernando las columnas, PERO Inicio
+   y Oportunidades deben permanecer fijos dentro del viewport del navegador.
+   Ninguna fila de datos se borra: Oportunidades desplaza exclusivamente la tabla. */
+
+/* Oportunidades: la cabecera, pestañas, filtros y pie permanecen fijos.
+   Solo se reduce y desplaza la región que contiene filas de tabla. */
+@media (min-width:841px) and (max-width:1600px) and (max-height:880px) {
+  .app-body.is-opportunities:not(.is-quotes):not(.is-clients):not(.is-orders):not(.is-commissions) .page.page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) {
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    max-height:100%;
+    min-height:0;
+    overflow:hidden;
+    overscroll-behavior:none;
+    padding-bottom:16px;
+  }
+  .app-body.is-opportunities:not(.is-quotes):not(.is-clients):not(.is-orders):not(.is-commissions) .page.page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-table-panel {
+    display:flex;
+    flex:0 1 auto;
+    flex-direction:column;
+    min-height:0;
+    max-height:100%;
+    overflow:hidden;
+  }
+  .app-body.is-opportunities:not(.is-quotes):not(.is-clients):not(.is-orders):not(.is-commissions) .page.page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-table-scroll {
+    flex:0 1 auto;
+    height:auto;
+    min-height:0;
+    max-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#b7c8d8 #f8fbfe;
+  }
+  .app-body.is-opportunities:not(.is-quotes):not(.is-clients):not(.is-orders):not(.is-commissions) .page.page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-data-table thead th {
+    position:sticky;
+    top:0;
+    z-index:3;
+  }
+}
+
+/* Inicio en portátil: restaurar 2x2 anclado al alto visible.
+   REG-0108 imponía altura 'auto', min-height:355/295 y overflow-y:auto.
+   Los tres forzaban un desplazamiento de unos pocos píxeles y ocultaban
+   el encabezado al salir de la parte superior del dashboard. */
+@media (min-width:901px) and (max-width:1600px) {
+  .app-body.is-dashboard .app-main {
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+    display:flex;
+    flex:1 1 0;
+    height:100%;
+    min-height:0;
+    max-height:100%;
+    overflow:hidden;
+  }
+  .vek2-dashboard .vek2-grid {
+    display:grid;
+    flex:1 1 0;
+    grid-template-rows:minmax(0,1.1fr) minmax(0,1fr);
+    min-height:0;
+    height:100%;
+  }
+  .vek2-dashboard .vek2-grid-top,
+  .vek2-dashboard .vek2-grid-bottom {
+    display:grid;
+    min-height:0;
+  }
+  .vek2-dashboard .vek2-card,
+  .vek2-dashboard .hr-calendar.vek2-calendar {
+    min-height:0;
+    height:100%;
+  }
+  /* Para 1024 px de portátil el ancho útil ronda los 780 px:
+     conservar 2 columnas en vez de apilar las 4 tarjetas verticalmente. */
+  @container crm-content (max-width:950px) {
+    .vek2-dashboard .vek2-grid {
+      display:grid;
+      flex:1 1 0;
+      grid-template-rows:minmax(0,1.13fr) minmax(0,1fr);
+    }
+    .vek2-dashboard .vek2-grid-top {
+      display:grid;
+      grid-template-columns:minmax(0,1.55fr) minmax(225px,.9fr);
+      min-height:0;
+    }
+    .vek2-dashboard .vek2-grid-bottom {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(210px,245px);
+      min-height:0;
+    }
+    .vek2-dashboard .vek2-card,
+    .vek2-dashboard .hr-calendar.vek2-calendar {
+      height:100%;
+      min-height:0;
+    }
+    .vek2-dashboard .vek2-summary,
+    .vek2-dashboard .vek2-statistics,
+    .vek2-dashboard .vek2-evolution {
+      min-height:0;
+    }
+    .vek2-dashboard .vek2-table th:nth-child(2),
+    .vek2-dashboard .vek2-table td:nth-child(2),
+    .vek2-dashboard .vek2-table th:nth-child(3),
+    .vek2-dashboard .vek2-table td:nth-child(3),
+    .vek2-dashboard .vek2-table th:nth-child(4),
+    .vek2-dashboard .vek2-table td:nth-child(4) {display:none;}
+    .vek2-dashboard .vek2-table th:nth-child(1) {width:61%;}
+    .vek2-dashboard .vek2-table th:nth-child(5) {width:33%;}
+    .vek2-dashboard .vek2-table th:nth-child(6) {width:6%;}
+  }
+}
+/* Menos altura real tras pestañas del navegador y barra de Windows.
+   Compactar contenido sin ocultar métricas ni introducir barras anidadas. */
+@media (min-width:901px) and (max-width:1600px) and (max-height:880px) {
+  .vek2-dashboard .vek2-grid {
+    display:grid;
+    flex:1 1 0;
+    grid-template-rows:minmax(0,1.13fr) minmax(0,1fr);
+    gap:clamp(8px,1.3vh,12px);
+  }
+  .vek2-dashboard .vek2-grid-top,
+  .vek2-dashboard .vek2-grid-bottom {
+    min-height:0;
+    gap:clamp(8px,1.3vh,12px);
+  }
+  .vek2-dashboard .vek2-card-heading {min-height:49px;padding:9px 12px 6px;}
+  .vek2-dashboard .vek2-tabs {min-height:32px;}
+  .vek2-dashboard .vek2-tabs button {min-height:32px;}
+  .vek2-dashboard .vek2-table thead {height:26px;}
+  .vek2-dashboard .vek2-table tbody tr {height:clamp(40px,5.9vh,50px);}
+  .vek2-dashboard .vek2-table td {padding:3px 6px;}
+  .vek2-dashboard .vek2-client-avatar {width:27px;height:27px;flex-basis:27px;}
+  .vek2-dashboard .vek2-stat-foot {flex-basis:50px;padding:5px 10px 7px;}
+  .vek2-dashboard .vek2-stat-legend {gap:5px;}
+  .vek2-dashboard .vek2-donut-layout {gap:5px;padding:0 9px 4px;}
+  .vek2-dashboard .vek2-evolution .vek2-card-heading {min-height:49px;}
+  .vek2-dashboard .vek2-chart-plot {margin:1px 12px 8px;}
+  .vek2-dashboard .hr-calendar .hr-panel-heading {
+    flex:0 0 46px;
+    min-height:46px;
+    padding:9px 10px 5px;
+  }
+  .vek2-dashboard .hr-calendar-weekdays {
+    flex:0 0 22px;
+    min-height:22px;
+  }
+  .vek2-dashboard .hr-calendar-days {
+    flex:1 1 auto;
+    min-height:0;
+    grid-auto-rows:minmax(19px,1fr);
+    margin:0 11px;
+  }
+  .vek2-dashboard .hr-calendar-footer {
+    flex:0 0 32px;
+    padding:4px 9px;
+  }
+}
+/* Con el viewport muy bajo, Inicio enseña 3 solicitudes recientes; 'Ver todas'
+   sigue abriendo las siete (o más) existentes en Oportunidades. */
+@media (min-width:901px) and (max-width:1600px) and (max-height:680px) {
+  .vek2-dashboard .vek2-table tbody tr:nth-child(n+4) {display:none;}
+  .vek2-dashboard .vek2-table tbody tr {height:clamp(39px,6.7vh,47px);}
+  .vek2-dashboard .vek2-card-heading {min-height:43px;padding:7px 10px 4px;}
+  .vek2-dashboard .vek2-evolution .vek2-card-heading {min-height:43px;}
+  .vek2-dashboard .vek2-tabs,
+  .vek2-dashboard .vek2-tabs button {min-height:28px;}
+}
