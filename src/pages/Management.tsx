@@ -2,14 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type Channel, dt, money, decimal, dateText, today } from '../domain';
+import { CHANNELS, type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { Button, Empty, Field, Modal, Panel } from '../ui';
 import ResultsInsights from './ResultsInsights';
 import FinanceAnalytics from './FinanceAnalytics';
 import CatalogManager from './CatalogManager';
 import TransportRouteCalculator from './TransportRouteCalculator';
 
-const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
   const {data,addTask,toggleTask}=useCrm();
   const [searchParams,setSearchParams]=useSearchParams();
