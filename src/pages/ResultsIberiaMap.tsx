@@ -186,6 +186,6 @@ export default function ResultsIberiaMap({leads,orders}:{leads:Input[];orders:In
      <Link to={mode==='consultas'?'/oportunidades':'/pedidos'} className="ri-geo-link">Consultar registros <ArrowRight size={15}/></Link>
     </aside>
    </div>
-   <footer className="ri-geo-foot">Cartografía territorial generalizada: CartoDB Common Data (provincias españolas) y OpenStreetMap (distritos portugueses). No constituye cartografía oficial. Marcadores de referencia provincial/distrital; no se geolocalizan personas ni visitantes de la web.</footer>
+   <footer className="ri-geo-foot">Contornos territoriales generalizados: CartoDB Common Data (provincias españolas) y © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors (ODbL)</a> (distritos portugueses). Vista peninsular, sin Canarias, Ceuta ni Melilla. No es cartografía jurídica; los marcadores son referencias de capitales, nunca domicilios ni ubicaciones web.</footer>
  </section>;
 }
