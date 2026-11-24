@@ -81,7 +81,23 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         orders: d.orders.map(o => o.id === id ? { ...o, customerId, paymentMode: mode, advanceReceived: Math.max(0, amount), activity: [{ at: today(), text: mode + ' (registro de demostración)', by: 'Dirección' }, ...o.activity] } : o) };
     }),
     updateOrder: (id: string, patch: Partial<Order>, eventText?: string) => setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, ...patch, activity: eventText ? [{ at: today(), text: eventText, by: 'Fábrica' }, ...o.activity] : o.activity } : o) })),
-    addCommissionPayment: (id: string, amount: number) => setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, commissionPaid: Math.min(o.commission, o.commissionPaid + Math.max(0, amount)), activity: [{ at: today(), text: 'Pago de comisión registrado: ' + amount.toFixed(2) + ' € (demo)', by: 'Dirección' }, ...o.activity] } : o) })),
+    addCommissionPayment: (id: string, amount: number) => setData(d => {
+      const order=d.orders.find(o=>o.id===id);
+      const requested=Number.isFinite(amount)?Math.max(0,amount):0;
+      if(!order||requested<=0)return d;
+      const previous=Math.max(0,order.commissionPaid);
+      const applied=Math.max(0,Math.min(Math.max(0,order.commission),previous+requested)-previous);
+      if(applied<=0)return d;
+      const date=today();
+      return {
+        ...d,
+        commissionPayments:[...(d.commissionPayments||[]),{id:uid('COB'),orderId:id,amount:applied,paidAt:date}],
+        orders:d.orders.map(o=>o.id===id?{
+          ...o,commissionPaid:previous+applied,
+          activity:[{at:date,text:'Pago de comisión registrado: '+applied.toFixed(2)+' € (demo)',by:'Dirección'},...o.activity]
+        }:o)
+      };
+    }),
     addTask: (title: string, due: string, context: string) => setData(d => ({ ...d, tasks: [{ id: uid('TA'), title, due, context, done: false }, ...d.tasks] })),
     toggleTask: (id: string) => setData(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) })),
     addProduct: (item: Omit<Product, 'id'>) => setData(d => ({ ...d, products: [{ ...item, id: uid('PR') }, ...d.products] })),
