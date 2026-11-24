@@ -32,6 +32,8 @@ export type Product = {
   id: string; name: string; family: string; capacity: string;
   /** Precio de venta interno configurado manualmente; 0 = sin precio. Nunca coste de compra. */
   price: number; active: boolean;
+  /** True only after explicitly configuring a selling price in the new catalog UI. */
+  salePriceConfigured?: boolean;
   /** Optional for legacy CRM products; populated by catalog migration without losing existing data. */
   categoryId?: string;
 };
