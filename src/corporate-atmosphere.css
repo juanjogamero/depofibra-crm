@@ -105,22 +105,8 @@
 }
 .app-body .app-main .crm-workspace-kpis .kpi:hover {transform:none;}
 
-/* Cabeceras: una línea institucional muy discreta, sin ocupar espacio. */
-.app-body .app-main :is(.panel-head,.vek2-card-heading,.hr-panel-heading) {
-  position:relative;
-}
-.app-body .app-main :is(.panel-head,.vek2-card-heading,.hr-panel-heading)::after {
-  content:"";
-  position:absolute;
-  left:0;
-  bottom:0;
-  width:46px;
-  height:2px;
-  border-radius:4px;
-  pointer-events:none;
-  opacity:.46;
-  background:linear-gradient(90deg,#01488e 0%,rgba(1,72,142,.08) 100%);
-}
+/* Las cabeceras de panel conservan su línea y padding originales.
+   Un pseudo-elemento adicional solapaba subtítulos y pestañas en algunos anchos. */
 /* El indicador circular de Finanzas mantiene su ::before original corregido;
    no aplicar ni paneles ni capas a .finance-donut. */
 
@@ -170,20 +156,9 @@
   border-top-color:rgba(188,209,227,.54);
 }
 
-/* Tabs sin redimensionar ni recolocar su subrayado activo. */
-.app-body .app-main .op-phase-tab:not(.is-active) {
-  background:rgba(255,255,255,.77);
-  border-color:rgba(183,207,226,.64);
-}
-.app-body .app-main .op-phase-tab:not(.is-active):hover {
-  background:#f1f8fd;
-  border-color:#a9cce6;
-}
-.app-body .app-main .op-phase-tab.is-active {
-  background:rgba(250,253,255,.97);
-  box-shadow:0 2px 7px rgba(0,45,89,.05);
-}
-
+/* Las pestañas mantienen la navegación ORIGINAL: fondo transparente,
+   línea inferior activa y contadores suaves. Los fondos blancos de esta
+   capa las convertían en falsos botones rectangulares, generando choques. */
 /* Inputs y búsqueda: foco más legible sin ampliar contenedores. */
 .app-body .app-main :is(
   .op-search,
@@ -242,5 +217,51 @@
   .app-body.is-dashboard .app-main {background:#fff;}
   .app-body .app-main :is(.panel,.kpi,.op-table-panel,.results-panel,.results-kpi,.vek2-card) {
     background:#fff;box-shadow:none;
+  }
+}
+
+
+/* REG-0112 · corrección visual de Finanzas (24/11/2026).
+   La regla anterior de portátil trataba los paneles como columnas a altura
+   completa. Ahora los dos paneles se ajustan a su contenido, dejando visible
+   la neblina debajo. Sin tocar cifras, gráfico, scroll o distribución de KPIs. */
+@media (min-width:841px) {
+  .app-body.is-finance .page.page-finance .finance-content-grid {
+    flex:0 0 auto;
+    height:auto;
+    max-height:none;
+    min-height:0;
+    align-items:start;
+    overflow:visible;
+    margin-bottom:0;
+  }
+  .app-body.is-finance .page.page-finance .finance-content-grid > .panel {
+    height:auto;
+    min-height:0;
+    max-height:none;
+    align-self:start;
+    overflow:visible;
+  }
+  .app-body.is-finance .page.page-finance .finance-visual {
+    flex:0 0 auto;
+    align-items:center;
+    justify-content:flex-start;
+    min-height:0;
+    padding:8px 0 10px;
+  }
+  .app-body.is-finance .page.page-finance .hint-row {
+    flex:0 0 auto;
+    margin-top:3px;
+    padding-top:9px;
+  }
+}
+/* Compactar sin recortar en portátiles bajos: la altura es natural. */
+@media (min-width:841px) and (max-height:740px) {
+  .app-body.is-finance .page.page-finance .finance-visual {
+    padding:4px 0 7px;
+  }
+  .app-body.is-finance .page.page-finance .hint-row {
+    margin-top:1px;
+    padding-top:6px;
   }
 }
