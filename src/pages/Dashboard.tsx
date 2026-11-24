@@ -45,7 +45,7 @@ function receivedDate(o:Opportunity) {
   };
 }
 function shortInitials(name:string) {
-  const words=name.replace(/\\s*·\\s*ejemplo$/i,'').trim().split(/\\s+/).filter(Boolean);
+  const words=name.replace(/\s*·\s*ejemplo$/i,'').trim().split(/\s+/).filter(Boolean);
   return words.length>1
     ?(words[0][0]+words[words.length-1][0]).toLocaleUpperCase('es-ES')
     :(words[0]||'?').slice(0,2).toLocaleUpperCase('es-ES');
