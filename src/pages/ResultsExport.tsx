@@ -23,6 +23,19 @@ function aliases(ids:string[],prefix:string){
  ids.forEach((id,i)=>entries.set(id,prefix+'-'+String(i+1).padStart(3,'0')));
  return entries;
 }
+/** Collapse arbitrary user-entered reasons into safe commercial categories. */
+function lossCategory(value?:string):string{
+ const label=(value||'').toLocaleLowerCase('es-ES').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ if(!label.trim())return 'Sin motivo registrado';
+ if(label.includes('precio'))return 'Precio';
+ if(label.includes('plazo')||label.includes('demora'))return 'Plazo';
+ if(label.includes('transporte')||label.includes('envio'))return 'Transporte';
+ if(label.includes('competencia'))return 'Competencia';
+ if(label.includes('sin respuesta')||label.includes('no contesta'))return 'Sin respuesta';
+ if(label.includes('capacidad'))return 'Capacidad';
+ if(label.includes('cancel'))return 'Cancelación';
+ return 'Otro motivo';
+}
 function groups(values:string[]):Group[]{
  const counts=new Map<string,number>();
  values.forEach(v=>counts.set(v,(counts.get(v)||0)+1));
@@ -43,7 +56,7 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
  const leadRows=s.leads.map(o=>({
   referencia:leads.get(o.id),fecha:o.createdAt,canal:o.channel,producto:o.product,
   capacidad:o.capacity,zona:resolveDestinationArea(o.destination),estado_actual:o.status,
-  fecha_siguiente_accion:o.nextDate||null,motivo_perdida:o.lostReason||null
+  fecha_siguiente_accion:o.nextDate||null,motivo_perdida_categoria:lossCategory(o.lostReason)
  }));
  const quoteRows=s.quotes.map(q=>({
   referencia:quotes.get(q.id),oportunidad:leads.get(q.opportunityId)||null,
@@ -89,7 +102,7 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
   estadisticas:{
    canales:s.channels,productos_consultados:s.familyDemand,capacidades:s.capacityDemand,
    productos_con_pedidos:s.orderTypes,estados_pedidos:s.orderStatuses,
-   motivos_perdida:s.lossReasons,embudo:s.stageCounts,
+   motivos_perdida:groups(s.lost.map(o=>lossCategory(o.lostReason))),embudo:s.stageCounts,
    zonas_consultas:areasLead,zonas_pedidos:areasOrder,evolucion:series
   },
   registros_anonimizados:{oportunidades:leadRows,presupuestos:quoteRows,pedidos:orderRows},
@@ -142,8 +155,8 @@ export default function ResultsExport({data,snapshot,period,series}:{
    oportunidades:content.registros_anonimizados.oportunidades,
    presupuestos:content.registros_anonimizados.presupuestos,
    pedidos:content.registros_anonimizados.pedidos,
-   canales:content.estadisticas.canales,productos:content.estadisticas.productos_consultados,
-   zonas:content.estadisticas.zonas_consultas,actividad:content.estadisticas.evolucion
+   canales:content.estadisticas.canales,productos:[...content.estadisticas.productos_consultados.map(r=>({tipo:'Consulta',...r})),...content.estadisticas.productos_con_pedidos.map(r=>({tipo:'Pedido',...r}))],
+   zonas:[...content.estadisticas.zonas_consultas.map(r=>({tipo:'Consulta',...r})),...content.estadisticas.zonas_pedidos.map(r=>({tipo:'Pedido',...r}))],actividad:content.estadisticas.evolucion
   }[dataset];
   try{save(csv(rows),'depofibra-'+dataset+'-'+date+'.csv','text/csv;charset=utf-8');
    setMessage('CSV descargado localmente.');
