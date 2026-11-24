@@ -9,6 +9,7 @@ import ResultsIberiaMap from './ResultsIberiaMap';
 import {ResultsExecutiveOverview} from './ResultsDecisionPanels';
 import ResultsExport from './ResultsExport';
 import ResultsTrendReport from './ResultsTrendReport';
+import ResultsExternalSources from './ResultsExternalSources';
 import {ProductsResearch,ChannelsResearch,QuotesResearch,OrdersResearch} from './ResultsResearchPanels';
 import {ProductRankCard,DistributionCard} from './ResultsProductPanels';
 import { today, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
@@ -361,7 +362,8 @@ export default function ResultsInsights(){
       </div>
     </>}
     {view==='sources'&&<>
-      <div className="ri-view-section-label"><h2>Fuentes digitales</h2><p>Preparación para integrar datos comprobables de Search Console, Analytics y Tag Manager.</p></div>
+      <div className="ri-view-section-label"><h2>Fuentes digitales</h2><p>Estructura de consulta preparada para incorporar datos reales una vez verificadas las conexiones.</p></div>
+      <ResultsExternalSources/>
       <section className="ri-integration-panel">
         <div className="ri-integration-note"><CircleAlert size={18}/><span>Estas fuentes <strong>no están sincronizadas</strong> con la demo actual. Por ahora no existen aquí datos de sesiones, campañas, edades ni búsquedas de Google.</span></div>
         <div className="ri-sources">
