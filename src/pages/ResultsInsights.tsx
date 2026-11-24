@@ -260,9 +260,10 @@ export default function ResultsInsights(){
     <nav className="ri-section-nav" aria-label="Apartados de Resultados">
       {sections.map(section=><button type="button" key={section.id}
         className={'ri-section-tab'+(view===section.id?' is-active':'')}
-        aria-pressed={view===section.id} onClick={()=>setView(section.id)}>
-        <span className="ri-section-tab-number">{section.number}</span>
-        <span className="ri-section-tab-text"><strong>{section.label}</strong><small>{section.description}</small></span>
+        aria-current={view===section.id?'page':undefined}
+        aria-pressed={view===section.id}
+        title={section.description} onClick={()=>setView(section.id)}>
+        <span className="ri-section-tab-text"><strong>{section.label}</strong></span>
       </button>)}
     </nav>
     <div className="ri-active-content">
