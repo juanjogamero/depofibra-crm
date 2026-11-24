@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
-  FileText, Inbox, Layers3, MapPin, Package, Search, TrendingUp, Users
+  FileText, Inbox, Layers3, Package, Search, TrendingUp, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
 import ResultsIberiaMap from './ResultsIberiaMap';
@@ -282,8 +282,6 @@ export default function ResultsInsights(){
   const mapOrders=useMemo(()=>insights.orders.map(o=>({destination:orderDestination(o,data)})),[insights.orders,data]);
   const total=insights.leads.length;
   const conversion=total?Math.round(insights.accepted.length/total*100):0;
-  const maxChannel=Math.max(1,...insights.channels.map(x=>x.total));
-  const maxStage=Math.max(1,...insights.stageCounts.map(x=>x.count));
   return <div className="page page-opportunities page-results page-results-insights">
     <header className="ri-header">
       <div className="ri-header-copy">
