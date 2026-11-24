@@ -254,7 +254,7 @@ export default function ResultsInsights(){
             <option value="365">Últimos 12 meses</option>
           </select>
         </label>
-        <ResultsExport data={data} snapshot={{...insights,opportunities:insights.leads}} period={period} series={times.points}/>
+        <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
       </div>
     </div>
     <nav className="ri-section-nav" aria-label="Apartados de Resultados">
