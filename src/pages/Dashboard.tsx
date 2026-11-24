@@ -87,7 +87,7 @@ function initials(name:string) {
 function FocusRequests({opportunities}:{opportunities:Opportunity[]}) {
   const sorted=[...opportunities].sort((a,b)=>(b.receivedAt||b.createdAt).localeCompare(a.receivedAt||a.createdAt));
   const attention=sorted.filter(needsAttention).sort((a,b)=>priority(a)-priority(b)||a.createdAt.localeCompare(b.createdAt));
-  const items=[...attention,...sorted.filter(o=>!attention.some(urgent=>urgent.id===o.id))].slice(0,3);
+  const items=[...attention,...sorted.filter(o=>!attention.some(urgent=>urgent.id===o.id))].slice(0,5);
   return <section className="focus-card focus-requests" aria-labelledby="focus-requests-title">
     <div className="focus-card-heading">
       <div>
@@ -112,7 +112,7 @@ function FocusRequests({opportunities}:{opportunities:Opportunity[]}) {
           <ArrowRight className="focus-request-arrow" size={16} aria-hidden="true"/>
         </Link>;
       })}
-      {!items.length&&<div className="focus-empty">Todavía no hay oportunidades registradas.</div>}
+      {!items.length&&<div className="focus-empty">No hay registros para mostrar ahora mismo. ¡Estás al día!</div>}
     </div>
     <div className="focus-requests-foot">Datos locales de demostración · Todas las oportunidades se conservan en el listado</div>
   </section>;
