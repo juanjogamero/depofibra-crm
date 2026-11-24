@@ -49,6 +49,7 @@ function Value({label,value,note,href,icon}:{label:string;value:string;note:stri
   </Link>;
 }
 export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;period:InsightsPeriod;summary:CommercialPeriod}){
+  const [moreMetrics,setMoreMetrics]=useState(false);
   const total=summary.leads.length;
   const accepted=summary.accepted.length;
   const quoteLeadIds=useMemo(()=>new Set(data.quotes.map(q=>q.opportunityId).filter(Boolean)),[data.quotes]);
@@ -115,6 +116,13 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
         <div className="ri-cmd-advice"><b>{priority.title}</b><span>{priority.text}</span></div>
       </article>
     </div>
+    <div className="ri-command-morebar">
+      <span>¿Quieres revisar presupuestos e importes?</span>
+      <button type="button" aria-expanded={moreMetrics} aria-controls="ri-extra-metrics" onClick={()=>setMoreMetrics(v=>!v)}>
+        {moreMetrics?'Ocultar indicadores':'Ver 6 indicadores adicionales'} <ArrowRight size={15}/>
+      </button>
+    </div>
+    {moreMetrics&&<div id="ri-extra-metrics">
     <div className="ri-command-values" aria-label="Indicadores complementarios">
       <Value label="Presupuestos creados" value={num.format(summary.quotes.length)}
         note="Por fecha de creación" icon={<FileText size={17}/>} href="/presupuestos"/>
@@ -129,6 +137,7 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
       <Value label="Importe medio/pedido" value={summary.orders.length?money(average):'—'}
         note={summary.orders.length+' pedidos como base'} icon={<TrendingUp size={17}/>} href="/pedidos"/>
     </div>
+    </div>}
     <div className="ri-command-foot">
       <span><CircleAlert size={16}/> Datos locales de demostración. Las comparaciones y los estados no acreditan ingresos reales ni rentabilidad.</span>
       {todayTasks>0&&<Link to="/agenda">{todayTasks} {todayTasks===1?'tarea vencida':'tareas vencidas'} en agenda <ArrowRight size={15}/></Link>}
