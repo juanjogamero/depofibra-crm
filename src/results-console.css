@@ -536,3 +536,154 @@
  .page-results-insights.ri-gsc .ri-digital-head>span {margin-left:0;}
  .page-results-insights.ri-gsc .ri-digital-dimensions button {padding:9px 12px;}
 }
+
+
+/* REG-0146 · Ajuste solicitado por Dirección: lectura real y escala editorial.
+   No cambia el mapa, su geometría, los informes, los datos ni sus interacciones. */
+
+/* El submenú de Resultados deja de usar texto de 11 px; mayor contraste y área táctil. */
+.sidebar.sidebar-reference .ri-sidebar-subnav {
+  margin:4px 5px 10px 23px;
+  padding-left:9px;
+}
+.sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink {
+  min-height:39px;
+  padding:9px 9px;
+  color:#d7e7f6;
+  font:650 13.5px/1.38 Inter,Arial,sans-serif;
+}
+.sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink:is(.active,:hover,:focus-visible) {
+  color:#01488e;
+}
+.sidebar.sidebar-reference .ri-sidebar-results-parent .ri-sidebar-toggle {
+  width:34px;height:34px;min-width:34px;
+}
+.sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink:focus-visible {
+  outline:2px solid #6ca6d3;outline-offset:-2px;
+}
+
+/* Los textos auxiliares deben poder leerse sin ampliar el navegador. */
+.page-results-insights.ri-gsc .ri-header p,
+.page-results-insights.ri-gsc .ri-view-section-label p,
+.page-results-insights.ri-gsc .ri-study-head p,
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-title p {
+  font-size:12.5px;line-height:1.5;
+}
+.page-results-insights.ri-gsc .ri-header h1 {font-size:22px;}
+.page-results-insights.ri-gsc .ri-view-section-label h2,
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-title h2 {font-size:15.5px;}
+.page-results-insights.ri-gsc .ri-data-context,
+.page-results-insights.ri-gsc .ri-overview-signals,
+.page-results-insights.ri-gsc .ri-study-inline-facts,
+.page-results-insights.ri-gsc .ri-study-footnote,
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-foot {
+  font-size:12px;line-height:1.55;
+}
+.page-results-insights.ri-gsc .ri-period-pills button,
+.page-results-insights.ri-gsc .ri-report-selector,
+.page-results-insights.ri-gsc .ri-report-selector select,
+.page-results-insights.ri-gsc .ri-export-button,
+.page-results-insights.ri-gsc .ri-study-search input,
+.page-results-insights.ri-gsc .ri-study-sort,
+.page-results-insights.ri-gsc .ri-study-sort select,
+.page-results-insights.ri-gsc .ri-study-link {
+  font-size:12.5px;
+}
+.page-results-insights.ri-gsc .ri-study-table {font-size:12.5px;line-height:1.5;}
+.page-results-insights.ri-gsc .ri-study-table thead th {font-size:12px;}
+.page-results-insights.ri-gsc .ri-study-strip span,
+.page-results-insights.ri-gsc .ri-study-strip small,
+.page-results-insights.ri-gsc .ri-geo-pro-strip span {
+  font-size:12px;
+}
+.page-results-insights.ri-gsc .ri-trend-metric span,
+.page-results-insights.ri-gsc .ri-trend-info,
+.page-results-insights.ri-gsc .ri-trend-inspector>span,
+.page-results-insights.ri-gsc .ri-trend-inspector strong {
+  font-size:12.5px;
+}
+.page-results-insights.ri-gsc .ri-trend-metric small {font-size:11.5px;}
+.page-results-insights.ri-gsc .ri-trend-axis-label {font-size:13px;}
+
+/* Mapa detallado, pero nunca a escala de pantalla completa en ordenador.
+   A 1366–1920 px prioriza una proporción equilibrada entre mapa y tabla territorial. */
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {
+  grid-template-columns:minmax(0,1.12fr) minmax(270px,.88fr);
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-maparea {
+  display:flex;align-items:flex-start;justify-content:center;align-self:start;
+  background:#f8fbfd;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-svg {
+  display:block;width:100%;max-width:620px;height:auto;max-height:none;
+  aspect-ratio:850/520;
+}
+.page-results-insights.ri-gsc .ri-geo-pro-strip>div {padding:10px 15px;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {padding:12px 17px;}
+.page-results-insights.ri-gsc .ri-map-zones-table {max-height:205px;}
+.page-results-insights.ri-gsc .ri-map-list-head h3 {font-size:13px;}
+.page-results-insights.ri-gsc .ri-map-list-head span,
+.page-results-insights.ri-gsc .ri-map-selection-label,
+.page-results-insights.ri-gsc .ri-map-selection small,
+.page-results-insights.ri-gsc .ri-map-selection p,
+.page-results-insights.ri-gsc .ri-map-zones-table>button,
+.page-results-insights.ri-gsc .ri-map-zones-table>button strong,
+.page-results-insights.ri-gsc .ri-map-zones-table>button small,
+.page-results-insights.ri-gsc .ri-map-showall,
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-link,
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-switch button {
+  font-size:12px;line-height:1.4;
+}
+.page-results-insights.ri-gsc .ri-map-zones-table>button {min-height:35px;}
+.page-results-insights.ri-gsc .ri-map-filter input {font-size:12px;}
+.page-results-insights.ri-gsc .ri-map-countries span {font-size:11.5px;}
+
+/* La curva temporal queda contenida en una anchura de lectura, sin llenar
+   artificialmente el espacio de un monitor grande. Tabla intacta debajo. */
+.page-results-insights.ri-gsc .ri-trend-chart-scroll {padding:13px 15px 2px;}
+.page-results-insights.ri-gsc .ri-trend-chart {
+  display:block;width:min(100%,850px);min-width:650px;
+  height:auto;max-height:none;margin-inline:auto;
+}
+.page-results-insights.ri-gsc .ri-trend-metric {
+  flex:0 0 188px;min-height:84px;padding:12px 16px;
+}
+.page-results-insights.ri-gsc .ri-trend-metric strong {font-size:26px;}
+
+/* En portátiles el mapa se centra en vez de aumentar hasta el ancho disponible.
+   La información territorial se coloca en dos columnas cuando cabe. */
+@container crm-content (max-width:1000px) {
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {
+    display:grid;grid-template-columns:minmax(210px,.85fr) minmax(270px,1.15fr);
+    border-left:0;border-top:1px solid #e1e8ee;
+  }
+  .page-results-insights.ri-gsc .ri-map-selection {
+    grid-column:1;grid-row:1;border-bottom:0;border-right:1px solid #e5edf2;
+  }
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-zones {
+    grid-column:2;grid-row:1/span 2;border-left:0;
+  }
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-link {
+    grid-column:1;grid-row:2;align-self:end;
+  }
+}
+@container crm-content (max-width:700px) {
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {
+    display:flex;flex-direction:column;
+  }
+  .page-results-insights.ri-gsc .ri-map-selection {
+    width:100%;border-right:0;border-bottom:1px solid #e5edf2;
+  }
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-zones {width:100%;}
+  .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-link {width:calc(100% - 30px);}
+}
+@media(max-width:500px) {
+  .page-results-insights.ri-gsc .ri-period-pills button {font-size:12px;}
+  .page-results-insights.ri-gsc .ri-trend-metric {
+    flex:1 1 140px;min-width:0;min-height:79px;
+  }
+  .page-results-insights.ri-gsc .ri-geo-pro-strip>div {padding:10px 12px;}
+}
