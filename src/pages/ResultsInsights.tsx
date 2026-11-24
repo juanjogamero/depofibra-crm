@@ -76,40 +76,150 @@ function windowSeries(leads:Opportunity[],quotes:Quote[],period:Period): {points
   });
   return {points,caption:period==='all'?'Tendencia de las últimas 8 semanas; el resto de indicadores incluye todo el historial':'Actividad semanal del periodo elegido'};
 }
+
 function linePath(rows:TrendPoint[],key:'leads'|'quotes',max:number):string{
-  return rows.map((item,i)=>{
-    const x=30+i*660/Math.max(1,rows.length-1);
-    const y=180-item[key]*135/Math.max(1,max);
-    return (i?'L ':'M ')+x.toFixed(2)+' '+y.toFixed(2);
-  }).join(' ');
+  if(!rows.length)return '';
+  const x=(i:number)=>36+i*648/Math.max(1,rows.length-1);
+  const y=(v:number)=>198-(v/Math.max(max,1))*155;
+  let path='M '+x(0)+' '+y(rows[0][key]);
+  for(let i=1;i<rows.length;i++){
+    const middle=(x(i-1)+x(i))/2;
+    path+=' C '+middle+' '+y(rows[i-1][key])+' '+middle+' '+y(rows[i][key])+' '+x(i)+' '+y(rows[i][key]);
+  }
+  return path;
 }
 function TrendChart({points}:{points:TrendPoint[]}) {
+  const [chosen,setChosen]=useState(-1);
+  const [showLeads,setShowLeads]=useState(true);
+  const [showQuotes,setShowQuotes]=useState(true);
+  const index=chosen>=0&&chosen<points.length?chosen:Math.max(0,points.length-1);
+  const selected=points[index];
   const peak=Math.max(2,...points.flatMap(p=>[p.leads,p.quotes]));
-  const middle=Math.ceil((points.length-1)/2);
-  return <div className="ri-trend">
-    <div className="ri-trend-key"><span><i className="is-lead"/>Consultas</span><span><i className="is-quote"/>Presupuestos</span></div>
-    <svg viewBox="0 0 720 216" preserveAspectRatio="none" role="img"
-      aria-label={'Evolución de consultas y presupuestos: '+points.map(p=>p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos').join('; ')}>
-      {[0,1,2,3].map(t=><line key={t} x1="30" x2="690" y1={45+t*45} y2={45+t*45} stroke="#e5edf4" strokeWidth="1"/>)}
-      <path d={linePath(points,'leads',peak)} stroke="#01488e" strokeWidth="3.4" fill="none" strokeLinejoin="round" strokeLinecap="round"/>
-      <path d={linePath(points,'quotes',peak)} stroke="#57a8d3" strokeWidth="2.8" fill="none" strokeLinejoin="round" strokeLinecap="round"/>
-      {points.map((p,i)=><g key={i}>
-        <circle cx={30+i*660/Math.max(1,points.length-1)} cy={180-p.leads*135/peak} r="3.7" fill="#01488e" stroke="#fff" strokeWidth="1.4"/>
-        <circle cx={30+i*660/Math.max(1,points.length-1)} cy={180-p.quotes*135/peak} r="3.3" fill="#57a8d3" stroke="#fff" strokeWidth="1.4"/>
-      </g>)}
+  const x=(i:number)=>36+i*648/Math.max(1,points.length-1);
+  const y=(n:number)=>198-n*155/peak;
+  const keys=[{key:'leads' as const,name:'Consultas',visible:showLeads,color:'#01488e'},
+              {key:'quotes' as const,name:'Presupuestos',visible:showQuotes,color:'#57a8d3'}];
+  return <div className="ri-trend ri-trend-interactive">
+    <div className="ri-trend-key" aria-label="Series que se muestran">
+      <button type="button" className={'ri-series-toggle'+(showLeads?' is-on':'')} aria-pressed={showLeads}
+        onClick={()=>{if(showQuotes||!showLeads)setShowLeads(!showLeads)}}><i className="is-lead"/>Consultas</button>
+      <button type="button" className={'ri-series-toggle'+(showQuotes?' is-on':'')} aria-pressed={showQuotes}
+        onClick={()=>{if(showLeads||!showQuotes)setShowQuotes(!showQuotes)}}><i className="is-quote"/>Presupuestos</button>
+    </div>
+    <svg className="ri-trend-svg" viewBox="0 0 720 240" role="img" aria-label={'Evolución comercial interactiva. '+points.map(p=>p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos').join('; ')}>
+      {[0,1,2,3,4].map(t=>{
+        const value=Math.round(peak*(4-t)/4);
+        return <g key={t}>
+          <line x1="36" x2="684" y1={43+t*38.75} y2={43+t*38.75} stroke="#e5edf4" strokeWidth="1"/>
+          <text x="27" y={47+t*38.75} textAnchor="end" fontSize="11" fill="#8ba2b5">{value}</text>
+        </g>;
+      })}
+      {keys.filter(k=>k.visible).map(k=><path key={k.key} d={linePath(points,k.key,peak)} fill="none" stroke={k.color}
+        strokeWidth={k.key==='leads'?3.6:3.1} strokeLinecap="round" strokeLinejoin="round"/>)}
+      {points.length>0&&<line x1={x(index)} y1="39" x2={x(index)} y2="203" stroke="#a0bcd5" strokeWidth="1.5" strokeDasharray="4 5"/>}
+      {keys.filter(k=>k.visible).flatMap(k=>points.map((p,i)=><circle key={k.key+i} cx={x(i)} cy={y(p[k.key])}
+          r={index===i?6:4.4} fill={k.color} stroke="#fff" strokeWidth="2.2" pointerEvents="none"/>))}
+      {points.map((p,i)=><rect key={p.label+i} x={i===0?28:(x(i)+x(i-1))/2}
+        y="32" width={i===0?(x(1)-x(0))/2: i===points.length-1?684-(x(i)+x(i-1))/2:
+          (x(i+1)-x(i-1))/2} height="184" fill="transparent" tabIndex={0} role="button"
+        aria-label={p.label+': '+p.leads+' consultas y '+p.quotes+' presupuestos'}
+        onPointerEnter={()=>setChosen(i)} onClick={()=>setChosen(i)}
+        onFocus={()=>setChosen(i)}
+        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setChosen(i)}}}/>)}
     </svg>
-    <div className="ri-trend-dates"><span>{points[0]?.label||'—'}</span><span>{points[middle]?.label||'—'}</span><span>{points[points.length-1]?.label||'—'}</span></div>
+    <div className="ri-trend-dates"><span>{points[0]?.label||'—'}</span><span>{points[Math.floor((points.length-1)/2)]?.label||'—'}</span><span>{points[points.length-1]?.label||'—'}</span></div>
+    {selected&&<div className="ri-chart-inspector" aria-live="polite">
+      <div><span>Periodo seleccionado</span><strong>{selected.label}</strong></div>
+      <div><span><i className="is-lead"/>Consultas</span><strong>{selected.leads}</strong></div>
+      <div><span><i className="is-quote"/>Presupuestos</span><strong>{selected.quotes}</strong></div>
+    </div>}
+    <p className="ri-chart-hint">Pasa el ratón sobre un punto o selecciónalo con el teclado para ver sus cifras. Puedes ocultar una serie.</p>
   </div>;
 }
-function RankedBars({items,tone='blue',empty='No hay registros en este periodo.',limit=6,unit=''}:
-  {items:Count[];tone?:'blue'|'teal'|'amber';empty?:string;limit?:number;unit?:string}) {
+function RankedBars({items,tone='blue',empty='No hay registros en este periodo.',limit=6,unit='',destination}:
+  {items:Count[];tone?:'blue'|'teal'|'amber';empty?:string;limit?:number;unit?:string;destination?:string}) {
+  const [chosen,setChosen]=useState<string|null>(null);
   const max=Math.max(1,...items.map(item=>item.count));
-  return items.length?<div className="ri-ranks">
-    {items.slice(0,limit).map((item,i)=><div className="ri-rank" key={item.label}>
-      <div className="ri-rank-head"><span title={item.label}><i>{String(i+1).padStart(2,'0')}</i>{item.label}</span><strong>{nf.format(item.count)}{unit}</strong></div>
-      <div className="ri-track"><span className={'ri-fill ri-fill-'+tone} style={{width:(item.count/max*100)+'%'}}/></div>
-    </div>)}
+  const total=items.reduce((sum,item)=>sum+item.count,0);
+  const selection=items.find(item=>item.label===chosen);
+  return items.length?<div className="ri-ranked-interactive">
+    <div className="ri-ranks">
+      {items.slice(0,limit).map((item,i)=><button type="button" className={'ri-rank ri-rank-button'+(item.label===chosen?' is-selected':'')}
+        key={item.label} aria-pressed={item.label===chosen} title={'Examinar '+item.label}
+        onClick={()=>setChosen(item.label===chosen?null:item.label)}>
+        <div className="ri-rank-head"><span title={item.label}><i>{String(i+1).padStart(2,'0')}</i>{item.label}</span><strong>{nf.format(item.count)}{unit}</strong></div>
+        <div className="ri-track"><span className={'ri-fill ri-fill-'+tone} style={{width:(item.count/max*100)+'%'}}/></div>
+      </button>)}
+    </div>
+    {selection&&<div className="ri-ranking-inspector" aria-live="polite">
+      <div><span>Detalle seleccionado</span><strong>{selection.label}</strong></div>
+      <div className="ri-ranking-stat"><strong>{nf.format(selection.count)}</strong><span>registros · {total?Math.round(selection.count/total*100):0}% del total</span></div>
+      {destination&&<Link to={destination}>Ver registros <ArrowRight size={15}/></Link>}
+    </div>}
   </div>:<div className="ri-empty">{empty}</div>;
+}
+function ChannelDonut({channels}:{channels:{channel:Channel;total:number;wins:number}[]}) {
+  const [selected,setSelected]=useState<Channel|null>(null);
+  const total=channels.reduce((sum,x)=>sum+x.total,0);
+  const active=channels.find(c=>c.channel===selected)||channels[0];
+  const colors=['#01488e','#2c7bb7','#53a9d0','#66b6ae','#8b88c9','#b5c8df'];
+  const radius=76,circumference=2*Math.PI*radius;
+  let offset=0;
+  if(!channels.length)return <div className="ri-empty">No hay consultas con canal en este periodo.</div>;
+  return <div className="ri-channel-visual">
+    <div className="ri-donut-layout">
+      <svg className="ri-donut-svg" viewBox="0 0 240 240" role="img" aria-label="Canales de consultas; selecciona un segmento para ver su detalle">
+        <circle cx="120" cy="120" r={radius} fill="none" stroke="#edf3f8" strokeWidth="28"/>
+        {channels.map((item,i)=>{
+          const portion=item.total/total*circumference;
+          const prior=offset;offset+=portion;
+          return <circle key={item.channel} cx="120" cy="120" r={radius} fill="none" stroke={colors[i%colors.length]}
+            strokeWidth={active?.channel===item.channel?32:27}
+            strokeDasharray={portion+' '+(circumference-portion)}
+            strokeDashoffset={-prior}
+            transform="rotate(-90 120 120)" className="ri-donut-segment"
+            tabIndex={0} role="button" aria-label={item.channel+': '+item.total+' consultas'}
+            onPointerEnter={()=>setSelected(item.channel)} onFocus={()=>setSelected(item.channel)} onClick={()=>setSelected(item.channel)}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelected(item.channel)}}}>
+            <title>{item.channel}: {item.total} consultas</title>
+          </circle>;
+        })}
+        <text x="120" y="109" textAnchor="middle" className="ri-donut-total">{active.total}</text>
+        <text x="120" y="129" textAnchor="middle" className="ri-donut-caption">{active.channel}</text>
+        <text x="120" y="147" textAnchor="middle" className="ri-donut-percent">{Math.round(active.total/total*100)}% de consultas</text>
+      </svg>
+      <div className="ri-donut-legend" role="group" aria-label="Seleccionar canal">
+        {channels.map((item,i)=><button type="button" key={item.channel} className={'ri-donut-choice'+(active.channel===item.channel?' is-selected':'')}
+          onClick={()=>setSelected(item.channel)} aria-pressed={active.channel===item.channel}>
+          <span><i style={{backgroundColor:colors[i%colors.length]}}/>{item.channel}</span>
+          <strong>{item.total}<small> ({Math.round(item.total/total*100)}%)</small></strong>
+        </button>)}
+      </div>
+    </div>
+    <div className="ri-channel-selected" aria-live="polite">
+      <span><strong>{active.channel}</strong> · {active.total} {active.total===1?'consulta':'consultas'} · {active.wins} {active.wins===1?'aceptada':'aceptadas'}</span>
+      <Link to="/oportunidades">Ver oportunidades <ArrowRight size={15}/></Link>
+    </div>
+  </div>;
+}
+function FunnelExplorer({stages}:{stages:Count[]}) {
+  const [index,setIndex]=useState(0);
+  const active=stages[Math.min(index,stages.length-1)];
+  const max=Math.max(1,...stages.map(stage=>stage.count));
+  return <div className="ri-funnel-explorer">
+    <div className="ri-funnel">
+      {stages.map((stage,i)=><button type="button" className={'ri-funnel-row ri-funnel-button'+(index===i?' is-selected':'')}
+        key={stage.label} onClick={()=>setIndex(i)} aria-pressed={index===i}>
+        <div><span>{i+1}. {stage.label}</span><strong>{stage.count}</strong></div>
+        <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(stage.count/max*100)+'%'}}/></div>
+      </button>)}
+    </div>
+    {active&&<div className="ri-funnel-inspector" aria-live="polite">
+      <span>Etapa seleccionada</span><strong>{active.label}</strong>
+      <p>{active.count} {active.count===1?'oportunidad':'oportunidades'} · {stages[0]?.count?Math.round(active.count/stages[0].count*100):0}% de las consultas del periodo</p>
+      <Link to="/oportunidades">Consultar oportunidades <ArrowRight size={15}/></Link>
+    </div>}
+  </div>;
 }
 function Panel({title,subtitle,children,extra,className=''}:{title:string;subtitle:string;children:ReactNode;extra?:ReactNode;className?:string}){
   return <section className={'ri-panel '+className}>
