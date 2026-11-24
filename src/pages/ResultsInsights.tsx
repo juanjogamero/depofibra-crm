@@ -5,6 +5,8 @@ import {
   FileText, Inbox, Layers3, MapPin, Package, Search, TrendingUp, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
+import ResultsIberiaMap from './ResultsIberiaMap';
+import {ProductRankCard,DistributionCard} from './ResultsProductPanels';
 import { money, today, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
 
 type Period = 'all' | '30' | '90' | '365';
@@ -276,6 +278,8 @@ export default function ResultsInsights(){
     return {leads,quotes,orders,accepted,lost,open,channels,lossReasons,familyDemand,capacityDemand,orderTypes,orderStatuses,areaLeads,areaOrders,overdue,unlinkedOrders,amount,delivered,stageCounts};
   },[data,period]);
   const times=useMemo(()=>windowSeries(insights.leads,insights.quotes,period),[insights.leads,insights.quotes,period]);
+  const mapLeads=useMemo(()=>insights.leads.map(o=>({destination:o.destination})),[insights.leads]);
+  const mapOrders=useMemo(()=>insights.orders.map(o=>({destination:orderDestination(o,data)})),[insights.orders,data]);
   const total=insights.leads.length;
   const conversion=total?Math.round(insights.accepted.length/total*100):0;
   const maxChannel=Math.max(1,...insights.channels.map(x=>x.total));
@@ -324,33 +328,21 @@ export default function ResultsInsights(){
         <div className="ri-inline-note">Canal anotado en la oportunidad: no es atribución automática de Analytics.</div>
       </Panel>
     </div>
-    <div className="ri-section-title"><div><h2>Productos y demanda</h2><p>Qué productos interesan y cuáles tienen más pedidos registrados.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="Productos más consultados" subtitle="Tipos solicitados en las oportunidades" extra={<Package size={21}/>}>
-        <RankedBars items={insights.familyDemand} limit={6} destination="/oportunidades" empty="Aún no hay productos consultados en el periodo."/>
-      </Panel>
-      <Panel title="Productos con más pedidos" subtitle="Referencias y capacidades registradas; no implica entrega" extra={<Package size={21}/>}>
-        <RankedBars items={insights.orderTypes} tone="teal" limit={6} destination="/pedidos" empty="No se han registrado pedidos en este periodo."/>
-        {insights.orders.length>0&&<div className="ri-inline-note">Pedidos entregados: <strong>{insights.delivered}</strong> de {insights.orders.length}. Los demás pueden estar en curso.</div>}
-      </Panel>
+
+    <div className="ri-section-title"><div><h2>Productos y demanda</h2>
+      <p>Qué productos concentran el interés, qué capacidades se piden y dónde se solicitan.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-product-card-grid">
+      <ProductRankCard title="Productos más consultados" subtitle="Tipos solicitados en las oportunidades"
+        items={insights.familyDemand} kind="consultas" to="/oportunidades"/>
+      <ProductRankCard title="Productos con más pedidos" subtitle="Referencias y capacidades registradas; no implica entrega"
+        items={insights.orderTypes} kind="pedidos" to="/pedidos"/>
     </div>
-    <div className="ri-grid-two">
-      <Panel title="Capacidades más solicitadas" subtitle="Volúmenes indicados por los interesados" extra={<BarChart3 size={21}/>}>
-        <RankedBars items={insights.capacityDemand} tone="amber" limit={6} destination="/oportunidades" empty="Sin capacidades registradas para este periodo."/>
-      </Panel>
-      <Panel title="Situación de los pedidos" subtitle="Último estado de gestión anotado en cada pedido" extra={<Package size={21}/>}>
-        <RankedBars items={insights.orderStatuses} tone="teal" destination="/pedidos" empty="No hay pedidos registrados en este periodo."/>
-      </Panel>
-    </div>
-    <div className="ri-section-title"><div><h2>Zonas y compradores</h2><p>Destinos guardados en las fichas; no son datos de geolocalización web.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="Destinos de las consultas" subtitle="Dónde se solicita el producto" extra={<MapPin size={21}/>}>
-        <RankedBars items={insights.areaLeads} limit={7} destination="/oportunidades" empty="No hay destinos de consultas registrados."/>
-      </Panel>
-      <Panel title="Destinos de los pedidos" subtitle="Zonas vinculadas a operaciones registradas" extra={<MapPin size={21}/>}>
-        <RankedBars items={insights.areaOrders} tone="teal" limit={7} destination="/pedidos" empty="Sin destinos de pedidos registrados en este periodo."/>
-        <div className="ri-inline-note">Se utiliza el destino de cliente vinculado o el de la consulta relacionada. No equivale a lugar de residencia.</div>
-      </Panel>
+    <div className="ri-demand-map-row">
+      <DistributionCard items={insights.capacityDemand} kind="capacidades" title="Capacidades más solicitadas"
+        subtitle="Volúmenes indicados por los interesados" to="/oportunidades"/>
+      <ResultsIberiaMap leads={mapLeads} orders={mapOrders}/>
+      <DistributionCard items={insights.orderStatuses} kind="estados" title="Situación de los pedidos"
+        subtitle="Último estado de gestión registrado" to="/pedidos"/>
     </div>
     <div className="ri-section-title"><div><h2>Conversión y seguimiento</h2><p>Un embudo consultable y las señales que requieren intervención comercial.</p></div><span>Fuente · CRM</span></div>
     <div className="ri-grid-three">
