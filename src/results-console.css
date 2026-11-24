@@ -549,7 +549,7 @@
 .sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink {
   min-height:39px;
   padding:9px 9px;
-  color:#3e5c75;
+  color:#d7e7f6;
   font:650 13.5px/1.38 Inter,Arial,sans-serif;
 }
 .sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink:is(.active,:hover,:focus-visible) {
