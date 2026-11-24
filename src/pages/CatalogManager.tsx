@@ -1,7 +1,7 @@
 import {useMemo,useState,type FormEvent} from 'react';
 import {Link} from 'react-router-dom';
 import {
-  ArrowRight,Boxes,Check,ChevronRight,FileText,FolderPlus,Info,
+  ArrowRight,Boxes,Check,ChevronRight,FolderPlus,Info,
   Package,Plus,Search,ShieldCheck,SlidersHorizontal,X
 } from 'lucide-react';
 import {useCrm} from '../store';
@@ -11,7 +11,7 @@ import {Button,Field,Modal} from '../ui';
 const fams=['Depósitos PRFV','Fosas sépticas','Piscinas','Cubas y cisternas','Otros'];
 const key=(value:string)=>value.toLocaleLowerCase('es-ES').replace(/[.\s]+/g,'').trim();
 const numbered=(s:string)=>Number(s.replace(/[^\d]/g,''))||0;
-const salePrice=(p:Product)=>Number.isFinite(p.price)&&p.price>0?decimal(p.price):'Sin configurar';
+const salePrice=(p:Product)=>p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?decimal(p.price):(p.price>0?'Revisar precio anterior':'Sin configurar');
 
 export default function CatalogManager(){
  const {data,addProduct,updateProduct,addProductCategory,updateProductCategory}=useCrm();
@@ -41,7 +41,7 @@ export default function CatalogManager(){
      ||data.products.some(p=>p.categoryId===c.id&&[p.name,p.capacity,p.id].join(' ').toLocaleLowerCase('es-ES').includes(q)))
    .sort((a,b)=>a.name.localeCompare(b.name,'es'));
  },[categories,data.products,search]);
- const priced=data.products.filter(p=>Number.isFinite(p.price)&&p.price>0).length;
+ const priced=data.products.filter(p=>p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0).length;
  const openCategory=(c?:ProductCategory)=>{
    setEditCat(c?.id||'');setCategoryName(c?.name||'');
    setCategoryFamily(c?.family||fams[0]);
@@ -85,7 +85,7 @@ export default function CatalogManager(){
      setError('El precio debe ser positivo o dejarse vacío.');return;
    }
    const amount=price.trim()?Number(price):0;
-   const item={name:selected.name,family:selected.family,categoryId:selected.id,capacity:cap,price:amount,active};
+   const item={name:selected.name,family:selected.family,categoryId:selected.id,capacity:cap,price:amount,active,salePriceConfigured:amount>0};
    if(editProduct)updateProduct(editProduct,item);
    else addProduct(item);
    setDialog(null);
@@ -141,7 +141,7 @@ export default function CatalogManager(){
       </div>
       {selected.attributes.length?<div className="catalog2-attribute-list">
        {selected.attributes.map(a=><div className="catalog2-attribute" key={a.id}><span>{a.label}</span><strong>{a.value||'Pendiente de verificar'}</strong></div>)}
-      </div>:<p className="catalog2-attribute-empty">Aún no hay atributos técnicos comunes. Añádelos cuando estén verificados por modelo o fabricante.</p>}
+      </div>:<p className="catalog2-attribute-empty">Aún no hay atributos técnicos comunes. Añádelos cuando estén verificados para toda la categoría.</p>}
      </section>
      <section className="catalog2-variants" aria-labelledby="catalog2-variants-title">
       <div className="catalog2-section-heading"><div>
@@ -154,14 +154,14 @@ export default function CatalogManager(){
         <thead><tr><th>Capacidad / referencia</th><th>Precio de venta</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody>{visibleProducts.map(p=><tr key={p.id}>
          <td><div className="catalog2-product-id"><span><Package size={19}/></span><div><strong>{p.capacity}</strong><small>{p.id}</small></div></div></td>
-         <td><strong className={p.price>0?'catalog2-priced':'catalog2-unpriced'}>{salePrice(p)}</strong></td>
+         <td><strong className={p.salePriceConfigured&&p.price>0?'catalog2-priced':'catalog2-unpriced'}>{salePrice(p)}</strong></td>
          <td><span className={'catalog2-status'+(p.active?' is-active':'')}>{p.active?'Disponible':'Inactiva'}</span></td>
          <td><button className="catalog2-edit-link" type="button" onClick={()=>openVariant(p)}>Editar <ArrowRight size={15}/></button></td>
         </tr>)}</tbody>
        </table>
        {!visibleProducts.length&&<p className="catalog2-empty">{products.length?'No hay capacidades que coincidan con la búsqueda.':'Esta categoría aún no tiene capacidades. Añade la primera referencia.'}</p>}
       </div>
-      <div className="catalog2-table-foot">{visibleProducts.length} de {products.length} variantes · Los precios se guardan por referencia y se pueden modificar sin cambiar presupuestos antiguos.</div>
+      <div className="catalog2-table-foot">{visibleProducts.length} de {products.length} variantes · Los precios de venta deben confirmarse al editar cada referencia; los presupuestos antiguos no cambian.</div>
      </section>
      <div className="catalog2-guidance"><ShieldCheck size={18}/><span>Introduce únicamente <b>precios de venta configurados para uso interno</b>, no costes de compra. Antes de comunicar una oferta, revisa impuestos, transporte, descarga, accesorios y condiciones técnicas. Las variantes sin precio requieren introducirlo manualmente en el presupuesto.</span></div>
     </>:<div className="catalog2-welcome"><FolderPlus size={30}/><h2>Empieza creando una categoría</h2><p>Después podrás añadir las capacidades, sus precios y los atributos compartidos.</p><button type="button" onClick={()=>openCategory()}>Crear primera categoría</button></div>}
