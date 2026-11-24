@@ -24,8 +24,8 @@ function Strip({items}:{items:{label:string;value:string;hint?:string}[]}){
 function InfoLine({children}:{children:ReactNode}){return <p className="ri-study-footnote"><Info size={14}/>{children}</p>}
 function Empty(){return <div className="ri-study-empty">No hay datos de este tipo en el periodo seleccionado.</div>}
 
-type ProductRow={key:string;leads:number;quotes:number;quoteAmount:number;orders:number;delivered:number;orderAmount:number};
-function buildProducts({data,leads,quotes,orders}:Dataset){
+export type ProductRow={key:string;leads:number;quotes:number;quoteAmount:number;orders:number;delivered:number;orderAmount:number};
+export function buildProducts({data,leads,quotes,orders}:Dataset){
  const rows=new Map<string,ProductRow>();
  const allLeads=new Map(data.opportunities.map(x=>[x.id,x]));
  const allQuotes=new Map(data.quotes.map(x=>[x.id,x]));
@@ -79,16 +79,14 @@ export function ProductsResearch(props:Dataset){
  </section>;
 }
 
-type ChannelRow={name:Channel;total:number;accepted:number;lost:number;quotedLeads:number;orders:number;delivered:number;orderAmount:number};
+export type ChannelRow={name:Channel;total:number;accepted:number;lost:number;quotedLeads:number;orders:number;delivered:number;orderAmount:number};
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
-export function ChannelsResearch({data,leads}:Dataset){
- const [metric,setMetric]=useState<'total'|'accepted'|'orders'>('total');
- const allQuotes=data.quotes;
+export function buildChannelMetrics(data:CrmState,leads:Opportunity[]):ChannelRow[]{
  const byLead=new Map<string,Quote[]>();
- allQuotes.forEach(q=>{if(!q.opportunityId)return;const prev=byLead.get(q.opportunityId)||[];prev.push(q);byLead.set(q.opportunityId,prev)});
+ data.quotes.forEach(q=>{if(!q.opportunityId)return;const prev=byLead.get(q.opportunityId)||[];prev.push(q);byLead.set(q.opportunityId,prev)});
  const byQuote=new Map<string,Order[]>();
  data.orders.forEach(o=>{if(!o.quoteId)return;const prev=byQuote.get(o.quoteId)||[];prev.push(o);byQuote.set(o.quoteId,prev)});
- const rows:ChannelRow[]=CHANNELS.map(name=>{
+ return CHANNELS.map(name=>{
   const group=leads.filter(x=>x.channel===name);
   const linkedQuotes=new Map(group.flatMap(x=>byLead.get(x.id)||[]).map(q=>[q.id,q]));
   const linkedOrders=new Map([...linkedQuotes.keys()].flatMap(id=>byQuote.get(id)||[]).map(o=>[o.id,o]));
@@ -99,7 +97,11 @@ export function ChannelsResearch({data,leads}:Dataset){
    orders:relatedOrders.length,delivered:relatedOrders.filter(o=>o.factory==='Entregado').length,
    orderAmount:relatedOrders.reduce((sum,o)=>sum+(Number(o.amount)||0),0)
   };
- }).sort((a,b)=>b[metric]-a[metric]||a.name.localeCompare(b.name,'es'));
+ });
+}
+export function ChannelsResearch({data,leads}:Dataset){
+ const [metric,setMetric]=useState<'total'|'accepted'|'orders'>('total');
+ const rows=buildChannelMetrics(data,leads).sort((a,b)=>b[metric]-a[metric]||a.name.localeCompare(b.name,'es'));
  const leading=rows.find(x=>x.total>0);
  return <section className="ri-study-section">
   <Head title="Consultas y resultados por plataforma" subtitle="De qué canal llegan oportunidades y qué recorrido tienen dentro del CRM" extra={<RowLink to="/oportunidades">Oportunidades</RowLink>}/>
