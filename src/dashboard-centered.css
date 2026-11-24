@@ -171,8 +171,8 @@
   display:flex;
   flex:1 1 0;
   align-items:center;
-  min-height:61px;
-  max-height:96px;
+  min-height:55px;
+  max-height:82px;
   gap:clamp(7px,1vw,14px);
   padding:clamp(8px,1vh,13px) 0;
   border-bottom:1px solid #e7eef5;
