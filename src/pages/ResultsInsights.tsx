@@ -12,12 +12,11 @@ import ResultsTrendReport from './ResultsTrendReport';
 import ResultsExternalSources from './ResultsExternalSources';
 import {ProductsResearch,ChannelsResearch,QuotesResearch,OrdersResearch} from './ResultsResearchPanels';
 import {ProductRankCard,DistributionCard} from './ResultsProductPanels';
-import { today, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
+import { today, CHANNELS, sourceChannel, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
 
 type Period = 'all' | '30' | '90' | '365';
 type Count = { label: string; count: number };
 type TrendPoint = { label: string; leads: number; quotes: number };
-const CHANNELS: Channel[] = ['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 const nf = new Intl.NumberFormat('es-ES');
 
 function dateWithin(date: string, period: Period): boolean {
@@ -204,8 +203,8 @@ export default function ResultsInsights(){
     const quotedLeads=leads.filter(o=>linkedQuotes.has(o.id));
     const linkedOrders=leads.filter(o=>linkedOrderLeadIds.has(o.id));
     const channels=CHANNELS.map(channel=>{
-      const total=leads.filter(o=>o.channel===channel).length;
-      const wins=leads.filter(o=>o.channel===channel&&o.status==='Aceptada').length;
+      const total=leads.filter(o=>sourceChannel(o)===channel).length;
+      const wins=leads.filter(o=>sourceChannel(o)===channel&&o.status==='Aceptada').length;
       return {channel,total,wins};
     }).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
     const lossReasons=countBy(lost,o=>o.lostReason||'Sin motivo registrado');
