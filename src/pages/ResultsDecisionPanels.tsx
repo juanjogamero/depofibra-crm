@@ -48,7 +48,7 @@ function Value({label,value,note,href,icon}:{label:string;value:string;note:stri
     <small>{note}</small>
   </Link>;
 }
-export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;period:InsightsPeriod;summary:CommercialPeriod}){
+export function ResultsExecutiveOverview({data,period,summary,mode='summary'}:{data:CrmState;period:InsightsPeriod;summary:CommercialPeriod;mode?:'summary'|'detail'}){
   const total=summary.leads.length;
   const accepted=summary.accepted.length;
   const quoteLeadIds=useMemo(()=>new Set(data.quotes.map(q=>q.opportunityId).filter(Boolean)),[data.quotes]);
@@ -64,11 +64,12 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
     firstResponse>0?'Atiende las consultas nuevas antes de ampliar captación':
     notQuoted>0?'Prepara los presupuestos que siguen pendientes':
     'Sin urgencias comerciales detectadas en el periodo';
-  return <section className="ri-focus-overview" aria-labelledby="ri-focus-title">
+  return <section className={"ri-focus-overview ri-focus-overview-"+mode} aria-labelledby="ri-focus-title">
     <header className="ri-focus-head">
-      <div><h2 id="ri-focus-title">Pulso comercial</h2><p>Lo esencial de la actividad registrada</p></div>
+      <div><h2 id="ri-focus-title">{mode==='summary'?'Panorama comercial':'Actividad y seguimiento'}</h2><p>{mode==='summary'?'Indicadores principales del periodo':'Prioridades, conversión y métricas comerciales completas'}</p></div>
       <small>{periodText(period)}</small>
     </header>
+    {mode==='summary'&&<>
     <div className="ri-focus-stats">
       <Link to="/oportunidades" className="ri-focus-stat"><span>Consultas</span><strong>{num.format(total)}</strong><small>Entradas del periodo</small></Link>
       <Link to="/presupuestos" className="ri-focus-stat"><span>Presupuestos</span><strong>{num.format(summary.quotes.length)}</strong><small>Propuestas creadas</small></Link>
@@ -79,6 +80,8 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
       <span><TrendingUp size={16}/> Evolución de consultas</span>
       <Comparison now={total} previous={previous}/>
     </div>
+    </>}
+    {mode==='detail'&&<>
     <div className="ri-focus-lower">
       <div className="ri-focus-priority">
         <div className="ri-focus-priority-title"><div><h3>Por atender</h3><p>{priority}</p></div><strong>{pending}</strong></div>
@@ -106,8 +109,8 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
         </div>
       </div>
     </div>
-    <details className="ri-focus-details">
-      <summary>Ver más indicadores <span>Presupuestos vinculados, importes y pedidos</span></summary>
+    <div className="ri-focus-details ri-focus-details-static">
+      <h3>Otros indicadores comerciales</h3>
       <div className="ri-command-values" aria-label="Indicadores complementarios">
         <Value label="Presupuestos creados" value={num.format(summary.quotes.length)}
           note="Por fecha de creación" icon={<FileText size={17}/>} href="/presupuestos"/>
@@ -122,10 +125,11 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
         <Value label="Importe medio/pedido" value={summary.orders.length?money(average):'—'}
           note={summary.orders.length+' pedidos como base'} icon={<TrendingUp size={17}/>} href="/pedidos"/>
       </div>
-    </details>
+    </div>
     <footer className="ri-focus-foot"><span>Datos locales de demostración; no representan facturación ni rentabilidad real.</span>
       {todayTasks>0&&<Link to="/agenda">{todayTasks} {todayTasks===1?'tarea vencida':'tareas vencidas'} en agenda <ArrowRight size={14}/></Link>}
     </footer>
+    </>}
   </section>;
 }
 export function ResultsActivityBoard({points,period,caption}:{points:ActivityBucket[];period:InsightsPeriod;caption:string}){

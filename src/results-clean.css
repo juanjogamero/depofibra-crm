@@ -267,3 +267,81 @@
 @media(prefers-reduced-motion:reduce) {
  .page-results-insights .ri-focus-stat {transition:none;}
 }
+
+/* REG-0139 · Corrección de Dirección: mapa siempre visible en Resumen.
+   Toda la analítica complementaria se distribuye en subapartados, nunca se elimina. */
+.page-results-insights .ri-focus-overview-summary {
+ margin-bottom:12px;
+}
+.page-results-insights .ri-focus-overview-summary .ri-focus-signal {
+ border-bottom:0;
+}
+.page-results-insights .ri-focus-overview-detail .ri-focus-lower {
+ border-top:0;
+}
+.page-results-insights .ri-focus-details-static {
+ border-top:1px solid #e5edf3;
+}
+.page-results-insights .ri-focus-details-static>h3 {
+ margin:0;padding:16px 19px 3px;
+ color:#204d70;
+ font:800 12.8px/1.4 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights .ri-focus-details-static .ri-command-values {
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ background:transparent;border-top:0;
+ padding:8px 10px 11px;
+}
+.page-results-insights .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value {
+ min-width:0;min-height:103px;padding:12px;
+}
+.page-results-insights .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value small {
+ overflow-wrap:anywhere;
+}
+.page-results-insights .ri-active-content>.ri-geo-card {
+ margin:0 0 12px;
+ box-shadow:0 3px 15px rgba(0,45,89,.028);
+}
+.page-results-insights .ri-active-content>.ri-geo-card .ri-geo-body {
+ grid-template-columns:minmax(0,1.65fr) minmax(240px,.65fr);
+}
+.page-results-insights .ri-active-content>.ri-geo-card .ri-geo-svg {
+ max-height:490px;
+}
+.page-results-insights .ri-section-nav .ri-section-tab {
+ padding-left:13px;padding-right:13px;
+}
+@container crm-content (max-width:1000px) {
+ .page-results-insights .ri-active-content>.ri-geo-card .ri-geo-body {
+  grid-template-columns:minmax(0,1fr);
+ }
+ .page-results-insights .ri-focus-details-static .ri-command-values {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
+@container crm-content (max-width:560px) {
+ /* Mostrar todas las áreas en móvil; no ocultar las últimas mediante scroll horizontal. */
+ .page-results-insights .ri-section-nav {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:3px;overflow:visible;padding:2px 0;
+ }
+ .page-results-insights .ri-section-nav .ri-section-tab {
+  display:flex;justify-content:center;min-width:0;min-height:39px;
+  padding:9px 4px;flex:none;
+ }
+ .page-results-insights .ri-section-nav .ri-section-tab-text strong {
+  font-size:10.8px;
+ }
+ .page-results-insights .ri-focus-details-static .ri-command-values {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+ .page-results-insights .ri-active-content>.ri-geo-card .ri-geo-body {
+  grid-template-columns:minmax(0,1fr);
+ }
+}
+@container crm-content (max-width:360px) {
+ .page-results-insights .ri-section-nav {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .page-results-insights .ri-focus-details-static .ri-command-values {
+  grid-template-columns:minmax(0,1fr);
+ }
+}

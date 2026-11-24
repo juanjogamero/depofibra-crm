@@ -182,7 +182,7 @@ function SourceCard({name,status,details,icon}:{name:string;status:string;detail
 export default function ResultsInsights(){
   const {data}=useCrm();
   const [period,setPeriod]=useState<Period>('all');
-  const [view,setView]=useState<'overview'|'products'|'geo'|'conversion'|'sources'>('overview');
+  const [view,setView]=useState<'overview'|'activity'|'products'|'geo'|'conversion'|'sources'>('overview');
   const insights=useMemo(()=>{
     const leads=data.opportunities.filter(o=>dateWithin(o.createdAt,period));
     const quotes=data.quotes.filter(q=>dateWithin(q.createdAt,period));
@@ -226,11 +226,12 @@ export default function ResultsInsights(){
   const mapOrders=useMemo(()=>insights.orders.map(o=>({destination:orderDestination(o,data)})),[insights.orders,data]);
 
   const sections=[
-    {id:'overview' as const,number:'01',label:'Resumen',description:'Lo esencial y el ritmo comercial'},
-    {id:'products' as const,number:'02',label:'Productos',description:'Demanda, capacidades y pedidos'},
-    {id:'geo' as const,number:'03',label:'Mapa y canales',description:'Destinos y canales de consulta'},
-    {id:'conversion' as const,number:'04',label:'Conversión',description:'Cierres y seguimientos'},
-    {id:'sources' as const,number:'05',label:'Fuentes externas',description:'Conexiones y limitaciones'}
+    {id:'overview' as const,number:'01',label:'Resumen y mapa',description:'Indicadores principales y mapa comercial completo'},
+    {id:'activity' as const,number:'02',label:'Actividad',description:'Prioridades, evolución y cifras comerciales completas'},
+    {id:'products' as const,number:'03',label:'Productos',description:'Demanda, capacidades y pedidos'},
+    {id:'geo' as const,number:'04',label:'Canales',description:'Canales registrados y calidad de las consultas'},
+    {id:'conversion' as const,number:'05',label:'Conversión',description:'Cierres y seguimientos'},
+    {id:'sources' as const,number:'06',label:'Fuentes externas',description:'Conexiones y limitaciones'}
   ];
   return <div className="page page-opportunities page-results page-results-insights">
     <header className="ri-header">
@@ -267,7 +268,11 @@ export default function ResultsInsights(){
     </nav>
     <div className="ri-active-content">
     {view==='overview'&&<>
-      <ResultsExecutiveOverview data={data} period={period} summary={insights}/>
+      <ResultsExecutiveOverview data={data} period={period} summary={insights} mode="summary"/>
+      <ResultsIberiaMap leads={mapLeads} orders={mapOrders}/>
+    </>}
+    {view==='activity'&&<>
+      <ResultsExecutiveOverview data={data} period={period} summary={insights} mode="detail"/>
       <ResultsActivityBoard key={period} points={times.points} period={period} caption={times.caption}/>
     </>}
     {view==='products'&&<>
@@ -286,27 +291,23 @@ export default function ResultsInsights(){
       </div>
     </>}
     {view==='geo'&&<>
-      <p className="ri-view-caption">Destinos de las consultas y pedidos, y los canales registrados.</p>
-      <ResultsIberiaMap leads={mapLeads} orders={mapOrders}/>
-      <details className="ri-secondary-disclosure">
-        <summary>Analizar canales de captación <span>Origen, aceptadas y porcentajes</span></summary>
-        <div className="ri-acquisition-grid">
-          <Panel title="Origen de las consultas" subtitle="Selecciona un canal para ver su aportación" className="ri-panel-channels">
-            <ChannelDonut channels={insights.channels}/>
-            <div className="ri-inline-note">Canal anotado en el CRM, no atribución automática de Analytics.</div>
-          </Panel>
-          <Panel title="Calidad de los canales" subtitle="Consultas y oportunidades actualmente aceptadas">
-            <div className="ri-channel-table">
-              <div className="ri-channel-table-head"><span>Canal</span><span>Consultas</span><span>Aceptadas</span><span>Ratio</span></div>
-              {insights.channels.length?insights.channels.map(row=><div key={row.channel} className="ri-channel-table-row">
-                <strong>{row.channel}</strong><span>{row.total}</span><span>{row.wins}</span>
-                <b>{row.total?Math.round(row.wins/row.total*100):0}%</b>
-              </div>):<p>No hay consultas de este periodo.</p>}
-            </div>
-            <div className="ri-inline-note">Ratios descriptivos según estados actuales; no justifican inversión por sí solos.</div>
-          </Panel>
-        </div>
-      </details>
+      <p className="ri-view-caption">Origen de las consultas, oportunidades aceptadas y calidad de los canales anotados.</p>
+      <div className="ri-acquisition-grid">
+        <Panel title="Origen de las consultas" subtitle="Selecciona un canal para ver su aportación" className="ri-panel-channels">
+          <ChannelDonut channels={insights.channels}/>
+          <div className="ri-inline-note">Canal anotado en el CRM, no atribución automática de Analytics.</div>
+        </Panel>
+        <Panel title="Calidad de los canales" subtitle="Consultas y oportunidades actualmente aceptadas">
+          <div className="ri-channel-table">
+            <div className="ri-channel-table-head"><span>Canal</span><span>Consultas</span><span>Aceptadas</span><span>Ratio</span></div>
+            {insights.channels.length?insights.channels.map(row=><div key={row.channel} className="ri-channel-table-row">
+              <strong>{row.channel}</strong><span>{row.total}</span><span>{row.wins}</span>
+              <b>{row.total?Math.round(row.wins/row.total*100):0}%</b>
+            </div>):<p>No hay consultas de este periodo.</p>}
+          </div>
+          <div className="ri-inline-note">Ratios descriptivos según estados actuales; no justifican inversión por sí solos.</div>
+        </Panel>
+      </div>
     </>}
     {view==='conversion'&&<>
       <p className="ri-view-caption">Cierres, pérdidas y seguimientos que conviene revisar.</p>
