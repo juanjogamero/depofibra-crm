@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Plus, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Plus, X, TrendingUp, CalendarClock } from 'lucide-react';
 import { useCrm } from '../store';
 import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
 
 type Period='8 semanas' | '6 meses';
-type Tab='todas' | 'nuevas' | 'gestion' | 'cerradas';
 type Series={label:string; consultations:number; quotations:number};
-type Segment={label:string;value:number;color:string};
 
 function makeKey(year:number,month:number,date:number) {
   return year+'-'+String(month+1).padStart(2,'0')+'-'+String(date).padStart(2,'0');
@@ -37,122 +35,74 @@ function timeSeries(opportunities:Opportunity[],quotes:Quote[],period:Period):Se
   });
 }
 function receivedDate(o:Opportunity) {
-  const withTime=o.receivedAt?new Date(o.receivedAt):null;
-  const valid=withTime&&!Number.isNaN(withTime.getTime());
-  const date=valid?withTime:new Date(o.createdAt+'T12:00:00');
+  const parsed=o.receivedAt?new Date(o.receivedAt):null;
+  const valid=parsed&&!Number.isNaN(parsed.getTime());
+  const date=valid?parsed:new Date(o.createdAt+'T12:00:00');
   return {
-    day:date.toLocaleDateString('es-ES',{day:'numeric',month:'short'}).replace('.',''),
-    hour:valid?date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'',
-    label:date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})
+    date:date.toLocaleDateString('es-ES',{day:'numeric',month:'short'}).replace('.',''),
+    label:date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}),
+    hour:valid?date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):''
   };
 }
 function shortInitials(name:string) {
-  const words=name.replace(/\s*·\s*ejemplo$/i,'').trim().split(/\s+/).filter(Boolean);
+  const words=name.replace(/\\s*·\\s*ejemplo$/i,'').trim().split(/\\s+/).filter(Boolean);
   return words.length>1
     ?(words[0][0]+words[words.length-1][0]).toLocaleUpperCase('es-ES')
     :(words[0]||'?').slice(0,2).toLocaleUpperCase('es-ES');
 }
-function RecentTable({opportunities}:{opportunities:Opportunity[]}) {
-  const [tab,setTab]=useState<Tab>('todas');
+function isPending(o:Opportunity) {
+  return o.status!=='Aceptada'&&o.status!=='Perdida';
+}
+function needsAttention(o:Opportunity) {
+  return isPending(o) && (o.status==='Nueva'||o.status==='Por presupuestar'||Boolean(o.nextDate&&o.nextDate<today()));
+}
+function priority(o:Opportunity) {
+  return o.nextDate&&o.nextDate<today()?0:o.status==='Nueva'?1:o.status==='Por presupuestar'?2:3;
+}
+function FocusRequests({opportunities}:{opportunities:Opportunity[]}) {
+  const [view,setView]=useState<'atender'|'ultimas'>('atender');
   const sorted=[...opportunities].sort((a,b)=>(b.receivedAt||b.createdAt).localeCompare(a.receivedAt||a.createdAt));
-  const filter=(o:Opportunity)=>tab==='todas'
-    ||(tab==='nuevas'&&o.status==='Nueva')
-    ||(tab==='gestion'&&['Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento'].includes(o.status))
-    ||(tab==='cerradas'&&['Aceptada','Perdida'].includes(o.status));
-  const latest=sorted.filter(filter).slice(0,4);
-  const tabs:[Tab,string][]=[['todas','Todas'],['nuevas','Sin responder'],['gestion','En gestión'],['cerradas','Cerradas']];
-  return <section className={"vek2-card vek2-summary"+(latest.length<4?" is-filter-compact":"")} aria-labelledby="vek2-summary-heading">
-    <div className="vek2-card-heading">
-      <div><h2 id="vek2-summary-heading">Solicitudes recientes</h2><p>Control de entradas y oportunidades</p></div>
-      <div className="vek2-heading-actions">
-        <a className="vek2-secondary-action" href="https://depofibra.com/" target="_blank" rel="noopener noreferrer">Abrir web <ExternalLink size={13}/></a>
-        <Link className="vek2-primary-action" to="/oportunidades">Ver todas <ArrowRight size={13}/></Link>
+  const attention=sorted.filter(needsAttention).sort((a,b)=>priority(a)-priority(b));
+  const items=(view==='atender'?attention:sorted).slice(0,4);
+  return <section className="focus-card focus-requests" aria-labelledby="focus-requests-title">
+    <div className="focus-card-heading">
+      <div>
+        <h2 id="focus-requests-title">Consultas que importan</h2>
+        <p>Lo más reciente y lo que necesita una respuesta</p>
       </div>
+      <Link to="/oportunidades" className="focus-inline-link">Ver todas <ArrowRight size={15}/></Link>
     </div>
-    <div className="vek2-tabs" role="group" aria-label="Filtrar solicitudes">
-      {tabs.map(([id,label])=><button key={id} type="button"
-        className={tab===id?'is-active':''} aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}
+    <div className="focus-switch" role="group" aria-label="Elegir tipo de solicitudes">
+      <button type="button" aria-pressed={view==='atender'} className={view==='atender'?'is-active':''} onClick={()=>setView('atender')}>
+        Para atender <span>{attention.length}</span>
+      </button>
+      <button type="button" aria-pressed={view==='ultimas'} className={view==='ultimas'?'is-active':''} onClick={()=>setView('ultimas')}>
+        Últimas entradas
+      </button>
     </div>
-    <div className="vek2-table-area">
-      <table className="vek2-table">
-        <thead><tr>
-          <th scope="col">Cliente / solicitud</th><th scope="col">Producto</th><th scope="col">Canal</th>
-          <th scope="col">Entrada</th><th scope="col">Estado</th><th scope="col"><span className="vek2-sr-only">Abrir</span></th>
-        </tr></thead>
-        <tbody>
-          {latest.map(o=>{
-            const d=receivedDate(o);
-            const stateClass=o.status==='Nueva'?'is-new':['Aceptada'].includes(o.status)?'is-won':o.status==='Perdida'?'is-lost':'is-progress';
-            return <tr key={o.id}>
-              <td><Link className="vek2-client-link" to={'/oportunidades/'+o.id}><span className="vek2-client-avatar" aria-hidden="true">{shortInitials(o.name)}</span><span className="vek2-client-copy"><strong title={o.name}>{o.name}</strong><small>{o.id}</small></span></Link></td>
-              <td><span className="vek2-ellipsis" title={o.product+' '+o.capacity}>{o.product}<small>{o.capacity||'—'}</small></span></td>
-              <td><span className="vek2-ellipsis">{o.channel}</span></td>
-              <td><time dateTime={o.receivedAt||o.createdAt} title={d.label}><span>{d.day}</span>{d.hour&&<small>{d.hour}</small>}</time></td>
-              <td><span className={'vek2-status '+stateClass}>{o.status}</span></td>
-              <td><Link className="vek2-open-row" to={'/oportunidades/'+o.id} aria-label={'Abrir solicitud de '+o.name}><ArrowRight size={15}/></Link></td>
-            </tr>;
-          })}
-        </tbody>
-      </table>
-      {!latest.length&&<div className="vek2-empty">No hay solicitudes en este estado.</div>}
+    <div className="focus-requests-list">
+      {items.map(o=>{
+        const d=receivedDate(o);
+        const overdue=isPending(o)&&Boolean(o.nextDate&&o.nextDate<today());
+        const label=overdue?'Seguimiento vencido':o.status==='Nueva'?'Sin responder':o.status==='Por presupuestar'?'Por presupuestar':o.status;
+        return <Link to={'/oportunidades/'+o.id} className="focus-request-row" key={o.id}>
+          <span className="focus-request-avatar" aria-hidden="true">{shortInitials(o.name)}</span>
+          <span className="focus-request-detail">
+            <strong title={o.name}>{o.name}</strong>
+            <small title={o.product+' · '+o.capacity}>{o.product}{o.capacity?' · '+o.capacity:''}</small>
+          </span>
+          <span className={'focus-request-status'+(overdue||o.status==='Nueva'?' is-urgent':'')}>{label}</span>
+          <time dateTime={o.receivedAt||o.createdAt} title={d.label+(d.hour?' a las '+d.hour:'')}>{d.date}</time>
+          <ArrowRight className="focus-request-arrow" size={16} aria-hidden="true"/>
+        </Link>;
+      })}
+      {!items.length&&<div className="focus-empty">
+        {view==='atender'?'Sin consultas que requieran atención inmediata. Puedes revisar las últimas entradas.':'Todavía no hay consultas registradas.'}
+      </div>}
     </div>
+    <div className="focus-requests-foot"><span>Solicitudes registradas en este CRM de demostración</span></div>
   </section>;
 }
-
-function OpportunityStatus({opportunities,tasks}:{opportunities:Opportunity[];tasks:Task[]}) {
-  const segments:Segment[]=[
-    {label:'Sin responder',value:opportunities.filter(o=>o.status==='Nueva').length,color:'#002d59'},
-    {label:'En gestión',value:opportunities.filter(o=>['Cualificación','Por presupuestar','Seguimiento'].includes(o.status)).length,color:'#01488e'},
-    {label:'Presupuestadas',value:opportunities.filter(o=>o.status==='Presupuesto enviado').length,color:'#2e80bb'},
-    {label:'Cerradas',value:opportunities.filter(o=>['Aceptada','Perdida'].includes(o.status)).length,color:'#92bedf'}
-  ];
-  const total=opportunities.length;
-  const circumference=2*Math.PI*49;
-  let offset=0;
-  const arcs=segments.map(s=>{
-    const portion=total?Math.max(0,s.value/total)*circumference:0;
-    const arc={...s,length:portion,offset};
-    offset+=portion;
-    return arc;
-  });
-  const due=tasks.filter(t=>!t.done&&t.due<today()).length;
-  const quotePending=opportunities.filter(o=>o.status==='Por presupuestar').length;
-  return <section className="vek2-card vek2-statistics" aria-labelledby="vek2-stat-heading">
-    <div className="vek2-card-heading"><h2 id="vek2-stat-heading">Estado comercial</h2>
-      <Link className="vek2-text-link" to="/resultados">Ver resultados <ArrowRight size={13}/></Link>
-    </div>
-    <div className="vek2-donut-layout">
-      <div className="vek2-donut-wrap">
-        <svg viewBox="0 0 150 150" role="img"
-          aria-label={'Distribución de '+total+' solicitudes: '+segments.map(s=>s.label+' '+s.value).join(', ')}>
-          <circle cx="75" cy="75" r="49" fill="none" stroke="#eaf0f6" strokeWidth="19"/>
-          {arcs.filter(s=>s.length>0).map(s=><circle key={s.label}
-            cx="75" cy="75" r="49" fill="none" stroke={s.color} strokeWidth="19"
-            strokeDasharray={s.length+' '+circumference} strokeDashoffset={-s.offset}
-            transform="rotate(-90 75 75)"/>)}
-        </svg>
-        <div className="vek2-donut-total"><strong>{total}</strong><small>solicitudes</small></div>
-      </div>
-      <div className="vek2-stat-legend">
-        {segments.map(s=><div key={s.label} className="vek2-legend-row">
-          <span className="vek2-legend-dot" style={{background:s.color}}/>
-          <span>{s.label}</span><strong>{s.value}</strong>
-        </div>)}
-      </div>
-    </div>
-    <div className="vek2-stat-foot">
-      <Link to="/oportunidades" className="vek2-foot-metric">
-        <span className="vek2-foot-icon is-green" aria-hidden="true"><ArrowRight size={17}/></span>
-        <span><strong>{quotePending}</strong><small>Por presupuestar</small></span>
-      </Link>
-      <Link to="/agenda" className="vek2-foot-metric">
-        <span className="vek2-foot-icon is-blue" aria-hidden="true"><ArrowRight size={17}/></span>
-        <span><strong>{due}</strong><small>Seguimientos vencidos</small></span>
-      </Link>
-    </div>
-  </section>;
-}
-
 function smoothLine(values:number[],x:(i:number)=>number,y:(value:number)=>number) {
   if(!values.length)return '';
   let d='M '+x(0).toFixed(2)+' '+y(values[0]).toFixed(2);
@@ -162,61 +112,39 @@ function smoothLine(values:number[],x:(i:number)=>number,y:(value:number)=>numbe
   }
   return d;
 }
-function InteractiveEvolution({opportunities,quotes}:{opportunities:Opportunity[];quotes:Quote[]}) {
-  const [period,setPeriod]=useState<Period>('8 semanas');
-  const [hover,setHover]=useState<number|null>(null);
-  const points=timeSeries(opportunities,quotes,period);
-  const maxValue=Math.max(2,...points.flatMap(p=>[p.consultations,p.quotations]));
-  const ceiling=Math.max(4,Math.ceil(maxValue/4)*4);
-  const x=(i:number)=>42+i*628/Math.max(points.length-1,1);
-  const y=(n:number)=>172-(n/ceiling)*135;
-  const consultations=points.map(p=>p.consultations);
-  const quotations=points.map(p=>p.quotations);
-  const active=hover!==null?points[hover]:null;
-  const marker=hover!==null?x(hover):0;
-  const tooltipX=Math.max(19,Math.min(81,marker/720*100));
-  return <section className="vek2-card vek2-evolution" aria-labelledby="vek2-evolution-heading">
-    <div className="vek2-card-heading">
-      <div><h2 id="vek2-evolution-heading">Evolución comercial</h2><p>Consultas y presupuestos registrados</p></div>
-      <div className="vek2-chart-top-controls">
-        <span className="vek2-legend-mark"><i className="is-consultations"/>Consultas</span>
-        <span className="vek2-legend-mark"><i className="is-quotations"/>Presupuestos</span>
-        <label className="vek2-period"><span className="vek2-sr-only">Periodo de análisis</span>
-          <select value={period} onChange={e=>{setPeriod(e.target.value as Period);setHover(null);}}>
-            <option value="8 semanas">8 semanas</option><option value="6 meses">6 meses</option>
-          </select>
-        </label>
-      </div>
+function SmallPulse({opportunities,quotes}:{opportunities:Opportunity[];quotes:Quote[]}) {
+  const points=timeSeries(opportunities,quotes,'8 semanas');
+  const current=points.slice(4).reduce((sum,p)=>sum+p.consultations,0);
+  const previous=points.slice(0,4).reduce((sum,p)=>sum+p.consultations,0);
+  const delta=current-previous;
+  const max=Math.max(2,...points.flatMap(p=>[p.consultations,p.quotations]));
+  const ceiling=Math.ceil(max/2)*2;
+  const x=(i:number)=>28+i*642/Math.max(1,points.length-1);
+  const y=(n:number)=>103-(n/ceiling)*76;
+  const tooltip=delta>0?'Más consultas':delta<0?'Menos consultas':'Mismas consultas';
+  return <section className="focus-card focus-pulse" aria-labelledby="focus-pulse-title">
+    <div className="focus-pulse-copy">
+      <div className="focus-pulse-label"><TrendingUp size={16}/><span>Ritmo comercial</span></div>
+      <h2 id="focus-pulse-title">Pulso de las últimas 8 semanas</h2>
+      <div className="focus-pulse-trend"><strong>{current} consultas</strong><span>últimas 4 semanas</span></div>
+      <p className="focus-pulse-comparison">{tooltip} que en las 4 semanas anteriores ({previous}).</p>
+      <Link to="/resultados" className="focus-inline-link">Ver resultados <ArrowRight size={14}/></Link>
     </div>
-    <div className="vek2-chart-plot">
-      <svg viewBox="0 0 720 212" preserveAspectRatio="none" onMouseLeave={()=>setHover(null)} aria-label={'Evolución: '+points.map(p=>p.label+' '+p.consultations+' consultas '+p.quotations+' presupuestos').join('; ')}>
-        {[0,1,2,3,4].map(i=><line key={i} x1="42" x2="670" y1={y(ceiling*i/4)} y2={y(ceiling*i/4)} className="vek2-chart-gridline"/>)}
-        {hover!==null&&<g aria-hidden="true">
-          <rect x={marker-22} y="25" width="44" height="150" fill="#eaf2fb" opacity=".46"/>
-          <line x1={marker} x2={marker} y1="22" y2="173" stroke="#76aad1" strokeWidth="1" strokeDasharray="4 5"/>
-        </g>}
-        <path d={smoothLine(consultations,x,y)} className="vek2-line is-consultations"/>
-        <path d={smoothLine(quotations,x,y)} className="vek2-line is-quotations"/>
-        {points.map((p,i)=><g key={p.label}>
-          <rect x={x(i)-Math.max(21,628/Math.max(points.length-1,1)/2)} y="20"
-            width={Math.max(42,628/Math.max(points.length-1,1))} height="155" fill="transparent"
-            onMouseEnter={()=>setHover(i)} onMouseMove={()=>setHover(i)}
-            onClick={()=>setHover(i)}/>
-          <circle cx={x(i)} cy={y(p.consultations)} r={hover===i?6:3.7}
-            fill="#01488e" stroke="#fff" strokeWidth="2" tabIndex={0} role="button"
-            aria-label={p.label+': '+p.consultations+' consultas y '+p.quotations+' presupuestos'}
-            onFocus={()=>setHover(i)} onBlur={()=>setHover(null)}/>
-          <circle cx={x(i)} cy={y(p.quotations)} r={hover===i?6:3.7}
-            fill="#4295c7" stroke="#fff" strokeWidth="2"/>
+    <div className="focus-pulse-chart">
+      <div className="focus-chart-key"><span><i className="is-leads"/>Consultas</span><span><i className="is-quotes"/>Presupuestos</span></div>
+      <svg role="img" viewBox="0 0 700 125" preserveAspectRatio="none"
+        aria-label={'Consultas y presupuestos por semana. '+points.map(p=>p.label+': '+p.consultations+' consultas y '+p.quotations+' presupuestos').join('; ')}>
+        {[0,1,2].map(i=><line key={i} x1="28" x2="670" y1={27+i*38} y2={27+i*38} stroke="#e0ebf5" strokeWidth="1"/>)}
+        <path d={smoothLine(points.map(p=>p.consultations),x,y)} fill="none" stroke="#01488e" strokeWidth="3.2" strokeLinecap="round"/>
+        <path d={smoothLine(points.map(p=>p.quotations),x,y)} fill="none" stroke="#67afd5" strokeWidth="2.6" strokeLinecap="round"/>
+        {points.map((p,i)=><g key={i}>
+          <circle cx={x(i)} cy={y(p.consultations)} r="3.6" fill="#01488e" stroke="#fff" strokeWidth="1.5"/>
+          <circle cx={x(i)} cy={y(p.quotations)} r="3.3" fill="#67afd5" stroke="#fff" strokeWidth="1.3"/>
         </g>)}
       </svg>
-      <div className="vek2-chart-x-labels" aria-hidden="true">{points.map((p,i)=><span key={p.label} style={{left:(x(i)/720*100)+"%"}}>{p.label}</span>)}</div>
-      {active&&<div className="vek2-chart-tooltip" style={{left:tooltipX+'%'}} role="status">
-        <strong>{active.label}</strong>
-        <span><i className="is-consultations"/>{active.consultations} consultas</span>
-        <span><i className="is-quotations"/>{active.quotations} presupuestos</span>
-      </div>}
+      <div className="focus-chart-labels">{points.map((p,i)=><span key={i}>{p.label}</span>)}</div>
     </div>
+    <p className="focus-pulse-note">Datos locales de la demo. Para decidir campañas, contrasta consultas cualificadas, presupuestos, cierres y coste de captación reales.</p>
   </section>;
 }
 
@@ -245,7 +173,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
     setSelected(date);
     setDetailsOpen(true);
   };
-  return <section className="hr-right-card hr-calendar vek2-card vek2-calendar" aria-labelledby="hr-calendar-heading">
+  return <section className="hr-right-card hr-calendar vek2-card vek2-calendar focus-calendar" aria-labelledby="hr-calendar-heading">
     <div className="hr-panel-heading hr-calendar-head">
       <h2 id="hr-calendar-heading">Calendario</h2>
       <div className="hr-month-selector">
@@ -290,7 +218,7 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
     </div>}
     <div className="hr-calendar-footer">
       <span className="hr-selected-date">{dateText(selected)}</span>
-      <span className="hr-selected-tasks">{selectedTasks.length===0 ? 'Sin tareas' : selectedTasks.length + (selectedTasks.length===1?' tarea':' tareas')}</span>
+      <Link className="focus-calendar-create" to={agendaUrl+'&nueva=1'}><Plus size={13}/>Anotar tarea</Link>
       <Link to={agendaUrl}>Ver agenda <ArrowRight size={13}/></Link>
     </div>
   </section>;
@@ -299,16 +227,26 @@ function MiniCalendar({ tasks }: { tasks: Task[] }) {
 
 export default function Dashboard(){
   const {data}=useCrm();
-  return <div className="page page-dashboard dashboard-hr dashboard-vektora vek2-dashboard">
-    <div className="vek2-grid">
-      <div className="vek2-grid-top">
-        <RecentTable opportunities={data.opportunities}/>
-        <OpportunityStatus opportunities={data.opportunities} tasks={data.tasks}/>
+  const [hour]=useState(()=>new Date().getHours());
+  const greeting=hour<12?'Buenos días':hour<20?'Buenas tardes':'Buenas noches';
+  const date=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  const pendingTasks=data.tasks.filter(t=>!t.done&&t.due<today()).length;
+  return <div className="page page-dashboard dashboard-hr dashboard-focus">
+    <header className="focus-welcome">
+      <div>
+        <span className="focus-eyebrow">TU ESPACIO DE TRABAJO</span>
+        <h1>{greeting}</h1>
+        <p>Las consultas, la agenda y el ritmo comercial. Todo a mano.</p>
       </div>
-      <div className="vek2-grid-bottom">
-        <InteractiveEvolution opportunities={data.opportunities} quotes={data.quotes}/>
-        <MiniCalendar tasks={data.tasks}/>
+      <div className="focus-welcome-aside">
+        <span className="focus-today">{date}</span>
+        {pendingTasks>0&&<Link to="/agenda" className="focus-overdue"><CalendarClock size={15}/>{pendingTasks} {pendingTasks===1?'tarea vencida':'tareas vencidas'}</Link>}
       </div>
+    </header>
+    <div className="focus-main">
+      <FocusRequests opportunities={data.opportunities}/>
+      <MiniCalendar tasks={data.tasks}/>
     </div>
+    <SmallPulse opportunities={data.opportunities} quotes={data.quotes}/>
   </div>;
 }
