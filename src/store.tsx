@@ -151,7 +151,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })),
     updateTransport: (p: Partial<TransportSettings>) => setData(d => ({ ...d, transport: { ...d.transport, ...p } })),
     addDocumentName: (customerId: string, name: string) => setData(d => ({ ...d, customers: d.customers.map(c => c.id === customerId ? { ...c, documentNames: [...c.documentNames, name] } : c) })),
-    resetDemo: () => setData(structuredClone(mockData)),
+    resetDemo: () => setData(normalizeCatalog(structuredClone(mockData))),
   }), []);
   return <Ctx.Provider value={{ data, role, setRole, ...actions }}>{children}</Ctx.Provider>;
 }
