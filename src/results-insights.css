@@ -1897,3 +1897,233 @@
  .page-results-insights .ri-section-tab,
  .page-results-insights .ri-cmd-value {transition:none;}
 }
+
+
+/* REG-0125 · Resultados: eliminar alturas artificiales y unificar pestañas
+   con los filtros compactos del resto del CRM. Solo cambia presentación. */
+.page-results-insights .ri-section-nav {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:stretch;
+  gap:4px;
+  width:100%;
+  min-width:0;
+  margin:0 0 18px;
+  padding:5px 7px 0;
+  border:1px solid #dce8f2;
+  border-bottom-color:#ccdce9;
+  border-radius:10px;
+  background:rgba(255,255,255,.83);
+  box-shadow:none;
+}
+.page-results-insights .ri-section-nav .ri-section-tab {
+  position:relative;
+  display:flex;
+  flex:1 1 130px;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:43px;
+  padding:10px 13px 12px;
+  margin:0;
+  gap:0;
+  border:0;
+  border-radius:6px 6px 0 0;
+  background:transparent;
+  box-shadow:none;
+  color:#5c7d96;
+  text-align:center;
+  transition:background-color .15s ease,color .15s ease;
+}
+.page-results-insights .ri-section-nav .ri-section-tab::after {
+  content:"";
+  position:absolute;
+  left:18%;
+  right:18%;
+  bottom:0;
+  height:3px;
+  border-radius:3px 3px 0 0;
+  background:transparent;
+}
+.page-results-insights .ri-section-nav .ri-section-tab-text {
+  display:block;
+  min-width:0;
+  overflow:hidden;
+}
+.page-results-insights .ri-section-nav .ri-section-tab-text strong {
+  display:block;
+  font:750 12.5px/1.3 Inter,sans-serif;
+  color:inherit;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.page-results-insights .ri-section-nav .ri-section-tab:hover {
+  border:0;
+  color:#01488e;
+  background:#f4f9fd;
+}
+.page-results-insights .ri-section-nav .ri-section-tab:focus-visible {
+  outline:2px solid #4c91c3;
+  outline-offset:-2px;
+  background:#f3f9fe;
+}
+.page-results-insights .ri-section-nav .ri-section-tab.is-active {
+  border:0;
+  color:#01488e;
+  background:#eaf3fb;
+  box-shadow:none;
+}
+.page-results-insights .ri-section-nav .ri-section-tab.is-active::after {
+  background:#01488e;
+}
+.page-results-insights .ri-section-nav .ri-section-tab.is-active .ri-section-tab-text strong {
+  color:#01488e;
+  font-weight:800;
+}
+/* Los componentes se dimensionan según los datos, no según la fila más alta. */
+.page-results-insights .ri-product-card-grid,
+.page-results-insights .ri-product-secondary,
+.page-results-insights .ri-acquisition-grid,
+.page-results-insights .ri-grid-three {
+  align-items:start;
+}
+.page-results-insights .ri-product-card-grid>.ri-product-card {
+  align-self:start;
+  height:auto;
+  min-height:0;
+}
+.page-results-insights .ri-product-content {
+  flex:0 0 auto;
+}
+/* Situación de pedidos / Capacidades: cerrar el espacio vacío entre anillo y leyenda. */
+.page-results-insights .ri-product-secondary>.ri-distribution-card,
+.page-results-insights .ri-distribution-card {
+  align-self:start;
+  min-height:0;
+  height:auto;
+}
+.page-results-insights .ri-distribution-content {
+  flex:0 0 auto;
+  align-items:center;
+  padding:13px 19px 10px;
+}
+.page-results-insights .ri-rich-donut-layout {
+  display:grid;
+  grid-template-columns: minmax(145px,185px) minmax(0,1fr);
+  align-items:center;
+  justify-content:start;
+  gap:18px;
+  width:100%;
+  min-width:0;
+}
+.page-results-insights .ri-rich-donut,
+.page-results-insights .ri-product-secondary .ri-rich-donut {
+  width:100%;
+  max-width:178px;
+  margin:0;
+}
+.page-results-insights .ri-rich-legend {
+  justify-content:center;
+  gap:4px;
+  align-self:center;
+}
+.page-results-insights .ri-rich-legend button {
+  min-height:36px;
+  padding:7px 9px;
+}
+.page-results-insights .ri-rich-legend button>span {
+  font-size:12px;
+}
+.page-results-insights .ri-rich-legend button strong {
+  font-size:12px;
+}
+.page-results-insights .ri-rich-legend button small {
+  font-size:11px;
+}
+.page-results-insights .ri-dist-metrics {
+  padding:13px 19px;
+}
+.page-results-insights .ri-dist-stacked {
+  height:9px;
+  margin:0 19px 12px;
+}
+.page-results-insights .ri-dist-foot {
+  margin-top:0;
+  padding:11px 19px;
+}
+/* Otras gráficas no se estiran solo para igualar alturas. */
+.page-results-insights .ri-acquisition-grid .ri-panel,
+.page-results-insights .ri-grid-three>.ri-panel {
+  min-height:0;
+  height:auto;
+  align-self:start;
+}
+.page-results-insights .ri-activity-board {
+  min-height:0;
+  height:auto;
+}
+.page-results-insights .ri-activity-body {
+  flex:0 0 auto;
+}
+@container crm-content (max-width:980px) {
+  .page-results-insights .ri-section-nav .ri-section-tab {
+    flex-basis:160px;
+  }
+}
+@container crm-content (max-width:620px) {
+  .page-results-insights .ri-section-nav .ri-section-tab {
+    flex-basis:42%;
+    min-height:42px;
+  }
+  .page-results-insights .ri-rich-donut-layout {
+    grid-template-columns:minmax(120px,155px) minmax(0,1fr);
+    gap:13px;
+  }
+  .page-results-insights .ri-rich-donut,
+  .page-results-insights .ri-product-secondary .ri-rich-donut {
+    max-width:150px;
+  }
+}
+@media(max-width:840px) {
+  .page-results-insights .ri-section-nav {
+    gap:2px;
+    padding:4px 5px 0;
+  }
+  .page-results-insights .ri-section-nav .ri-section-tab {
+    flex:1 1 44%;
+    min-height:39px;
+    padding:9px 6px 10px;
+  }
+  .page-results-insights .ri-section-nav .ri-section-tab-text strong {
+    font-size:11.6px;
+  }
+  .page-results-insights .ri-distribution-content {
+    padding:12px 12px 9px;
+  }
+  .page-results-insights .ri-rich-donut-layout {
+    grid-template-columns:minmax(120px,155px) minmax(0,1fr);
+    gap:13px;
+  }
+  .page-results-insights .ri-rich-donut,
+  .page-results-insights .ri-product-secondary .ri-rich-donut {
+    max-width:150px;
+  }
+}
+@media(max-width:390px) {
+  .page-results-insights .ri-rich-donut-layout {
+    grid-template-columns: minmax(0,1fr);
+    justify-items:center;
+    gap:9px;
+  }
+  .page-results-insights .ri-rich-legend {
+    width:100%;
+  }
+  .page-results-insights .ri-rich-donut,
+  .page-results-insights .ri-product-secondary .ri-rich-donut {
+    max-width:155px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .page-results-insights .ri-section-nav .ri-section-tab {transition:none;}
+}
