@@ -27,6 +27,7 @@ import './laptop-layout.css';
 import './corporate-atmosphere.css';
 import './dashboard-focus.css';
 import './dashboard-centered.css';
+import './results-insights.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

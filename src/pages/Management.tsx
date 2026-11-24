@@ -4,6 +4,7 @@ import { BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, CircleAlert
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { ActionLink, Button, DataBar, Empty, Field, Modal, NoteDemo, PageHeader, Panel, Pill } from '../ui';
+import ResultsInsights from './ResultsInsights';
 
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
@@ -149,80 +150,7 @@ export function Agenda(){
 }
 
 export function Results(){
-  const {data}=useCrm();
-  const n=data.opportunities.length,won=data.opportunities.filter(o=>o.status==='Aceptada').length,lost=data.opportunities.filter(o=>o.status==='Perdida').length;
-  const channels=CHANNELS.map(c=>({name:c,value:data.opportunities.filter(o=>o.channel===c).length})).filter(x=>x.value);
-  const reasons=[...new Set(data.opportunities.map(o=>o.lostReason).filter(Boolean))];
-  const maxChannel=Math.max(1,...channels.map(x=>x.value));
-  return <div className="page page-opportunities page-results">
-    <header className="op-screen-heading">
-      <div className="op-heading-copy">
-        <h1 id="results-title">Resultados</h1>
-        <p>Consulta el origen de las solicitudes, las oportunidades aceptadas y los motivos de pérdida.</p>
-      </div>
-      <div className="op-heading-actions">
-        <Link to="/oportunidades" className="op-new-button"><Inbox size={16}/>Ver oportunidades</Link>
-      </div>
-    </header>
-    <section className="results-kpi-grid" aria-label="Indicadores comerciales de la demo">
-      <article className="results-kpi">
-        <div className="results-kpi-top"><span>Consultas</span><span className="results-kpi-icon"><Inbox size={19}/></span></div>
-        <strong className="results-kpi-value">{n}</strong>
-        <span className="results-kpi-foot">Registradas en la demo</span>
-      </article>
-      <article className="results-kpi">
-        <div className="results-kpi-top"><span>Presupuestos</span><span className="results-kpi-icon"><FileText size={19}/></span></div>
-        <strong className="results-kpi-value">{data.quotes.length}</strong>
-        <span className="results-kpi-foot">Propuestas comerciales</span>
-      </article>
-      <article className="results-kpi">
-        <div className="results-kpi-top"><span>Aceptadas</span><span className="results-kpi-icon is-positive"><CheckCircle2 size={19}/></span></div>
-        <strong className="results-kpi-value">{won}</strong>
-        <span className="results-kpi-foot">Oportunidades ganadas</span>
-      </article>
-      <article className="results-kpi">
-        <div className="results-kpi-top"><span>Perdidas</span><span className="results-kpi-icon is-negative"><TrendingUp size={19}/></span></div>
-        <strong className="results-kpi-value">{lost}</strong>
-        <span className="results-kpi-foot">{n?Math.round(lost/n*100):0}% del total de consultas</span>
-      </article>
-    </section>
-    <div className="results-analysis-grid">
-      <section className="results-panel" aria-labelledby="results-channel-title">
-        <div className="results-panel-heading">
-          <div><h2 id="results-channel-title">Solicitudes por canal</h2><p>Distribución de las oportunidades según su procedencia</p></div>
-          <span className="results-tag">Datos de demostración</span>
-        </div>
-        <div className="results-panel-body">
-          {channels.length?<div className="bar-list results-bar-list">
-            {channels.map((x,i)=><DataBar key={x.name} label={x.name} value={x.value} max={maxChannel} color={i%3===0?'blue':i%3===1?'teal':'amber'}/>)}
-          </div>:<Empty title="Sin solicitudes registradas" body="Los canales aparecerán cuando existan oportunidades en esta demo."/>}
-        </div>
-        <footer className="results-panel-footer">Origen comercial anotado en las oportunidades</footer>
-      </section>
-      <section className="results-panel" aria-labelledby="results-loss-title">
-        <div className="results-panel-heading">
-          <div><h2 id="results-loss-title">Motivos de pérdida</h2><p>Razones anotadas en el seguimiento comercial</p></div>
-        </div>
-        <div className="results-panel-body">
-          {reasons.length?<div className="bar-list results-bar-list">
-            {reasons.map(reason=><DataBar key={reason} label={reason||'No indicado'} value={data.opportunities.filter(o=>o.lostReason===reason).length} max={Math.max(1,lost)} color="amber"/>)}
-          </div>:<Empty title="Sin pérdidas categorizadas" body="Se completará cuando registres motivos en las oportunidades."/>}
-        </div>
-        <div className="results-context-note"><CircleAlert size={16}/><span>El motivo «precio» no demuestra por sí solo un precio inferior al de la competencia.</span></div>
-      </section>
-    </div>
-    <section className="results-integrations" aria-labelledby="results-integrations-title">
-      <div className="results-integrations-head">
-        <div><h2 id="results-integrations-title">Fuentes externas</h2><p>Datos pendientes de sincronización con este CRM. No forman parte de los indicadores anteriores.</p></div>
-        <span className="results-tag is-muted">Integración posterior</span>
-      </div>
-      <div className="results-integrations-list">
-        <div className="results-integration"><span className="results-integration-icon"><BarChart3 size={18}/></span><div><strong>Google Analytics 4</strong><small>Sesiones, canales y contactos reales</small></div><span className="results-integration-state">Sin sincronizar</span></div>
-        <div className="results-integration"><span className="results-integration-icon"><Search size={18}/></span><div><strong>Search Console</strong><small>Consultas, clics, impresiones y páginas</small></div><span className="results-integration-state">Sin sincronizar</span></div>
-        <div className="results-integration"><span className="results-integration-icon"><Layers3 size={18}/></span><div><strong>Tag Manager</strong><small>Etiquetas, activadores y consentimiento</small></div><span className="results-integration-state">Sin sincronizar</span></div>
-      </div>
-    </section>
-  </div>;
+  return <ResultsInsights/>;
 }
 
 export function Finance(){
