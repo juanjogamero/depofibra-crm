@@ -1,0 +1,384 @@
+/* DEPOFIBRA CRM · Adaptación a portátiles — 24/11/2026
+   El viewport no refleja el ancho disponible cuando el menú está desplegado.
+   Un único contenedor responsive calcula el ancho real de .app-main.
+   Sin cambiar tablas, datos, acciones ni la presentación de escritorio grande. */
+.app-body .app-main {
+  container-type:inline-size;
+  container-name:crm-content;
+}
+.app-body .app-main > .page {min-width:0;}
+.page-opportunities .op-screen-heading,
+.page-opportunities .op-heading-copy,
+.page-opportunities .op-heading-actions,
+.page-opportunities .op-searchbar,
+.page-opportunities .op-searchbar-actions,
+.page-opportunities .op-advanced-filters {min-width:0;}
+.page-opportunities .op-table-panel,
+.page-opportunities .op-table-scroll {min-width:0;}
+.page-opportunities .op-data-table th,
+.page-opportunities .op-data-table td {max-width:100%;}
+.page-opportunities .op-data-table th.op-col-open,
+.page-opportunities .op-data-table td.op-col-open,
+.page-opportunities .op-data-table th.commission-col-open,
+.page-opportunities .op-data-table td.commission-col-open {
+  padding-left:3px;
+  padding-right:3px;
+  text-align:center;
+}
+.page-opportunities .op-data-table .op-client-copy,
+.page-opportunities .op-data-table .op-product,
+.page-opportunities .op-data-table .op-product-sub,
+.page-opportunities .op-data-table .op-client-name,
+.page-opportunities .op-data-table .op-client-sub {
+  min-width:0;
+  max-width:100%;
+}
+.page-opportunities .op-data-table .op-client-name,
+.page-opportunities .op-data-table .op-client-sub,
+.page-opportunities .op-data-table .op-product,
+.page-opportunities .op-data-table .op-product-sub {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.page-opportunities .op-data-table .op-status-pill,
+.page-opportunities .op-data-table .commission-state {
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:break-word;
+  text-align:center;
+}
+.page-opportunities .op-table-footer {
+  min-height:34px;
+  height:auto;
+  flex-wrap:wrap;
+  row-gap:2px;
+}
+
+/* Regla fundamental: breakpoints por CONTENIDO tras descontar la barra lateral,
+   no por ancho de pantalla. El menú contraído libera espacio automáticamente. */
+@media (min-width:841px) {
+  @container crm-content (max-width:1190px) {
+    .page-opportunities .op-screen-heading {
+      min-height:69px;
+      margin-bottom:11px;
+      gap:12px;
+    }
+    .page-opportunities .op-heading-copy h1 {font-size:clamp(23px,2.15vw,29px);}
+    .page-opportunities .op-heading-copy p {font-size:12px;line-height:1.4;}
+    .page-opportunities .op-phase-tabs {
+      min-height:0;
+      gap:0 9px;
+      margin-bottom:12px;
+    }
+    .page-opportunities .op-phase-tab {
+      min-height:38px;
+      padding:7px 5px 9px;
+      gap:5px;
+      font-size:11px;
+    }
+    .page-opportunities .op-phase-tab strong {min-width:21px;height:21px;font-size:10px;}
+    .page-opportunities .op-searchbar {margin-bottom:12px;gap:10px;}
+    .page-opportunities .op-search {flex:1 1 300px;max-width:100%;}
+    .page-opportunities .op-searchbar-actions {flex:0 1 auto;}
+    .page-opportunities .op-date-range-trigger {
+      max-width:265px;
+      min-height:38px;
+      padding:7px 10px;
+      font-size:11px;
+    }
+    .page-opportunities .op-filter-toggle {min-height:38px;font-size:11px;}
+    .page-opportunities .op-data-table thead th {
+      padding:8px 7px;
+      font-size:9.5px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .page-opportunities .op-data-table tbody td {padding:8px 7px;}
+    .page-opportunities .op-data-table th.op-col-open,
+    .page-opportunities .op-data-table td.op-col-open {padding-inline:3px;}
+    .page-opportunities .op-data-table th.commission-col-open,
+    .page-opportunities .op-data-table td.commission-col-open {padding-inline:3px;}
+    /* Oportunidades: la localidad siempre permanece disponible en la ficha. */
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-city {display:none;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-id {width:11%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-client {width:34%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-product {width:30%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-date {width:10%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-status {width:11%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-open {width:4%;}
+    /* Presupuestos */
+    .page-quotes .quote-data-table .op-col-date {display:none;}
+    .page-quotes .quote-data-table .op-col-id {width:12%;}
+    .page-quotes .quote-data-table .op-col-client {width:26%;}
+    .page-quotes .quote-data-table .op-col-product {width:27%;}
+    .page-quotes .quote-data-table .quote-col-amount {width:19%;}
+    .page-quotes .quote-data-table .op-col-status {width:12%;}
+    .page-quotes .quote-data-table .op-col-open {width:4%;}
+    /* Clientes */
+    .page-clients .clients-data-table .clients-col-docs,
+    .page-clients .clients-data-table .clients-col-date {display:none;}
+    .page-clients .clients-data-table .op-col-id {width:12%;}
+    .page-clients .clients-data-table .op-col-client {width:43%;}
+    .page-clients .clients-data-table .clients-col-location {width:27%;}
+    .page-clients .clients-data-table .clients-col-orders {width:14%;}
+    .page-clients .clients-data-table .op-col-open {width:4%;}
+    /* Pedidos */
+    .page-orders .orders-data-table .orders-col-date {display:none;}
+    .page-orders .orders-data-table .op-col-id {width:12%;}
+    .page-orders .orders-data-table .op-col-client {width:28%;}
+    .page-orders .orders-data-table .op-col-product {width:26%;}
+    .page-orders .orders-data-table .orders-col-payment {width:16%;}
+    .page-orders .orders-data-table .orders-col-factory {width:14%;}
+    .page-orders .orders-data-table .op-col-open {width:4%;}
+    /* Comisiones: mantener a la vista las tres cifras mientras quepan. */
+    .page-commissions .commissions-data-table .commission-col-client {width:32%;}
+    .page-commissions .commissions-data-table .commission-col-agreed {width:17%;}
+    .page-commissions .commissions-data-table .commission-col-paid {width:15%;}
+    .page-commissions .commissions-data-table .commission-col-due {width:15%;}
+    .page-commissions .commissions-data-table .commission-col-status {width:17%;}
+    .page-commissions .commissions-data-table .commission-col-open {width:4%;}
+    /* KPI: el ancho de la columna lateral no debe comprimir los textos. */
+    .crm-workspace .crm-workspace-kpis {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .page-factory .crm-workspace-kpis.three {grid-template-columns:repeat(3,minmax(0,1fr));}
+    .page-finance .finance-content-grid,
+    .page-configuration .configuration-content-grid {gap:11px;}
+    .page-catalog .catalog-record-heading {grid-template-columns:minmax(0,1fr) 96px 146px;}
+    .page-catalog .catalog-list-item {grid-template-columns:36px minmax(0,1fr) 96px 146px;gap:9px;}
+    .page-catalog .catalog-status {font-size:10px;}
+    .page-catalog .catalog-private-value strong {font-size:11px;}
+    /* Inicio: la tabla compite con una columna derecha en portátiles. */
+    .vek2-dashboard .vek2-grid-top {
+      grid-template-columns:minmax(0,1.52fr) minmax(250px,.95fr);
+    }
+    .vek2-dashboard .vek2-table th:nth-child(3),
+    .vek2-dashboard .vek2-table td:nth-child(3),
+    .vek2-dashboard .vek2-table th:nth-child(4),
+    .vek2-dashboard .vek2-table td:nth-child(4) {display:none;}
+    .vek2-dashboard .vek2-table th:nth-child(1) {width:38%;}
+    .vek2-dashboard .vek2-table th:nth-child(2) {width:29%;}
+    .vek2-dashboard .vek2-table th:nth-child(5) {width:28%;}
+    .vek2-dashboard .vek2-table th:nth-child(6) {width:5%;}
+  }
+  @container crm-content (max-width:1040px) {
+    .page-opportunities .op-screen-heading {min-height:0;align-items:flex-start;flex-wrap:wrap;}
+    .page-opportunities .op-heading-actions {margin-left:auto;}
+    .page-opportunities .op-searchbar {flex-wrap:wrap;align-items:stretch;gap:8px;}
+    .page-opportunities .op-searchbar .op-search {
+      flex:1 1 100%;
+      max-width:none;
+      height:38px;
+    }
+    .page-opportunities .op-searchbar .op-searchbar-actions {
+      width:100%;
+      max-width:100%;
+      flex:1 1 100%;
+      justify-content:flex-end;
+      margin-left:0;
+      flex-wrap:wrap;
+      row-gap:6px;
+    }
+    .page-opportunities .op-advanced-filters {gap:8px;min-width:0;}
+    .page-opportunities .op-advanced-filters label {min-width:0;max-width:100%;}
+    .page-opportunities .op-advanced-filters :is(select,input) {max-width:100%;}
+    .page-commissions .commission-banners {gap:10px;}
+    .page-commissions .commission-banner {min-height:140px;padding:14px;}
+    .page-commissions .commission-banner-value {font-size:clamp(23px,2.2vw,29px);}
+    .page-results .results-kpi-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .page-results .results-integration {gap:8px;padding:12px 10px;}
+    .page-crm-record .detail-grid,
+    .page-crm-form .quote-builder,
+    .page-finance .finance-content-grid,
+    .page-configuration .configuration-content-grid {grid-template-columns:minmax(0,1fr);}
+    .vek2-dashboard .vek2-grid-top {grid-template-columns:minmax(0,1fr) minmax(252px,.78fr);}
+    .vek2-dashboard .vek2-table th:nth-child(2),
+    .vek2-dashboard .vek2-table td:nth-child(2) {display:none;}
+    .vek2-dashboard .vek2-table th:nth-child(1) {width:61%;}
+    .vek2-dashboard .vek2-table th:nth-child(5) {width:33%;}
+    .vek2-dashboard .vek2-table th:nth-child(6) {width:6%;}
+    .vek2-dashboard .vek2-secondary-action {display:none;}
+  }
+  @container crm-content (max-width:950px) {
+    .page-opportunities .op-phase-tabs {gap:0 7px;}
+    .page-opportunities .op-phase-tab {font-size:10.5px;min-height:35px;padding:6px 4px 8px;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-date {display:none;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-id {width:13%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-client {width:40%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-product {width:29%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-status {width:13%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-open {width:5%;}
+    .page-quotes .quote-data-table .op-col-product {display:none;}
+    .page-quotes .quote-data-table .op-col-id {width:15%;}
+    .page-quotes .quote-data-table .op-col-client {width:43%;}
+    .page-quotes .quote-data-table .quote-col-amount {width:20%;}
+    .page-quotes .quote-data-table .op-col-status {width:17%;}
+    .page-quotes .quote-data-table .op-col-open {width:5%;}
+    .page-clients .clients-data-table .clients-col-location {display:none;}
+    .page-clients .clients-data-table .op-col-id {width:14%;}
+    .page-clients .clients-data-table .op-col-client {width:57%;}
+    .page-clients .clients-data-table .clients-col-orders {width:24%;}
+    .page-clients .clients-data-table .op-col-open {width:5%;}
+    .page-orders .orders-data-table .op-col-product {display:none;}
+    .page-orders .orders-data-table .op-col-id {width:14%;}
+    .page-orders .orders-data-table .op-col-client {width:41%;}
+    .page-orders .orders-data-table .orders-col-payment {width:19%;}
+    .page-orders .orders-data-table .orders-col-factory {width:21%;}
+    .page-orders .orders-data-table .op-col-open {width:5%;}
+    .page-commissions .commissions-data-table .commission-col-agreed {display:none;}
+    .page-commissions .commissions-data-table .commission-col-client {width:42%;}
+    .page-commissions .commissions-data-table .commission-col-paid {width:18%;}
+    .page-commissions .commissions-data-table .commission-col-due {width:18%;}
+    .page-commissions .commissions-data-table .commission-col-status {width:17%;}
+    .page-commissions .commissions-data-table .commission-col-open {width:5%;}
+    .page-agenda .agenda-content-grid {
+      grid-template-columns:minmax(0,1fr);
+      max-height:none;
+      overflow:visible;
+      align-content:start;
+      gap:12px;
+    }
+    .page-agenda .agenda-tasks-card {max-height:none;}
+    .page-agenda .agenda-list-scroll {overflow:visible;max-height:none;}
+    .page-agenda .agenda-side-stack {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      max-height:none;
+      overflow:visible;
+      padding-bottom:12px;
+    }
+    .app-body.is-agenda .page.page-agenda {
+      height:100%;
+      min-height:0;
+      max-height:100%;
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+    .page-catalog .catalog-record-heading {grid-template-columns:minmax(0,1fr) 136px;}
+    .page-catalog .catalog-record-heading span:nth-child(2) {display:none;}
+    .page-catalog .catalog-list-item {grid-template-columns:35px minmax(0,1fr) 136px;gap:8px;}
+    .page-catalog .catalog-status {display:none;}
+    .page-factory .crm-workspace-kpis.three {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .vek2-dashboard .vek2-grid-top,
+    .vek2-dashboard .vek2-grid-bottom {grid-template-columns:minmax(0,1fr);}
+    .vek2-dashboard .vek2-grid {
+      display:flex;
+      flex-direction:column;
+      gap:13px;
+      flex:0 0 auto;
+    }
+    .vek2-dashboard .vek2-grid-top,
+    .vek2-dashboard .vek2-grid-bottom {gap:13px;min-height:0;}
+    .vek2-dashboard .vek2-card,
+    .vek2-dashboard .hr-calendar.vek2-calendar {height:auto;}
+    .vek2-dashboard .vek2-summary {min-height:320px;}
+    .vek2-dashboard .vek2-statistics {min-height:280px;}
+    .vek2-dashboard .vek2-evolution {min-height:280px;}
+    .vek2-dashboard .hr-calendar.vek2-calendar {min-height:300px;}
+    .app-body.is-dashboard .app-main {overflow-y:auto;}
+    .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+      height:auto;max-height:none;min-height:100%;overflow:visible;
+    }
+  }
+  @container crm-content (max-width:790px) {
+    /* 1024px de portátil con menú abierto: conservar lo esencial. */
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-product {display:none;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-id {width:17%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-client {width:47%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-status {width:30%;}
+    .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-open {width:6%;}
+    .page-orders .orders-data-table .orders-col-payment {display:none;}
+    .page-orders .orders-data-table .op-col-id {width:17%;}
+    .page-orders .orders-data-table .op-col-client {width:46%;}
+    .page-orders .orders-data-table .orders-col-factory {width:31%;}
+    .page-orders .orders-data-table .op-col-open {width:6%;}
+    .page-quotes .quote-data-table .op-col-id {width:17%;}
+    .page-quotes .quote-data-table .op-col-client {width:39%;}
+    .page-quotes .quote-data-table .quote-col-amount {width:19%;}
+    .page-quotes .quote-data-table .op-col-status {width:19%;}
+    .page-quotes .quote-data-table .op-col-open {width:6%;}
+    .page-clients .clients-data-table .op-col-id {width:17%;}
+    .page-clients .clients-data-table .op-col-client {width:53%;}
+    .page-clients .clients-data-table .clients-col-orders {width:24%;}
+    .page-clients .clients-data-table .op-col-open {width:6%;}
+    .page-commissions .commissions-data-table .commission-col-status {display:none;}
+    .page-commissions .commissions-data-table .commission-col-client {width:45%;}
+    .page-commissions .commissions-data-table .commission-col-paid {width:23%;}
+    .page-commissions .commissions-data-table .commission-col-due {width:26%;}
+    .page-commissions .commissions-data-table .commission-col-open {width:6%;}
+    .page-agenda .agenda-side-stack {display:flex;flex-direction:column;}
+  }
+}
+/* El contenedor del dashboard debe poder desplazarse en pantallas angostas.
+   Un @container no puede modificar a su propio ancestro. */
+@media (min-width:841px) and (max-width:1200px) {
+  .app-body.is-dashboard .app-main {overflow-y:auto;}
+}
+/* Altura de portátil (768, 800, 820): evitar 3 superficies con scroll
+   superpuestas. En listados el scroll vertical pasa a ser de la página,
+   la tabla se adapta a su contenido y conserva todos sus enlaces. */
+@media (min-width:841px) and (max-width:1600px) and (max-height:880px) {
+  .app-body.is-opportunities .page.page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) {
+    height:100%;
+    max-height:100%;
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding-bottom:22px;
+    scrollbar-color:#b8c9d8 transparent;
+    scrollbar-width:thin;
+  }
+  .page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-table-panel {
+    flex:0 0 auto;
+    max-height:none;
+    overflow:clip;
+  }
+  .page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-table-scroll {
+    flex:0 0 auto;
+    height:auto;
+    max-height:none;
+    overflow:visible;
+  }
+  .page-opportunities:not(.page-agenda):not(.page-results):not(.crm-workspace) .op-data-table thead th {
+    position:static;
+  }
+  .app-body.is-agenda .page.page-agenda {
+    height:100%;
+    max-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  .page-agenda .agenda-content-grid {max-height:none;overflow:visible;}
+  .page-agenda .agenda-tasks-card {max-height:none;}
+  .page-agenda .agenda-list-scroll {max-height:none;overflow:visible;}
+  .page-agenda .agenda-side-stack {max-height:none;overflow:visible;}
+  .page-results .op-screen-heading,
+  .crm-workspace .op-screen-heading {min-height:60px;margin-bottom:12px;}
+  .app-body.is-dashboard .app-main {overflow-y:auto;}
+  .app-body.is-dashboard .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard {
+    height:auto;
+    min-height:100%;
+    max-height:none;
+    overflow:visible;
+  }
+  .vek2-dashboard .vek2-grid {flex:0 0 auto;grid-template-rows:auto auto;}
+  .vek2-dashboard .vek2-grid-top {min-height:355px;}
+  .vek2-dashboard .vek2-grid-bottom {min-height:295px;}
+  .vek2-dashboard .vek2-card,.vek2-dashboard .hr-calendar.vek2-calendar {min-height:0;}
+}
+/* Portátil bajo con zoom del navegador: evitar que las cabeceras y filtros
+   consuman más altura que la tabla visible. */
+@media (min-width:841px) and (max-width:1450px) and (max-height:740px) {
+  .page-opportunities .op-screen-heading {min-height:0;margin-bottom:7px;}
+  .page-opportunities .op-heading-copy p {font-size:11.5px;}
+  .page-opportunities .op-phase-tabs {margin-bottom:7px;}
+  .page-opportunities .op-phase-tab {min-height:32px;padding-block:5px 7px;}
+  .page-opportunities .op-searchbar {margin-bottom:8px;}
+  .page-commissions .commission-banners {margin-bottom:11px;}
+  .page-commissions .commission-banner {min-height:117px;padding:11px 13px;}
+  .page-agenda .agenda-searchbar {margin-bottom:8px;}
+  .page-results .results-kpi-grid {margin-bottom:11px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .page-opportunities .op-data-table tbody td {transition:none;}
+}
