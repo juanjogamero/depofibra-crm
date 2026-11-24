@@ -90,7 +90,7 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
     <label htmlFor="transport3-api-key">Clave de API para navegador</label>
     <input type="password" id="transport3-api-key" autoComplete="off" value={key}
      placeholder="Pega tu clave restringida al dominio del CRM" onChange={e=>{reset();setKey(e.target.value);saveKey(e.target.value)}}/>
-    <p>Necesita Google Maps JavaScript API y Routes API activadas. Google exige cuenta con facturación y puede aplicar cargos. Restringe la clave por dominio HTTP a la dirección del CRM. Se guarda solo en esta sesión del navegador, no en el repositorio ni en los datos comerciales.</p>
+    <p>Necesita Google Maps JavaScript API y Routes API activadas. Google exige cuenta con facturación y puede aplicar cargos. Restringe la clave por HTTP referrer a https://juanjogamero.github.io/*. Se guarda solo en esta sesión del navegador, no en el repositorio ni en los datos comerciales.</p>
     <a href="https://developers.google.com/maps/documentation/javascript/routes/start"
      target="_blank" rel="noopener noreferrer">Instrucciones oficiales de Google Maps <ExternalLink size={13}/></a>
    </div>}
@@ -113,7 +113,8 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
     <span>Transporte especial <small>Aplicar solo cuando se confirme el recargo.</small></span>
    </label>
    {route?<div className="transport3-ok" aria-live="polite"><CheckCircle2 size={18}/><div>
-    <strong>{kmText(route.km)} km calculados por Google Maps</strong>
+    <strong>{kmText(route.km)} km por carretera calculados</strong>
+    <span className="transport3-google-credit" translate="no">Google Maps</span>
     <small>Casariche → {route.destination}{route.minutes!==null?' · tiempo aproximado sin tráfico: '+(route.minutes/60).toFixed(1).replace('.',',')+' h':''}</small>
    </div></div>:<p className="transport3-manual">Kilómetros sin verificación automática. Puedes escribir el recorrido comprobado manualmente.</p>}
   </div>
@@ -130,6 +131,6 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
   <div className="transport3-disclaimer"><Truck size={19}/><p>
    <b>Solo para estimar.</b> Casariche es la referencia comercial, no necesariamente el origen real del proveedor. Google calcula una ruta de coche, no comprueba altura, anchura o restricciones de camión. Confirma el recorrido, carga, accesos, peajes y descarga con el transportista antes de cotizar. El transporte estándar no incluye descarga.
   </p></div>
-  <p className="transport3-attribution">Proveedor de rutas automáticas, cuando se configura: Google Maps Platform.</p>
+  <p className="transport3-attribution">Distancias automáticas proporcionadas por <span className="transport3-google-credit" translate="no">Google Maps</span>. Solo se consultan al pulsar «Calcular kilómetros».</p>
  </section>;
 }
