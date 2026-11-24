@@ -850,3 +850,381 @@
   .page-results-insights .ri-donut-segment,
   .page-results-insights .ri-kpi {transition:none;}
 }
+
+
+
+/* REG-0120: tarjetas de análisis visual enriquecido y mapa comercial ibérico.
+   Solo secciones Productos/Demanda/Zonas de Resultados; resto de panel intacto. */
+.page-results-insights .ri-product-card-grid {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:stretch;gap:16px;min-width:0;margin-bottom:16px;
+}
+.page-results-insights .ri-product-card,
+.page-results-insights .ri-distribution-card,
+.page-results-insights .ri-geo-card {
+ display:flex;flex-direction:column;min-width:0;overflow:hidden;
+ border:1px solid rgba(159,190,217,.61);border-radius:15px;
+ background:rgba(255,255,255,.97);
+ box-shadow:0 7px 24px rgba(0,45,89,.047);
+}
+.page-results-insights .ri-rich-head,
+.page-results-insights .ri-geo-head {
+ display:flex;align-items:center;gap:12px;min-width:0;
+ padding:18px 20px 16px;border-bottom:1px solid #e6eff6;
+}
+.page-results-insights .ri-rich-head>div,
+.page-results-insights .ri-geo-title>div {flex:1;min-width:0;}
+.page-results-insights .ri-rich-icon,
+.page-results-insights .ri-geo-icon {
+ display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;
+ background:#eaf3fb;color:#01488e;border-radius:11px;
+}
+.page-results-insights .ri-rich-head h3,
+.page-results-insights .ri-geo-head h2 {
+ margin:0;color:#002d59;
+ font:800 clamp(15px,1.2vw,19px)/1.3 "Plus Jakarta Sans",Inter,sans-serif;
+ letter-spacing:-.025em;
+}
+.page-results-insights .ri-rich-head p,
+.page-results-insights .ri-geo-head p {
+ margin:5px 0 0;color:#7b93a8;font:500 11.7px/1.4 Inter,sans-serif;
+}
+.page-results-insights .ri-rich-header-link {
+ display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;
+ color:#3378ac;border:1px solid #d5e6f3;border-radius:8px;
+ text-decoration:none;
+}
+.page-results-insights .ri-rich-header-link:hover {background:#ecf6fc;color:#01488e;}
+/* Dos paneles superiores: resumen KPI y ranking de cuota compacta */
+.page-results-insights .ri-product-content {
+ display:grid;grid-template-columns:minmax(145px,.37fr) minmax(0,1fr);
+ gap:16px;padding:19px 19px 12px;min-width:0;flex:1 1 auto;
+}
+.page-results-insights .ri-product-hero {
+ display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:8px;
+ padding:18px 15px;
+ background:linear-gradient(160deg,#eaf4fc,#f4faff);
+ border-radius:11px;
+}
+.page-results-insights .ri-rich-eyebrow {
+ color:#547b99;font:800 10.5px/1.3 Inter,sans-serif;letter-spacing:.038em;
+}
+.page-results-insights .ri-product-hero>strong {
+ color:#002d59;
+ font:800 clamp(30px,2.7vw,45px)/1.1 "Plus Jakarta Sans",Inter,sans-serif;
+ letter-spacing:-.047em;font-variant-numeric:tabular-nums;
+}
+.page-results-insights .ri-product-hero p {
+ margin:0;color:#7690a6;font:500 11.2px/1.45 Inter,sans-serif;
+}
+.page-results-insights .ri-product-hero-rule {
+ height:1px;width:100%;background:#d3e6f3;margin:8px 0;
+}
+.page-results-insights .ri-product-hero b {
+ color:#285775;font:800 12.3px/1.4 Inter,sans-serif;overflow-wrap:anywhere;
+}
+.page-results-insights .ri-product-hero small {
+ color:#316e9d;font:750 11.5px/1.35 Inter,sans-serif;
+}
+.page-results-insights .ri-product-table {min-width:0;}
+.page-results-insights .ri-product-columns {
+ display:grid;grid-template-columns:minmax(0,1fr) 60px 116px;gap:10px;
+ padding:2px 11px 10px;
+ color:#7890a4;font:800 10.3px/1.25 Inter,sans-serif;
+ letter-spacing:.025em;
+}
+.page-results-insights .ri-product-columns>span:nth-child(2),
+.page-results-insights .ri-product-columns>span:nth-child(3) {text-align:right;}
+.page-results-insights .ri-product-table-row {
+ display:grid;grid-template-columns:minmax(0,1fr) 60px 116px;
+ align-items:center;gap:10px;width:100%;min-height:48px;
+ padding:8px 11px;border:0;border-bottom:1px solid #e9f1f7;
+ border-radius:8px;background:transparent;cursor:pointer;text-align:left;
+ transition:background-color .15s ease;
+}
+.page-results-insights .ri-product-table-row:hover,
+.page-results-insights .ri-product-table-row:focus-visible,
+.page-results-insights .ri-product-table-row.is-selected {
+ outline:0;background:#edf6fd;
+}
+.page-results-insights .ri-product-card-pedidos .ri-product-table-row.is-selected,
+.page-results-insights .ri-product-card-pedidos .ri-product-table-row:hover {background:#eaf7f5;}
+.page-results-insights .ri-product-name {
+ display:flex;align-items:center;gap:9px;min-width:0;
+ color:#244d6b;font:700 11.7px/1.4 Inter,sans-serif;
+}
+.page-results-insights .ri-product-name>i {
+ display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;
+ background:#e8f2fc;color:#276e9f;border-radius:7px;font:800 10.7px/1 Inter,sans-serif;font-style:normal;
+}
+.page-results-insights .ri-product-name>span {
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.page-results-insights .ri-product-table-row>strong {
+ color:#002d59;text-align:right;font:800 12px/1.2 Inter,sans-serif;
+ font-variant-numeric:tabular-nums;
+}
+.page-results-insights .ri-product-share {display:flex;align-items:center;gap:7px;min-width:0;}
+.page-results-insights .ri-product-share b {
+ flex:0 0 39px;color:#45708e;text-align:right;font:750 10.7px/1 Inter,sans-serif;
+}
+.page-results-insights .ri-product-track {flex:1 1 auto;height:7px;background:#e1ecf5;border-radius:8px;overflow:hidden;}
+.page-results-insights .ri-product-track i {
+ display:block;height:100%;border-radius:8px;background:#1972b4;
+}
+.page-results-insights .ri-product-card-pedidos .ri-product-track i {background:#32aaa7;}
+.page-results-insights .ri-product-empty {padding:23px;color:#8299a9;font-size:12px;}
+.page-results-insights .ri-product-foot {
+ display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+ padding:10px 19px 12px;border-top:1px solid #e7f0f6;
+ background:#f8fbfe;color:#6b879e;font:500 11px/1.35 Inter,sans-serif;
+}
+.page-results-insights .ri-product-foot b {color:#244e6e;font-weight:800;}
+.page-results-insights .ri-product-foot a,
+.page-results-insights .ri-dist-foot a {
+ display:inline-flex;align-items:center;gap:5px;color:#01488e;
+ text-decoration:none;font:750 11.2px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-product-foot a:hover,.page-results-insights .ri-dist-foot a:hover {text-decoration:underline;}
+/* Tres columnas: capacidades, MAPA protagonista y estado pedidos. */
+.page-results-insights .ri-demand-map-row {
+ display:grid;
+ grid-template-columns:minmax(250px,.82fr) minmax(475px,1.54fr) minmax(250px,.82fr);
+ align-items:stretch;min-width:0;gap:16px;margin-bottom:27px;
+}
+.page-results-insights .ri-distribution-card {min-height:445px;}
+.page-results-insights .ri-dist-metrics {
+ display:grid;grid-template-columns:1fr 1fr;gap:10px;
+ padding:12px 15px;background:#f3f9fe;border-bottom:1px solid #e7eff7;
+}
+.page-results-insights .ri-dist-metrics>div {
+ display:flex;flex-direction:column;min-width:0;gap:7px;
+}
+.page-results-insights .ri-dist-metrics>div+div {border-left:1px solid #d5e6f3;padding-left:11px;}
+.page-results-insights .ri-dist-metrics span {
+ color:#6d8aa1;font:750 9.8px/1.4 Inter,sans-serif;
+ letter-spacing:.026em;
+}
+.page-results-insights .ri-dist-metrics strong {
+ color:#002d59;font:800 clamp(17px,1.7vw,26px)/1.25 "Plus Jakarta Sans",Inter,sans-serif;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.page-results-insights .ri-distribution-content {
+ display:flex;flex:1 1 auto;align-items:center;padding:15px 12px;min-width:0;
+}
+.page-results-insights .ri-rich-donut-layout {
+ display:grid;grid-template-columns:minmax(118px,1fr) minmax(0,1.05fr);
+ width:100%;align-items:center;gap:8px;min-width:0;
+}
+.page-results-insights .ri-rich-donut {
+ display:block;max-width:215px;width:100%;height:auto;aspect-ratio:1;
+ overflow:visible;
+}
+.page-results-insights .ri-rich-slice {cursor:pointer;transition:stroke-width .15s ease;}
+.page-results-insights .ri-rich-slice:focus-visible {outline:2px solid #01488e;}
+.page-results-insights .ri-rich-donut-number {
+ fill:#002d59;font:800 36px/1 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights .ri-rich-donut-caption {fill:#6b8ba3;font:650 12px/1.2 Inter,sans-serif;}
+.page-results-insights .ri-rich-legend {display:flex;flex-direction:column;gap:4px;min-width:0;}
+.page-results-insights .ri-rich-legend button {
+ display:flex;justify-content:space-between;align-items:center;gap:6px;
+ min-width:0;width:100%;padding:8px 5px;
+ border:1px solid transparent;border-radius:7px;background:transparent;
+ cursor:pointer;
+}
+.page-results-insights .ri-rich-legend button:hover,
+.page-results-insights .ri-rich-legend button:focus-visible,
+.page-results-insights .ri-rich-legend button.is-active {
+ outline:0;border-color:#d8e8f3;background:#f1f8fd;
+}
+.page-results-insights .ri-rich-legend button>span {
+ display:flex;align-items:center;min-width:0;gap:6px;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ color:#305b78;font:650 10.6px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-rich-legend button i {flex:0 0 9px;width:9px;height:9px;border-radius:50%;}
+.page-results-insights .ri-rich-legend button strong {
+ flex:0 0 auto;color:#002d59;font:800 10.7px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-rich-legend button small {color:#7792a6;font-weight:550;}
+.page-results-insights .ri-rich-empty {
+ display:grid;place-items:center;width:100%;min-height:120px;
+ color:#8299ab;font:500 12px/1.5 Inter,sans-serif;text-align:center;
+}
+.page-results-insights .ri-dist-stacked {
+ display:flex;gap:0;height:13px;margin:4px 18px 15px;border-radius:10px;
+ overflow:hidden;background:#e8f0f6;
+}
+.page-results-insights .ri-dist-foot {
+ display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+ padding:12px 16px;border-top:1px solid #e7eff6;
+ background:#f9fcfe;color:#7f96a9;font:500 10.5px/1.45 Inter,sans-serif;
+}
+/* Mapa real peninsular con provincia aproximada, zoom y elección de fuente */
+.page-results-insights .ri-geo-card {min-height:445px;}
+.page-results-insights .ri-geo-head {justify-content:space-between;flex-wrap:wrap;padding:18px 17px 15px;gap:12px;}
+.page-results-insights .ri-geo-title {display:flex;align-items:center;gap:11px;min-width:0;flex:1 1 245px;}
+.page-results-insights .ri-geo-icon {flex:0 0 40px;width:40px;height:40px;}
+.page-results-insights .ri-geo-head h2 {font-size:clamp(14px,1.15vw,18px);}
+.page-results-insights .ri-geo-head p {font-size:11px;}
+.page-results-insights .ri-geo-switch {
+ display:flex;flex:0 0 auto;padding:3px;border:1px solid #d7e5ef;
+ border-radius:9px;background:#f2f7fb;
+}
+.page-results-insights .ri-geo-switch button {
+ min-height:31px;padding:6px 11px;border:0;border-radius:6px;
+ background:transparent;color:#6c879e;font:750 11px/1.2 Inter,sans-serif;cursor:pointer;
+}
+.page-results-insights .ri-geo-switch button.is-active {background:#01488e;color:#fff;box-shadow:0 2px 7px rgba(0,45,89,.1);}
+.page-results-insights .ri-geo-body {
+ display:grid;grid-template-columns:minmax(0,1.4fr) minmax(155px,.66fr);
+ gap:12px;flex:1 1 auto;padding:15px 15px 10px;min-width:0;
+}
+.page-results-insights .ri-geo-maparea {
+ position:relative;min-width:0;align-self:center;
+ overflow:hidden;border-radius:13px;border:1px solid #dce9f2;
+ background:#f2f8fc;
+}
+.page-results-insights .ri-geo-svg {display:block;width:100%;height:auto;aspect-ratio:660/520;}
+.page-results-insights .ri-geo-country {
+ fill:#7f9eb5;font:800 13px/1 Inter,sans-serif;letter-spacing:.15em;
+ pointer-events:none;
+}
+.page-results-insights .ri-geo-marker {cursor:pointer;outline:none;}
+.page-results-insights .ri-geo-marker:focus-visible circle:nth-child(2) {stroke:#eb9f53;stroke-width:5;}
+.page-results-insights .ri-geo-zoom {
+ position:absolute;left:10px;bottom:10px;display:flex;flex-direction:column;
+ background:#fff;border:1px solid #c8dfee;border-radius:9px;
+ overflow:hidden;box-shadow:0 3px 10px rgba(0,45,89,.11);
+}
+.page-results-insights .ri-geo-zoom button {
+ display:grid;place-items:center;width:29px;height:29px;padding:0;
+ border:0;background:#fff;color:#01488e;cursor:pointer;
+}
+.page-results-insights .ri-geo-zoom button+button {border-top:1px solid #e0ebf3;}
+.page-results-insights .ri-geo-zoom button:disabled {opacity:.32;cursor:default;}
+.page-results-insights .ri-geo-zoom button:not(:disabled):hover {background:#edf6fc;}
+.page-results-insights .ri-geo-no-points {
+ position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+ width:80%;padding:9px;border-radius:7px;background:#ffffffdb;
+ color:#5e819b;text-align:center;font:650 11px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-geo-sidebar {
+ display:flex;flex-direction:column;min-width:0;gap:12px;
+}
+.page-results-insights .ri-geo-summary,.page-results-insights .ri-geo-selected {
+ display:flex;flex-direction:column;gap:5px;padding:12px;
+ border:1px solid #dfebf4;border-radius:10px;background:#f7fbff;
+}
+.page-results-insights .ri-geo-summary>span {
+ color:#446e8e;font:750 11px/1.25 Inter,sans-serif;
+}
+.page-results-insights .ri-geo-summary>strong {
+ color:#002d59;font:800 28px/1.14 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights .ri-geo-summary>small {color:#7994a8;font:550 10.4px/1.35 Inter,sans-serif;}
+.page-results-insights .ri-geo-selected>span {
+ color:#668ca6;font:800 9.3px/1.3 Inter,sans-serif;letter-spacing:.045em;
+}
+.page-results-insights .ri-geo-selected>strong {
+ color:#003e7b;font:800 14.5px/1.25 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights .ri-geo-selected>div {display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+.page-results-insights .ri-geo-selected>div b {color:#01488e;font:800 23px/1.15 Inter,sans-serif;}
+.page-results-insights .ri-geo-selected>div span {color:#65869b;font:600 10px/1.3 Inter,sans-serif;}
+.page-results-insights .ri-geo-selected>small,.page-results-insights .ri-geo-selected p {
+ margin:0;color:#7b93a4;font:500 10px/1.42 Inter,sans-serif;
+ overflow-wrap:anywhere;
+}
+.page-results-insights .ri-geo-selected p {color:#496f8a;}
+.page-results-insights .ri-geo-empty {padding:13px;color:#7d98a8;font:500 11px/1.4 Inter,sans-serif;}
+.page-results-insights .ri-geo-zones {display:flex;flex-direction:column;gap:2px;min-width:0;}
+.page-results-insights .ri-geo-zones h3 {
+ margin:2px 0 5px;color:#234e70;font:800 11px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-geo-zones button,
+.page-results-insights .ri-geo-unplaced {
+ display:flex;align-items:center;justify-content:space-between;gap:5px;
+ padding:6px 8px;border:1px solid transparent;border-radius:6px;
+ background:transparent;color:#4c7190;text-align:left;font:600 10.5px/1.3 Inter,sans-serif;
+}
+.page-results-insights .ri-geo-zones button {cursor:pointer;}
+.page-results-insights .ri-geo-zones button:hover,
+.page-results-insights .ri-geo-zones button:focus-visible,
+.page-results-insights .ri-geo-zones button.is-active {
+ background:#e9f3fb;border-color:#d8e8f5;outline:none;
+}
+.page-results-insights .ri-geo-zones button strong,
+.page-results-insights .ri-geo-unplaced b {color:#003c75;font-weight:800;}
+.page-results-insights .ri-geo-link {
+ display:flex;justify-content:space-between;align-items:center;gap:6px;
+ min-height:34px;margin-top:auto;padding:7px 10px;
+ border:1px solid #b9d4e8;border-radius:8px;color:#01488e;
+ text-decoration:none;font:750 11px/1.2 Inter,sans-serif;
+}
+.page-results-insights .ri-geo-link:hover {background:#edf6fd;}
+.page-results-insights .ri-geo-foot {
+ padding:10px 15px;border-top:1px solid #e6eef5;background:#f7fbfe;
+ color:#7992a6;font:500 9.8px/1.5 Inter,sans-serif;
+}
+@media (min-width:841px) {
+ @container crm-content (max-width:1430px) {
+  .page-results-insights .ri-demand-map-row {
+   grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .page-results-insights .ri-demand-map-row>.ri-geo-card {grid-column:1/-1;grid-row:1;}
+  .page-results-insights .ri-distribution-card {min-height:375px;}
+  .page-results-insights .ri-geo-body {grid-template-columns:minmax(0,1fr) minmax(195px,.34fr);}
+  .page-results-insights .ri-geo-svg {max-height:460px;}
+  .page-results-insights .ri-rich-donut {max-width:230px;}
+ }
+ @container crm-content (max-width:1100px) {
+  .page-results-insights .ri-product-card-grid {grid-template-columns:minmax(0,1fr);}
+  .page-results-insights .ri-product-content {grid-template-columns:minmax(160px,.28fr) minmax(0,1fr);}
+ }
+ @container crm-content (max-width:770px) {
+  .page-results-insights .ri-demand-map-row {grid-template-columns:minmax(0,1fr);}
+  .page-results-insights .ri-demand-map-row>.ri-geo-card {grid-column:auto;grid-row:auto;}
+  .page-results-insights .ri-geo-card {order:-1;}
+  .page-results-insights .ri-distribution-card {min-height:0;}
+ }
+}
+@media (max-width:840px) {
+ .page-results-insights .ri-product-card-grid,
+ .page-results-insights .ri-demand-map-row {grid-template-columns:minmax(0,1fr);gap:12px;}
+ .page-results-insights .ri-geo-card {order:-1;}
+ .page-results-insights .ri-product-content {grid-template-columns:minmax(0,1fr);gap:12px;padding:12px;}
+ .page-results-insights .ri-product-hero {gap:5px;padding:12px;}
+ .page-results-insights .ri-product-hero-rule {margin:2px 0;}
+ .page-results-insights .ri-product-columns,
+ .page-results-insights .ri-product-table-row {grid-template-columns:minmax(0,1fr) 45px 98px;gap:5px;}
+ .page-results-insights .ri-product-table-row {padding:8px 5px;}
+ .page-results-insights .ri-product-name {font-size:10.6px;gap:5px;}
+ .page-results-insights .ri-product-share b {flex-basis:33px;font-size:10px;}
+ .page-results-insights .ri-geo-body {grid-template-columns:minmax(0,1fr);}
+ .page-results-insights .ri-geo-sidebar {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+ .page-results-insights .ri-geo-zones {grid-column:1/-1;}
+ .page-results-insights .ri-geo-link {grid-column:1/-1;margin:0;}
+ .page-results-insights .ri-rich-donut-layout {grid-template-columns:minmax(115px,.7fr) minmax(0,1fr);}
+ .page-results-insights .ri-rich-donut {max-width:220px;}
+}
+@media(max-width:420px) {
+ .page-results-insights .ri-product-columns {font-size:8.5px;}
+ .page-results-insights .ri-rich-head {padding:13px;gap:9px;}
+ .page-results-insights .ri-rich-head h3 {font-size:15px;}
+ .page-results-insights .ri-rich-icon {flex-basis:35px;width:35px;height:35px;}
+ .page-results-insights .ri-product-table-row {grid-template-columns:minmax(0,1fr) 34px 84px;}
+ .page-results-insights .ri-product-table-row>strong {font-size:10px;}
+ .page-results-insights .ri-product-share b {font-size:9px;flex-basis:30px;}
+ .page-results-insights .ri-geo-head {padding:13px;}
+ .page-results-insights .ri-geo-switch {width:100%;}
+ .page-results-insights .ri-geo-switch button {flex:1 1 50%;}
+ .page-results-insights .ri-dist-metrics {padding:10px;}
+ .page-results-insights .ri-rich-legend button>span {font-size:10px;}
+ .page-results-insights .ri-geo-selected {padding:9px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .page-results-insights .ri-rich-slice,
+ .page-results-insights .ri-product-table-row {transition:none;}
+}
