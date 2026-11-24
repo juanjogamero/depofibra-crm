@@ -1,7 +1,7 @@
 /* Informes de rendimiento comercial. Solo lectura de datos locales, sin métricas inventadas. */
-import {useMemo,useState} from 'react';
+import {useMemo,useState,type ReactNode} from 'react';
 import {Link} from 'react-router-dom';
-import {ArrowRight,Download,Info,Search} from 'lucide-react';
+import {ArrowRight,Info,Search} from 'lucide-react';
 import {money,type CrmState,type Opportunity,type Quote,type Order,type Channel} from '../domain';
 
 type Dataset={data:CrmState;leads:Opportunity[];quotes:Quote[];orders:Order[]};
@@ -14,14 +14,14 @@ const productLabel=(product:string,capacity?:string)=>{
  const name=product.trim()||'Producto no indicado',size=(capacity||'').trim();
  return size&&size!=='A determinar'&&!norm(name).includes(norm(size))?name+' · '+size:name;
 };
-function RowLink({children,to}:{children:React.ReactNode;to:string}){return <Link to={to} className="ri-study-link">{children}<ArrowRight size={14}/></Link>}
-function Head({title,subtitle,extra}:{title:string;subtitle:string;extra?:React.ReactNode}){
+function RowLink({children,to}:{children:ReactNode;to:string}){return <Link to={to} className="ri-study-link">{children}<ArrowRight size={14}/></Link>}
+function Head({title,subtitle,extra}:{title:string;subtitle:string;extra?:ReactNode}){
  return <header className="ri-study-head"><div><h2>{title}</h2><p>{subtitle}</p></div>{extra}</header>;
 }
 function Strip({items}:{items:{label:string;value:string;hint?:string}[]}){
  return <div className="ri-study-strip">{items.map(x=><div key={x.label}><span>{x.label}</span><strong>{x.value}</strong>{x.hint&&<small>{x.hint}</small>}</div>)}</div>;
 }
-function InfoLine({children}:{children:React.ReactNode}){return <p className="ri-study-footnote"><Info size={14}/>{children}</p>}
+function InfoLine({children}:{children:ReactNode}){return <p className="ri-study-footnote"><Info size={14}/>{children}</p>}
 function Empty(){return <div className="ri-study-empty">No hay datos de este tipo en el periodo seleccionado.</div>}
 
 type ProductRow={key:string;leads:number;quotes:number;quoteAmount:number;orders:number;delivered:number;orderAmount:number};
