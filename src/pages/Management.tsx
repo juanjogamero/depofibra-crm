@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, Shield, X, Truck } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, Shield, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
-import { ActionLink, Button, DataBar, Empty, Field, Modal, NoteDemo, PageHeader, Panel, Pill } from '../ui';
+import { Button, Empty, Field, Modal, Panel } from '../ui';
 import ResultsInsights from './ResultsInsights';
 import FinanceAnalytics from './FinanceAnalytics';
 import CatalogManager from './CatalogManager';
+import TransportRouteCalculator from './TransportRouteCalculator';
 
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
@@ -163,15 +164,13 @@ export function Catalog(){
 }
 export function Configuration(){
   const {data,updateTransport,resetDemo}=useCrm();const t=data.transport;const [edit,setEdit]=useState({...t});
-  const [km,setKm]=useState('120'),[size,setSize]=useState('small'),[special,setSpecial]=useState(false),[province,setProvince]=useState('');
-  const distance=Math.max(0,Number(km)||0),rate=size==='small'?t.smallRate:t.largeRate,estimate=distance*rate+t.buffer+(special?t.specialExtra:0),far=distance>t.distanceLimit,unconfigured=rate<=0;
+
   return <div className="page page-opportunities crm-workspace page-configuration">
     <header className="op-screen-heading"><div className="op-heading-copy">
       <h1>Configuración</h1><p>Parámetros privados de transporte, calculadora orientativa y opciones de demostración del CRM.</p>
     </div></header>
     <div className="detail-grid configuration-content-grid"><Panel title="Precios de transporte configurables"><div className="form-stack"><div className="form-grid"><Field label="Hasta Ø 2,45 m · €/km"><input type="number" min="0" step=".05" value={edit.smallRate} onChange={e=>setEdit({...edit,smallRate:Number(e.target.value)})}/></Field><Field label="Desde Ø 3,00 m · €/km"><input type="number" min="0" step=".05" value={edit.largeRate} onChange={e=>setEdit({...edit,largeRate:Number(e.target.value)})}/></Field><Field label="Margen de seguridad (€)"><input type="number" min="0" step="1" value={edit.buffer} onChange={e=>setEdit({...edit,buffer:Number(e.target.value)})}/></Field><Field label="Límite de kilómetros"><input type="number" min="1" step="1" value={edit.distanceLimit} onChange={e=>setEdit({...edit,distanceLimit:Number(e.target.value)})}/></Field><Field label="Recargo especial (€)"><input type="number" min="0" step="1" value={edit.specialExtra} onChange={e=>setEdit({...edit,specialExtra:Number(e.target.value)})}/></Field></div><Button onClick={()=>updateTransport(edit)}><Check size={16}/>Guardar tarifas en esta demo</Button><div className="inline-tip"><Shield size={17}/> Los importes anteriores de presupuestos ya guardados no cambian al modificar tarifas.</div></div></Panel>
-    <Panel title="Calculadora interna de portes" extra={<Pill tone="blue">Herramienta privada</Pill>}><div className="form-stack"><div className="form-grid"><Field label="Distancia de referencia desde Casariche (km)"><input type="number" min="0" value={km} onChange={e=>setKm(e.target.value)}/></Field><Field label="Diámetro de producto"><select value={size} onChange={e=>setSize(e.target.value)}><option value="small">Hasta 2,45 m</option><option value="large">3,00 m o más</option></select></Field></div><Field label="Provincia de destino (referencia)"><input value={province} onChange={e=>setProvince(e.target.value)} placeholder="Provincia, sin dirección real"/></Field><label className="radio-like"><input type="checkbox" checked={special} onChange={e=>setSpecial(e.target.checked)}/><span><strong>Transporte especial</strong><small>Aplicar solo si las condiciones de carga lo requieren.</small></span></label></div>
-    <div className="estimate-result"><small>{far?'Consultar tabla provincial y metros de tráiler':unconfigured?'Introducir una tarifa privada ficticia':'Estimación interna · NO confirmada'}</small><strong>{far?'Por consultar':unconfigured?'Sin tarifa':decimal(estimate)}</strong><span>{far?'Superado el límite de km. Se requiere tabla por provincia/longitud, pendiente de digitalizar.':unconfigured?'Los importes reales no están en este repositorio público. Edita las tarifas solo con valores ficticios para probar.':distance+' km × '+decimal(rate)+'/km + '+decimal(t.buffer)+' de seguridad'+(special?' + '+decimal(t.specialExtra)+' especial':'')}</span></div><div className="inline-tip"><Truck size={17}/> Casariche es la referencia comercial, no necesariamente el origen real del fabricante. Verificar transportista y descarga.</div></Panel></div>
+    <TransportRouteCalculator tariffs={t}/></div>
     <Panel title="Información de la demo" className="configuration-reset-panel"><div className="settings-reset"><div><strong>Restablecer datos ficticios</strong><p>Recupera los contactos, presupuestos, pedidos y tareas iniciales en este navegador.</p></div><Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de demostración?'))resetDemo()}}>Restablecer demo</Button></div></Panel>
   </div>;
 }
