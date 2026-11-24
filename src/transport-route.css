@@ -1,0 +1,231 @@
+/* REG-0132 · Consulta de kilómetros desde Casariche.
+   Solo diseño en /configuracion: no expone credenciales ni modifica tarifas. */
+.app-body.is-configuration .page.page-configuration {
+  height:100%;max-height:100%;overflow-y:auto;overflow-x:hidden;
+  min-height:0;scrollbar-width:thin;scrollbar-color:#b7cbdc transparent;
+}
+.page-configuration .configuration-content-grid {
+  display:grid;grid-template-columns:minmax(285px,.83fr) minmax(0,1.25fr);
+  gap:14px;align-items:start;min-width:0;
+}
+.page-configuration .transport3 {
+  display:flex;flex-direction:column;gap:0;min-width:0;
+  background:#fff;border:1px solid #d6e5f0;
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,45,89,.035);
+  font-family:Inter,Arial,sans-serif;
+}
+.page-configuration .transport3-head {
+  display:flex;align-items:flex-start;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  padding:18px 19px 15px;border-bottom:1px solid #e7eff5;
+}
+.page-configuration .transport3-title {
+  display:flex;align-items:flex-start;gap:10px;min-width:0;
+}
+.page-configuration .transport3-title>svg {color:#397eaf;flex:0 0 21px;margin-top:1px;}
+.page-configuration .transport3-title h2 {
+  margin:0;color:#00345f;
+  font:800 clamp(15px,1.25vw,17px)/1.3 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-configuration .transport3-title p {
+  margin:5px 0 0;color:#7a93a7;font:500 11px/1.5 Inter,sans-serif;
+}
+.page-configuration .transport3-head>span {
+  background:#eef6fc;color:#417ba5;border:1px solid #d6e7f3;
+  border-radius:7px;padding:5px 8px;
+  font:750 10px/1.25 Inter,sans-serif;white-space:nowrap;
+}
+.page-configuration .transport3-origin {
+  display:flex;align-items:center;gap:9px;margin:17px 19px 14px;
+  padding:11px 13px;border-radius:8px;
+  border:1px solid #dbe9f3;background:#f5fafe;
+}
+.page-configuration .transport3-origin svg {color:#1f77ac;flex:0 0 17px;}
+.page-configuration .transport3-origin>div {display:flex;flex-direction:column;gap:3px;min-width:0;}
+.page-configuration .transport3-origin small {
+  color:#7f97ab;font:800 9px/1.4 Inter,sans-serif;letter-spacing:.04em;
+}
+.page-configuration .transport3-origin strong {
+  color:#204e72;font:800 11.7px/1.25 Inter,sans-serif;
+}
+.page-configuration .transport3-route-form {
+  display:flex;flex-direction:column;gap:8px;margin:0 19px 13px;
+}
+.page-configuration .transport3-route-form>label,
+.page-configuration .transport3-controls label:not(.transport3-check),
+.page-configuration .transport3-key-content>label {
+  display:flex;flex-direction:column;gap:6px;
+  color:#375775;font:750 11.4px/1.3 Inter,sans-serif;
+}
+.page-configuration .transport3-location-inputs {
+  display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:7px;
+}
+.page-configuration .transport3 :is(input[type=text],input[type=password],input[type=number],select) {
+  width:100%;min-width:0;min-height:37px;
+  border:1px solid #d1e0ec;border-radius:8px;
+  background:#fff;color:#254e6e;padding:8px 10px;
+  font:550 11.7px/1.3 Inter,sans-serif;outline:0;
+}
+.page-configuration .transport3 :is(input,select):focus-visible {
+  border-color:#4c95c3;box-shadow:0 0 0 3px rgba(57,136,186,.1);
+}
+.page-configuration .transport3 :is(input,select)::placeholder {color:#99acbb;}
+.page-configuration .transport3-hint {
+  color:#8499aa;font:500 10.2px/1.45 Inter,sans-serif;
+}
+.page-configuration .transport3-actions {
+  display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:8px;
+  padding-top:5px;
+}
+.page-configuration .transport3-search {
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:36px;padding:8px 12px;border:1px solid #01488e;
+  border-radius:8px;background:#01488e;color:#fff;white-space:nowrap;
+  font:800 11.4px/1.25 Inter,sans-serif;cursor:pointer;
+}
+.page-configuration .transport3-search:hover:not(:disabled) {background:#003767;}
+.page-configuration .transport3-search:disabled {opacity:.55;cursor:not-allowed;}
+.page-configuration .transport3-actions>a {
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-height:36px;padding:8px 9px;color:#01488e;border:1px solid #cadfeb;
+  border-radius:8px;text-decoration:none;
+  font:750 10.7px/1.25 Inter,sans-serif;white-space:nowrap;
+}
+.page-configuration .transport3-actions>a:hover {background:#f0f8fd;}
+.page-configuration .transport3-actions>a[aria-disabled=true] {opacity:.5;cursor:not-allowed;}
+.page-configuration .transport3-loader {animation:transport3-spin 1s linear infinite;}
+@keyframes transport3-spin {to{transform:rotate(360deg)}}
+.page-configuration .transport3-key {
+  margin:0 19px 12px;border:1px solid #e4ecf3;border-radius:9px;overflow:hidden;
+}
+.page-configuration .transport3-key-toggle {
+  display:flex;align-items:center;gap:9px;width:100%;
+  min-height:38px;padding:9px 11px;background:#f8fbfe;
+  border:0;color:#4c7695;text-align:left;cursor:pointer;
+  font:750 10.7px/1.35 Inter,sans-serif;
+}
+.page-configuration .transport3-key-toggle>span {flex:1;min-width:0;}
+.page-configuration .transport3-key-toggle b {font-size:16px;}
+.page-configuration .transport3-key-toggle:hover {background:#eef7fd;color:#01488e;}
+.page-configuration .transport3-key-content {
+  display:flex;flex-direction:column;gap:9px;padding:12px;border-top:1px solid #e4edf4;
+}
+.page-configuration .transport3-key-content>p {
+  color:#7a94a8;margin:0;font:500 10.6px/1.5 Inter,sans-serif;
+}
+.page-configuration .transport3-key-content>b {color:#284c6b;}
+.page-configuration .transport3-key-content>a {
+  display:inline-flex;align-items:center;gap:5px;
+  color:#01488e;text-decoration:none;font:750 10.5px/1.25 Inter,sans-serif;
+}
+.page-configuration .transport3-key-content>a:hover {text-decoration:underline;}
+.page-configuration .transport3-alert {
+  display:flex;align-items:flex-start;gap:8px;margin:0 19px 12px;
+  padding:11px;border:1px solid #ead6b5;border-radius:8px;
+  background:#fff9f0;color:#996725;font:600 10.8px/1.5 Inter,sans-serif;
+}
+.page-configuration .transport3-alert svg {flex:0 0 17px;}
+.page-configuration .transport3-controls {
+  display:flex;flex-direction:column;gap:12px;padding:13px 19px 15px;
+  border-top:1px solid #edf2f6;
+}
+.page-configuration .transport3-two-fields {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+}
+.page-configuration .transport3-check {
+  display:flex;align-items:center;gap:9px;cursor:pointer;
+}
+.page-configuration .transport3-check input {
+  flex:0 0 17px;width:17px;min-height:17px;height:17px;margin:0;
+  accent-color:#01488e;
+}
+.page-configuration .transport3-check span {
+  display:flex;flex-direction:column;gap:3px;
+  font:750 11px/1.3 Inter,sans-serif;color:#315d7e;
+}
+.page-configuration .transport3-check small {
+  color:#839bad;font:500 10.2px/1.3 Inter,sans-serif;
+}
+.page-configuration .transport3-ok {
+  display:flex;gap:9px;align-items:flex-start;padding:10px;
+  background:#f1f9f5;border:1px solid #d2e9dc;border-radius:8px;
+}
+.page-configuration .transport3-ok>svg {color:#2a906f;flex:0 0 18px;}
+.page-configuration .transport3-ok>div {display:flex;flex-direction:column;gap:3px;}
+.page-configuration .transport3-ok strong {color:#27785c;font:800 11.3px/1.3 Inter,sans-serif;}
+.page-configuration .transport3-ok small {color:#698f7b;font:500 10.2px/1.35 Inter,sans-serif;}
+.page-configuration .transport3-manual {
+  color:#8499ab;margin:0;font:500 10.5px/1.4 Inter,sans-serif;
+}
+.page-configuration .transport3-result {
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 19px;background:#f1f7fc;border-top:1px solid #dceaf4;
+}
+.page-configuration .transport3-result>div:first-child {display:flex;flex-direction:column;min-width:0;gap:6px;}
+.page-configuration .transport3-result span {
+  color:#688ca8;font:800 9.9px/1.3 Inter,sans-serif;letter-spacing:.04em;
+}
+.page-configuration .transport3-result strong {
+  color:#002d59;overflow-wrap:anywhere;
+  font:800 clamp(18px,1.9vw,25px)/1.17 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-configuration .transport3-result small {
+  color:#7792a7;font:500 10.8px/1.45 Inter,sans-serif;
+}
+.page-configuration .transport3-km {
+  display:flex;align-items:center;flex-direction:column;justify-content:center;
+  flex:0 0 auto;min-width:70px;padding:9px;border:1px solid #d3e5f1;
+  border-radius:9px;background:#fff;
+}
+.page-configuration .transport3-km strong {font-size:20px;white-space:nowrap;}
+.page-configuration .transport3-km small {font-size:10px;}
+.page-configuration .transport3-disclaimer {
+  display:flex;gap:9px;padding:13px 19px 8px;
+  color:#718fa5;font:500 10.3px/1.55 Inter,sans-serif;
+}
+.page-configuration .transport3-disclaimer svg {flex:0 0 19px;color:#4b87b0;}
+.page-configuration .transport3-disclaimer p {margin:0;}
+.page-configuration .transport3-disclaimer b {color:#385e7d;font-weight:800;}
+.page-configuration .transport3-attribution {
+  margin:0;padding:0 19px 15px;color:#92a7b7;
+  font:500 9.7px/1.35 Inter,sans-serif;
+}
+@container crm-content (max-width:1080px) {
+  .page-configuration .configuration-content-grid {
+    grid-template-columns:minmax(0,1fr);gap:11px;
+  }
+  .page-configuration .transport3-two-fields {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:840px) {
+  .app-body.is-configuration .page.page-configuration {
+    height:auto;max-height:none;min-height:100%;overflow-y:visible;
+  }
+  .page-configuration .configuration-content-grid {grid-template-columns:minmax(0,1fr);}
+  .page-configuration .transport3-head,
+  .page-configuration .transport3-controls,.page-configuration .transport3-result,
+  .page-configuration .transport3-disclaimer {padding-left:14px;padding-right:14px;}
+  .page-configuration .transport3-origin {margin-left:14px;margin-right:14px;}
+  .page-configuration .transport3-route-form,
+  .page-configuration .transport3-key {margin-left:14px;margin-right:14px;}
+  .page-configuration .transport3-alert {margin-left:14px;margin-right:14px;}
+}
+@media(max-width:450px) {
+  .page-configuration .transport3-location-inputs,
+  .page-configuration .transport3-two-fields {grid-template-columns:minmax(0,1fr);}
+  .page-configuration .transport3-actions>a,
+  .page-configuration .transport3-actions>button {width:100%;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .page-configuration .transport3-loader {animation:none;}
+}
+
+/* Google Maps is text-attributed next to the route result in accordance
+   with the provider's standalone content display requirements. */
+.page-configuration .transport3-google-credit {
+ display:inline-block;align-self:flex-start;
+ color:#5e5e5e;background:#fff;border-radius:3px;padding:1px 0;
+ font:400 12px/1.35 Roboto,Arial,sans-serif;
+ letter-spacing:normal;white-space:nowrap;
+}
+.page-configuration .transport3-attribution .transport3-google-credit {background:transparent;}
