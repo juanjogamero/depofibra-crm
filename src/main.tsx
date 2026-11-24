@@ -26,6 +26,7 @@ import './remaining-crm-screens.css';
 import './laptop-layout.css';
 import './corporate-atmosphere.css';
 import './dashboard-focus.css';
+import './dashboard-centered.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
