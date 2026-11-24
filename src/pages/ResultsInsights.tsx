@@ -260,6 +260,7 @@ export default function ResultsInsights(){
     const familyDemand=countBy(leads,o=>o.product||'Sin producto');
     const capacityDemand=countBy(leads,o=>o.capacity||'Sin capacidad');
     const orderTypes=countBy(orders,o=>productVariant(o.product,o.capacity));
+    const orderStatuses=countBy(orders,o=>o.factory||'Sin estado');
     const areaLeads=countBy(leads,o=>o.destination||'Destino sin indicar');
     const areaOrders=countBy(orders,o=>orderDestination(o,data));
     const overdue=open.filter(o=>o.nextDate&&o.nextDate<today()).length;
@@ -272,7 +273,7 @@ export default function ResultsInsights(){
       {label:'Oportunidades aceptadas',count:accepted.length},
       {label:'Con pedido vinculado',count:linkedOrders.length}
     ];
-    return {leads,quotes,orders,accepted,lost,open,channels,lossReasons,familyDemand,capacityDemand,orderTypes,areaLeads,areaOrders,overdue,unlinkedOrders,amount,delivered,stageCounts};
+    return {leads,quotes,orders,accepted,lost,open,channels,lossReasons,familyDemand,capacityDemand,orderTypes,orderStatuses,areaLeads,areaOrders,overdue,unlinkedOrders,amount,delivered,stageCounts};
   },[data,period]);
   const times=useMemo(()=>windowSeries(insights.leads,insights.quotes,period),[insights.leads,insights.quotes,period]);
   const total=insights.leads.length;
@@ -309,69 +310,66 @@ export default function ResultsInsights(){
       <div className="ri-kpi"><span className="ri-kpi-head"><span>Tasa de aceptación</span><TrendingUp size={18}/></span><strong>{conversion}%</strong><small>Aceptadas / consultas del periodo</small></div>
       <div className="ri-kpi"><span className="ri-kpi-head"><span>Importe de pedidos</span><BarChart3 size={18}/></span><strong>{money(insights.amount)}</strong><small>Importes registrados; no facturación propia</small></div>
     </section>
-    <div className="ri-section-title"><div><h2>Productos y demanda</h2><p>Diferenciamos interés comercial de pedidos realmente registrados.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="Productos más consultados" subtitle="Familias o tipos solicitados en las oportunidades" extra={<Package size={19}/>}>
-        <RankedBars items={insights.familyDemand} limit={6} empty="Aún no hay productos consultados en el periodo."/>
-      </Panel>
-      <Panel title="Productos con más pedidos" subtitle="Referencias y capacidades con pedidos registrados; no implica entrega" extra={<Package size={19}/>}>
-        <RankedBars items={insights.orderTypes} tone="teal" limit={6} empty="No se han registrado pedidos en este periodo."/>
-        {insights.orders.length>0&&<div className="ri-inline-note">Entregados: <strong>{insights.delivered}</strong> de {insights.orders.length}. Los demás pueden estar en curso.</div>}
-      </Panel>
+
+    <div className="ri-section-title ri-section-overview">
+      <div><h2>Panorama comercial</h2><p>Selecciona puntos, canales y periodos para profundizar en los registros.</p></div><span>Fuente · CRM</span>
     </div>
-    <div className="ri-grid-two">
-      <Panel title="Capacidades más solicitadas" subtitle="Litros o tamaños indicados en las consultas" extra={<BarChart3 size={19}/>}>
-        <RankedBars items={insights.capacityDemand} tone="amber" limit={6} empty="Sin capacidades registradas para este periodo."/>
-      </Panel>
-      <Panel title="Origen de las consultas" subtitle="Canales anotados al registrar la oportunidad" extra={<Inbox size={19}/>}>
-        {insights.channels.length?<div className="ri-channels">
-          {insights.channels.map(({channel,total:count,wins})=><div className="ri-channel" key={channel}>
-            <div className="ri-channel-line"><strong>{channel}</strong><span>{count} {count===1?'consulta':'consultas'} · {wins} {wins===1?'aceptada':'aceptadas'}</span></div>
-            <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(count/maxChannel*100)+'%'}}/></div>
-          </div>)}
-        </div>:<div className="ri-empty">No hay consultas con canal en este periodo.</div>}
-        <div className="ri-inline-note">Aceptadas por canal: estado registrado en la oportunidad, no atribución de Analytics.</div>
-      </Panel>
-    </div>
-    <div className="ri-section-title"><div><h2>Zonas y compradores</h2><p>Destinos escritos en las fichas. No se infiere la ubicación real del usuario de la web.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two">
-      <Panel title="¿De dónde llegan las consultas?" subtitle="Destino solicitado por cada oportunidad" extra={<MapPin size={19}/>}>
-        <RankedBars items={insights.areaLeads} limit={7} empty="No hay destinos de consultas registrados."/>
-      </Panel>
-      <Panel title="¿Dónde compran nuestros clientes?" subtitle="Destino vinculado a los pedidos del periodo" extra={<MapPin size={19}/>}>
-        <RankedBars items={insights.areaOrders} tone="teal" limit={7} empty="Sin destinos de pedidos registrados en este periodo."/>
-        <div className="ri-inline-note">Se usa la dirección de cliente vinculada y, si falta, el destino de su oportunidad. No equivale a residencia.</div>
-      </Panel>
-    </div>
-    <div className="ri-section-title"><div><h2>Evolución y cierre comercial</h2><p>Volumen, oportunidades aceptadas y motivos de pérdida.</p></div><span>Fuente · CRM</span></div>
-    <div className="ri-grid-two ri-grid-trend">
-      <Panel title="Evolución de la actividad" subtitle={times.caption} extra={<TrendingUp size={19}/>}>
+    <div className="ri-grid-two ri-grid-performance">
+      <Panel title="Evolución de consultas y presupuestos" subtitle={times.caption} extra={<TrendingUp size={21}/>} className="ri-panel-primary">
         <TrendChart points={times.points}/>
-        <div className="ri-inline-note">Los registros se agrupan por su fecha de creación. No incluyen visitas web.</div>
+        <div className="ri-inline-note">Los registros se agrupan por fecha de creación. La gráfica no incluye sesiones de la web.</div>
       </Panel>
-      <Panel title="De la consulta al pedido" subtitle="Seguimiento de oportunidades del periodo con vínculos verificables" extra={<CheckCircle2 size={19}/>}>
-        <div className="ri-funnel">
-          {insights.stageCounts.map((s,i)=><div className="ri-funnel-row" key={s.label}>
-            <div><span>{i+1}. {s.label}</span><strong>{s.count}</strong></div>
-            <div className="ri-track"><span className="ri-fill ri-fill-blue" style={{width:(s.count/maxStage*100)+'%'}}/></div>
-          </div>)}
-        </div>
-        <div className="ri-inline-note">{insights.unlinkedOrders?insights.unlinkedOrders+' pedidos del periodo no tienen presupuesto vinculado; no se les atribuye un origen.':'El embudo enlaza oportunidades, presupuestos y pedidos cuando existe referencia.'} El estado actual puede ser posterior al periodo seleccionado.</div>
+      <Panel title="Origen de las consultas" subtitle="Selecciona un canal para ver su aportación" extra={<Inbox size={21}/>} className="ri-panel-channels">
+        <ChannelDonut channels={insights.channels}/>
+        <div className="ri-inline-note">Canal anotado en la oportunidad: no es atribución automática de Analytics.</div>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Productos y demanda</h2><p>Qué productos interesan y cuáles tienen más pedidos registrados.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-two">
+      <Panel title="Productos más consultados" subtitle="Tipos solicitados en las oportunidades" extra={<Package size={21}/>}>
+        <RankedBars items={insights.familyDemand} limit={6} destination="/oportunidades" empty="Aún no hay productos consultados en el periodo."/>
+      </Panel>
+      <Panel title="Productos con más pedidos" subtitle="Referencias y capacidades registradas; no implica entrega" extra={<Package size={21}/>}>
+        <RankedBars items={insights.orderTypes} tone="teal" limit={6} destination="/pedidos" empty="No se han registrado pedidos en este periodo."/>
+        {insights.orders.length>0&&<div className="ri-inline-note">Pedidos entregados: <strong>{insights.delivered}</strong> de {insights.orders.length}. Los demás pueden estar en curso.</div>}
       </Panel>
     </div>
     <div className="ri-grid-two">
-      <Panel title="Motivos de pérdida" subtitle={insights.lost.length+' oportunidades marcadas como perdidas'} extra={<CircleAlert size={19}/>}>
-        <RankedBars items={insights.lossReasons} tone="amber" empty="No hay oportunidades perdidas en este periodo."/>
-        <div className="ri-inline-note">Un motivo «precio» no demuestra que la competencia venda más barato.</div>
+      <Panel title="Capacidades más solicitadas" subtitle="Volúmenes indicados por los interesados" extra={<BarChart3 size={21}/>}>
+        <RankedBars items={insights.capacityDemand} tone="amber" limit={6} destination="/oportunidades" empty="Sin capacidades registradas para este periodo."/>
       </Panel>
-      <Panel title="Seguimientos pendientes" subtitle="Señales para revisar la actividad comercial" extra={<CalendarDays size={19}/>}>
+      <Panel title="Situación de los pedidos" subtitle="Último estado de gestión anotado en cada pedido" extra={<Package size={21}/>}>
+        <RankedBars items={insights.orderStatuses} tone="teal" destination="/pedidos" empty="No hay pedidos registrados en este periodo."/>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Zonas y compradores</h2><p>Destinos guardados en las fichas; no son datos de geolocalización web.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-two">
+      <Panel title="Destinos de las consultas" subtitle="Dónde se solicita el producto" extra={<MapPin size={21}/>}>
+        <RankedBars items={insights.areaLeads} limit={7} destination="/oportunidades" empty="No hay destinos de consultas registrados."/>
+      </Panel>
+      <Panel title="Destinos de los pedidos" subtitle="Zonas vinculadas a operaciones registradas" extra={<MapPin size={21}/>}>
+        <RankedBars items={insights.areaOrders} tone="teal" limit={7} destination="/pedidos" empty="Sin destinos de pedidos registrados en este periodo."/>
+        <div className="ri-inline-note">Se utiliza el destino de cliente vinculado o el de la consulta relacionada. No equivale a lugar de residencia.</div>
+      </Panel>
+    </div>
+    <div className="ri-section-title"><div><h2>Conversión y seguimiento</h2><p>Un embudo consultable y las señales que requieren intervención comercial.</p></div><span>Fuente · CRM</span></div>
+    <div className="ri-grid-three">
+      <Panel title="De la consulta al pedido" subtitle="Etapas con vínculos de CRM comprobables" extra={<CheckCircle2 size={21}/>}>
+        <FunnelExplorer stages={insights.stageCounts}/>
+        <div className="ri-inline-note">{insights.unlinkedOrders?insights.unlinkedOrders+' pedidos carecen de presupuesto vinculado y no se les atribuye origen.':'Los pedidos solo se vinculan si existe una referencia válida.'} Los estados actuales pueden haber cambiado después del periodo.</div>
+      </Panel>
+      <Panel title="Motivos de pérdida" subtitle={insights.lost.length+' oportunidades marcadas como perdidas'} extra={<CircleAlert size={21}/>}>
+        <RankedBars items={insights.lossReasons} tone="amber" destination="/oportunidades" empty="No hay oportunidades perdidas en este periodo."/>
+        <div className="ri-inline-note">Un motivo «precio» no prueba que otro proveedor venda más barato.</div>
+      </Panel>
+      <Panel title="Actividad pendiente" subtitle="Datos para priorizar seguimientos y posventa" extra={<CalendarDays size={21}/>}>
         <div className="ri-signals">
           <div><span>Oportunidades abiertas</span><strong>{insights.open.length}</strong></div>
-          <div><span>Con seguimiento vencido</span><strong>{insights.overdue}</strong></div>
+          <div><span>Seguimientos vencidos</span><strong>{insights.overdue}</strong></div>
           <div><span>Oportunidades perdidas</span><strong>{insights.lost.length}</strong></div>
           <div><span>Pedidos entregados</span><strong>{insights.delivered}</strong></div>
         </div>
-        <Link to="/agenda" className="ri-panel-link">Abrir agenda y seguimientos <ArrowRight size={15}/></Link>
+        <Link to="/agenda" className="ri-panel-link">Abrir agenda y seguimientos <ArrowRight size={16}/></Link>
       </Panel>
     </div>
     <div className="ri-section-title"><div><h2>Analítica web y perfil de audiencia</h2><p>Preparado para cruzar captación digital y rendimiento comercial cuando existan conexiones verificadas.</p></div><span>Fuentes · Pendientes</span></div>
