@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Package, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
 import { useCrm } from '../store';
+import OpportunityAttributeFields from './OpportunityAttributeFields';
 import { type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
@@ -28,6 +29,8 @@ export function Opportunities(){
  const [datesOpen,setDatesOpen]=useState(false);
  const [modal,setModal]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
+ const [quickCategoryId,setQuickCategoryId]=useState('');
+ const [quickAnswers,setQuickAnswers]=useState<Record<string,string>>({});
  const isClosed=(s:OpportunityStatus)=>s==='Aceptada'||s==='Perdida';
  const isOverdue=(o:{status:OpportunityStatus;nextDate:string})=>Boolean(o.nextDate&&o.nextDate<today()&&!isClosed(o.status));
  const quickMatch=(s:OpportunityStatus,k:OpportunityQuickFilter)=>k==='Todas'||(k==='En gestión'?(s==='Cualificación'||s==='Seguimiento'):s===k);
@@ -79,7 +82,7 @@ export function Opportunities(){
    setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
- const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial'});setModal(false);setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
+ const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;const cat=data.productCategories?.find(c=>c.id===quickCategoryId);addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial',categoryId:cat?.id,attributeAnswers:cat?.attributes.filter(a=>a.responseType&&!a.hidden&&quickAnswers[a.id]?.trim()).map(a=>({attributeId:a.id,label:a.label,value:quickAnswers[a.id]}))});setModal(false);setQuickCategoryId('');setQuickAnswers({});setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
  return <div className="page page-opportunities">
    <div className="op-screen-heading">
      <div className="op-heading-copy">
@@ -184,8 +187,17 @@ export function Opportunities(){
  {modal&&<Modal title="Registrar solicitud" subtitle="Solo datos de prueba durante el desarrollo público" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
    <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Consulta agrícola ficticia"/></Field><Field label="Canal de entrada"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
    <Field label="Contacto"><input value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})} placeholder="Identificador de ejemplo"/></Field><Field label="Alias"><input value={form.alias} onChange={e=>setForm({...form,alias:e.target.value})} placeholder="@alias"/></Field>
+   <Field label="Categoría (opcional)"><select value={quickCategoryId} onChange={e=>{
+    const id=e.target.value;const cat=data.productCategories?.find(c=>c.id===id);
+    setQuickCategoryId(id);setQuickAnswers({});
+    if(cat)setForm(old=>({...old,product:cat.name,capacity:''}));
+   }}><option value="">Sin categoría · producto manual</option>
+    {(data.productCategories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+   </select></Field>
    <Field label="Producto *"><input required value={form.product} onChange={e=>setForm({...form,product:e.target.value})}/></Field><Field label="Capacidad"><input value={form.capacity} onChange={e=>setForm({...form,capacity:e.target.value})} placeholder="Ej. 10.000 L"/></Field>
    <Field label="Localidad de destino"><input value={form.destination} onChange={e=>setForm({...form,destination:e.target.value})}/></Field><Field label="Fecha de seguimiento"><input type="date" value={form.nextDate} onChange={e=>setForm({...form,nextDate:e.target.value})}/></Field></div>
+   <OpportunityAttributeFields category={data.productCategories?.find(c=>c.id===quickCategoryId)}
+     values={quickAnswers} onChange={(id,value)=>setQuickAnswers(old=>({...old,[id]:value}))}/>
    <Field label="Enlace a la conversación"><input value={form.conversation} onChange={e=>setForm({...form,conversation:e.target.value})} placeholder="https://... (opcional)"/></Field><Field label="Necesidad del comprador"><textarea rows={3} value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/></Field>
    <div className="modal-actions"><Button variant="outline" onClick={()=>setModal(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar solicitud</Button></div><NoteDemo/>
  </form></Modal>}
@@ -194,8 +206,43 @@ export function Opportunities(){
 }
 
 export function OpportunityNew(){
- const nav=useNavigate();const {addOpportunity}=useCrm(); const [name,setName]=useState(''),[product,setProduct]=useState('Depósito vertical base plana'),[channel,setChannel]=useState<Channel>('WhatsApp'),[cap,setCap]=useState(''),[dest,setDest]=useState('');
- return <div className="page page-crm-form"><Back to="/oportunidades" label="Volver a oportunidades"/><PageHeader title="Nueva solicitud" subtitle="Registro rápido de una oportunidad de demostración."/><Panel title="Datos iniciales" className="limited-panel"><form className="form-stack" onSubmit={e=>{e.preventDefault();if(name.trim()){addOpportunity({name,channel,contact:'',alias:'',conversation:'',product,capacity:cap,destination:dest,status:'Nueva',nextAction:'Responder consulta inicial',nextDate:today(),message:''});nav('/oportunidades')}}}><Field label="Nombre o identificador"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre ficticio"/></Field><div className="form-grid"><Field label="Canal"><select value={channel} onChange={e=>setChannel(e.target.value as Channel)}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Producto"><input value={product} onChange={e=>setProduct(e.target.value)}/></Field><Field label="Capacidad"><input value={cap} onChange={e=>setCap(e.target.value)}/></Field><Field label="Localidad"><input value={dest} onChange={e=>setDest(e.target.value)}/></Field></div><Button type="submit"><Plus size={17}/>Registrar solicitud</Button><NoteDemo/></form></Panel></div>;
+ const nav=useNavigate();const {data,addOpportunity}=useCrm();
+ const [name,setName]=useState(''),[product,setProduct]=useState('Depósito vertical base plana');
+ const [channel,setChannel]=useState<Channel>('WhatsApp'),[cap,setCap]=useState(''),[dest,setDest]=useState('');
+ const [categoryId,setCategoryId]=useState(''),[answers,setAnswers]=useState<Record<string,string>>({});
+ const category=data.productCategories?.find(c=>c.id===categoryId);
+ return <div className="page page-crm-form">
+  <Back to="/oportunidades" label="Volver a oportunidades"/>
+  <PageHeader title="Nueva solicitud" subtitle="Registro manual de una oportunidad en el CRM de demostración."/>
+  <Panel title="Datos iniciales" className="limited-panel">
+   <form className="form-stack" onSubmit={e=>{
+     e.preventDefault();if(!name.trim()||!product.trim())return;
+     addOpportunity({name:name.trim(),channel,contact:'',alias:'',conversation:'',product,capacity:cap,
+       destination:dest,status:'Nueva',nextAction:'Responder consulta inicial',nextDate:today(),message:'',
+       categoryId:category?.id,
+       attributeAnswers:category?.attributes.filter(a=>a.responseType&&!a.hidden&&answers[a.id]?.trim())
+        .map(a=>({attributeId:a.id,label:a.label,value:answers[a.id]}))
+     });nav('/oportunidades');
+   }}>
+    <Field label="Nombre o identificador"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre ficticio"/></Field>
+    <div className="form-grid">
+     <Field label="Canal"><select value={channel} onChange={e=>setChannel(e.target.value as Channel)}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
+     <Field label="Categoría (opcional)"><select value={categoryId} onChange={e=>{
+      const c=data.productCategories?.find(x=>x.id===e.target.value);
+      setCategoryId(e.target.value);setAnswers({});
+      if(c){setProduct(c.name);setCap('');}
+     }}><option value="">Sin categoría</option>
+      {(data.productCategories||[]).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+     </select></Field>
+     <Field label="Producto"><input required value={product} onChange={e=>setProduct(e.target.value)}/></Field>
+     <Field label="Capacidad"><input value={cap} onChange={e=>setCap(e.target.value)}/></Field>
+     <Field label="Localidad"><input value={dest} onChange={e=>setDest(e.target.value)}/></Field>
+    </div>
+    <OpportunityAttributeFields category={category} values={answers} onChange={(id,value)=>setAnswers(old=>({...old,[id]:value}))}/>
+    <Button type="submit"><Plus size={17}/>Registrar solicitud</Button><NoteDemo/>
+   </form>
+  </Panel>
+ </div>;
 }
 
 export function OpportunityDetail(){
@@ -204,7 +251,11 @@ export function OpportunityDetail(){
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
  return <div className="page page-crm-record"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><Link className="btn btn-primary" to={'/presupuestos/nuevo?op='+o.id}><Plus size={16}/>Preparar presupuesto</Link></div>
  <div className="detail-tabs">{['Resumen','Presupuestos','Actividad'].map(t=><button key={t} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t}{t==='Presupuestos'&&<span className="tab-count">{quotes.length}</span>}</button>)}</div>
- {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de la consulta"><div className="info-grid"><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity||'Sin concretar'}/><Info label="Localidad" value={o.destination||'Pendiente'}/><Info label="Canal" value={o.channel}/><Info label="Contacto" value={o.contact||'Sin datos'}/><Info label="Alias" value={o.alias||'No disponible'}/><Info label="Registrado" value={dateText(o.createdAt)}/><Info label="Referencia" value={o.id}/></div><h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
+ {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de la consulta"><div className="info-grid"><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity||'Sin concretar'}/><Info label="Localidad" value={o.destination||'Pendiente'}/><Info label="Canal" value={o.channel}/><Info label="Contacto" value={o.contact||'Sin datos'}/><Info label="Alias" value={o.alias||'No disponible'}/><Info label="Registrado" value={dateText(o.createdAt)}/><Info label="Referencia" value={o.id}/></div>
+ {o.attributeAnswers?.length&&<><h4 className="minor-title">Atributos indicados por el comprador</h4>
+  <div className="info-grid">{o.attributeAnswers.map(a=><Info key={a.attributeId} label={a.label} value={a.value}/>)}</div>
+ </>}
+ <h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
  <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button className="text-button" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
  {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer mensaje comercial de esta consulta."/>}</div></Panel>}
  {tab==='Actividad'&&<div className="detail-grid"><Panel title="Historial de interacciones"><Timeline items={o.activity}/></Panel><Panel title="Registrar seguimiento"><form onSubmit={e=>{e.preventDefault();if(note.trim()){addActivity(o.id,note.trim());setNote('')}}} className="form-stack"><Field label="Nota de la conversación"><textarea value={note} onChange={e=>setNote(e.target.value)} rows={5} placeholder="Llamada, respuesta, comentario..."/></Field><Button type="submit"><Plus size={16}/>Añadir nota</Button></form></Panel></div>}
