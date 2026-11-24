@@ -219,3 +219,13 @@
 @media(prefers-reduced-motion:reduce) {
   .page-configuration .transport3-loader {animation:none;}
 }
+
+/* Google Maps is text-attributed next to the route result in accordance
+   with the provider's standalone content display requirements. */
+.page-configuration .transport3-google-credit {
+ display:inline-block;align-self:flex-start;
+ color:#5e5e5e;background:#fff;border-radius:3px;padding:1px 0;
+ font:400 12px/1.35 Roboto,Arial,sans-serif;
+ letter-spacing:normal;white-space:nowrap;
+}
+.page-configuration .transport3-attribution .transport3-google-credit {background:transparent;}
