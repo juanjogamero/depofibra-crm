@@ -1,8 +1,8 @@
 import {useMemo,useState,type ReactNode} from 'react';
 import {Link} from 'react-router-dom';
 import {
-  ArrowRight, ArrowUpRight, CalendarClock, CheckCircle2, CircleAlert, ClipboardList,
-  Clock3, FileText, Inbox, PackageCheck, TrendingUp, Wallet
+  ArrowRight, ArrowUpRight, CheckCircle2, CircleAlert, ClipboardList,
+  Clock3, FileText, PackageCheck, TrendingUp, Wallet
 } from 'lucide-react';
 import {money,today,type CrmState,type Opportunity,type Quote,type Order} from '../domain';
 
