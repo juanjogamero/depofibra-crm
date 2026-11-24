@@ -1,8 +1,8 @@
 import {useMemo,useState,type ReactNode,type CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
-import {ArrowRight,BarChart3,CalendarDays,CheckCircle2,Clock3,Download,FileText,Info,Landmark,TrendingUp,Wallet} from 'lucide-react';
+import {ArrowRight,BarChart3,CalendarDays,CheckCircle2,Clock3,Download,Info,Landmark,Wallet} from 'lucide-react';
 import {useCrm} from '../store';
-import {money,today,type Order,type CommissionPayment} from '../domain';
+import {money,today,type Order} from '../domain';
 
 type Period='month'|'six'|'twelve'|'year'|'custom'|'all';
 type Status='all'|'unpaid'|'partial'|'paid';
