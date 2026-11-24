@@ -1,14 +1,12 @@
-/* Contornos peninsulares simplificados: Natural Earth (dominio público)
-   vía johan/world.geo.json/countries. Puntos = referencias aproximadas
-   de capitales de provincia/distrito, NO direcciones de compradores. */
+/* Mapa de resultados. Las ubicaciones son agrupaciones por provincias/distritos
+   reconocibles, y sus puntos señalan capitales de referencia, nunca domicilios. */
 import {useMemo,useState} from 'react';
 import {Link} from 'react-router-dom';
-import {ArrowRight,MapPin,Minus,Plus,RotateCcw} from 'lucide-react';
+import {ArrowRight,MapPin,Minus,Plus,RotateCcw,Search} from 'lucide-react';
+import {IBERIA_BOUNDARIES,MAP_VIEW} from './ResultsMapBoundaries';
 type Input={destination:string};
 type Place={name:string;lon:number;lat:number;aliases:string[];country:'ES'|'PT'};
 type Location={name:string;country:'ES'|'PT';x:number;y:number;count:number;examples:string[]};
-const COUNTRY_ES="M43.4 125.0 L45.7 83.0 L27.3 57.4 L91.0 14.8 L146.0 25.5 L206.5 25.1 L254.3 35.2 L291.7 32.1 L364.4 34.1 L382.4 57.0 L465.2 83.8 L481.6 71.1 L532.2 97.7 L584.4 90.1 L586.8 124.4 L544.1 163.7 L486.5 176.1 L482.5 196.0 L454.8 228.7 L437.5 276.7 L455.0 310.4 L429.0 336.8 L419.2 375.1 L385.3 386.9 L353.4 432.2 L296.3 433.1 L253.4 432.0 L225.2 452.8 L208.0 475.1 L186.0 470.2 L169.3 450.3 L156.6 416.4 L114.6 407.2 L110.8 387.7 L127.5 365.6 L133.7 349.5 L118.2 332.0 L130.6 293.2 L112.6 257.9 L132.0 253.0 L133.8 225.1 L141.1 216.5 L141.7 170.4 L162.5 154.5 L149.9 124.9 L123.7 122.8 L116.0 130.3 L89.4 130.3 L78.1 101.5 L59.8 110.1 L43.4 125.0 Z";
-const COUNTRY_PT="M43.4 125.0 L59.8 110.1 L78.1 101.5 L89.4 130.3 L116.0 130.3 L123.7 122.8 L149.9 124.9 L162.5 154.5 L141.7 170.4 L141.1 216.5 L133.8 225.1 L132.0 253.0 L112.6 257.9 L130.6 293.2 L118.2 332.0 L133.7 349.5 L127.5 365.6 L110.8 387.7 L114.6 407.2 L96.5 422.5 L72.8 414.2 L49.6 420.7 L56.4 374.6 L52.2 338.3 L32.1 332.8 L21.3 310.5 L24.9 271.9 L42.8 250.4 L46.0 226.6 L55.4 191.1 L54.4 166.1 L45.4 144.9 L43.4 125.0 Z";
 const sourcePlaces:[string,number,number,string[]][]=[
  ['Sevilla',-5.99,37.39,['sevilla','seville']],['Córdoba',-4.78,37.89,['cordoba']],
  ['Jaén',-3.79,37.78,['jaen']],['Granada',-3.60,37.18,['granada']],
@@ -78,75 +76,116 @@ function group(destinations:Input[]){
   if(!found){unplaced++;return;}
   const existing=points.get(found.name);
   if(existing){existing.count++;if(existing.examples.length<3&&!existing.examples.includes(destination))existing.examples.push(destination);}
-  else points.set(found.name,{name:found.name,country:found.country,x:(found.lon+10)*45,y:(44-found.lat)*59,count:1,examples:[destination]});
+  else points.set(found.name,{name:found.name,country:found.country,x:(found.lon-MAP_VIEW.minLon)/(MAP_VIEW.maxLon-MAP_VIEW.minLon)*MAP_VIEW.width,y:(MAP_VIEW.maxLat-found.lat)/(MAP_VIEW.maxLat-MAP_VIEW.minLat)*MAP_VIEW.height,count:1,examples:[destination]});
  });
  return {points:[...points.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'es')),unplaced};
 }
+
+
 export default function ResultsIberiaMap({leads,orders}:{leads:Input[];orders:Input[]}){
  const [mode,setMode]=useState<'consultas'|'pedidos'>('consultas');
  const [chosen,setChosen]=useState<string|null>(null);
  const [zoom,setZoom]=useState(1);
+ const [term,setTerm]=useState('');
+ const [showAll,setShowAll]=useState(false);
  const {points,unplaced}=useMemo(()=>group(mode==='consultas'?leads:orders),[leads,orders,mode]);
  const selected=points.find(p=>p.name===chosen)||points[0];
- const located=points.reduce((n,p)=>n+p.count,0),total=located+unplaced;
+ const placed=points.reduce((n,p)=>n+p.count,0),total=placed+unplaced;
  const label=mode==='consultas'?'consultas':'pedidos',maximum=Math.max(1,...points.map(p=>p.count));
- return <section className="ri-geo-card" aria-labelledby="ri-geo-title">
-  <header className="ri-geo-head">
-   <div className="ri-geo-title"><span className="ri-geo-icon"><MapPin size={22}/></span>
-    <div><h2 id="ri-geo-title">Mapa comercial de la Península Ibérica</h2>
-     <p>Destinos agrupados por provincia o distrito reconocible en el CRM</p></div></div>
-   <div className="ri-geo-switch" role="group" aria-label="Visualizar ubicaciones de">
-    <button type="button" className={mode==='consultas'?'is-active':''} aria-pressed={mode==='consultas'} onClick={()=>{setMode('consultas');setChosen(null);}}>Consultas</button>
-    <button type="button" className={mode==='pedidos'?'is-active':''} aria-pressed={mode==='pedidos'} onClick={()=>{setMode('pedidos');setChosen(null);}}>Pedidos</button>
-   </div>
-  </header>
-  <div className="ri-geo-body">
-   <div className="ri-geo-maparea">
-    <svg className="ri-geo-svg" viewBox="0 0 660 520" role="img" aria-label={'Mapa peninsular aproximado con '+located+' '+label+' ubicados'}>
-     <rect x="0" y="0" width="660" height="520" rx="15" fill="#f2f8fc"/>
-     <g transform={'translate('+((1-zoom)*330)+' '+((1-zoom)*260)+') scale('+zoom+')'}>
-      <path d={COUNTRY_ES} fill="#d8eaf7" stroke="#a4c6df" strokeWidth="2.1" strokeLinejoin="round"/>
-      <path d={COUNTRY_PT} fill="#bfdbf0" stroke="#9abed7" strokeWidth="2.1" strokeLinejoin="round"/>
-      <text x="395" y="267" textAnchor="middle" className="ri-geo-country">ESPAÑA</text>
-      <text x="95" y="320" textAnchor="middle" className="ri-geo-country">PORTUGAL</text>
-      {points.map(point=>{
-       const radius=7+Math.sqrt(point.count/maximum)*11,isActive=selected?.name===point.name;
-       return <g key={point.name} className={'ri-geo-marker'+(isActive?' is-selected':'')}
-        role="button" tabIndex={0} aria-label={point.name+': '+point.count+' '+label}
-        onPointerEnter={()=>setChosen(point.name)} onFocus={()=>setChosen(point.name)}
-        onClick={()=>setChosen(point.name)}
-        onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setChosen(point.name);}}}>
-        <circle cx={point.x} cy={point.y} r={radius+8} fill="#01488e" opacity={isActive?0.14:0}/>
-        <circle cx={point.x} cy={point.y} r={radius} fill={mode==='consultas'?'#01488e':'#178f92'} stroke="#fff" strokeWidth="3" opacity={isActive?1:.84}/>
-        <text x={point.x} y={point.y+4} textAnchor="middle" fill="#fff" fontSize="12" fontWeight="800" pointerEvents="none">{point.count}</text>
-        <title>{point.name}: {point.count} {label}</title>
-       </g>;
-      })}
-     </g>
-    </svg>
-    <div className="ri-geo-zoom" role="group" aria-label="Zoom del mapa">
-     <button type="button" title="Acercar" aria-label="Acercar" disabled={zoom>=1.8} onClick={()=>setZoom(v=>Math.min(1.8,Math.round((v+.2)*10)/10))}><Plus size={16}/></button>
-     <button type="button" title="Alejar" aria-label="Alejar" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,Math.round((v-.2)*10)/10))}><Minus size={16}/></button>
-     <button type="button" title="Restablecer zoom" aria-label="Restablecer zoom" disabled={zoom===1} onClick={()=>setZoom(1)}><RotateCcw size={15}/></button>
+ const display=points.filter(p=>normalize(p.name).includes(normalize(term).trim())).slice(0,showAll?undefined:9);
+ const countryCount={ES:points.filter(x=>x.country==='ES').reduce((a,b)=>a+b.count,0),PT:points.filter(x=>x.country==='PT').reduce((a,b)=>a+b.count,0)};
+ const setDataMode=(next:'consultas'|'pedidos')=>{setMode(next);setChosen(null);setShowAll(false)};
+ const xcenter=(1-zoom)*MAP_VIEW.width/2,ycenter=(1-zoom)*MAP_VIEW.height/2;
+ return <section className="ri-geo-card ri-geo-pro" aria-labelledby="ri-geo-title">
+   <header className="ri-geo-head">
+    <div className="ri-geo-title"><div><h2 id="ri-geo-title">Mapa comercial · España y Portugal</h2>
+      <p>Distribución territorial aproximada a partir de los destinos anotados en el CRM</p></div></div>
+    <div className="ri-geo-switch" role="group" aria-label="Visualizar ubicaciones de">
+     <button type="button" className={mode==='consultas'?'is-active':''} aria-pressed={mode==='consultas'} onClick={()=>setDataMode('consultas')}>Consultas</button>
+     <button type="button" className={mode==='pedidos'?'is-active':''} aria-pressed={mode==='pedidos'} onClick={()=>setDataMode('pedidos')}>Pedidos</button>
     </div>
-    {!points.length&&<div className="ri-geo-no-points">Sin destinos localizables en el periodo.</div>}
+   </header>
+   <div className="ri-geo-pro-strip" aria-label="Indicadores territoriales">
+     <div><span>Total {label}</span><strong>{total}</strong></div>
+     <div><span>Con provincia o distrito</span><strong>{placed}</strong></div>
+     <div><span>Zonas distintas</span><strong>{points.length}</strong></div>
+     <div><span>Sin ubicar</span><strong>{unplaced}</strong></div>
    </div>
-   <aside className="ri-geo-sidebar">
-    <div className="ri-geo-summary"><span>Total de {label}</span><strong>{total}</strong><small>{located} ubicados · {unplaced} sin ubicar</small></div>
-    {selected?<div className="ri-geo-selected" aria-live="polite">
-     <span>ZONA SELECCIONADA</span><strong>{selected.name}</strong>
-     <div><b>{selected.count}</b><span>{label} · {total?Math.round(selected.count/total*100):0}% del total</span></div>
-     <small>Referencia provincial/distrital aproximada, no dirección exacta.</small>
-     <p title={selected.examples.join(' · ')}>{selected.examples.join(' · ')}</p>
-    </div>:<div className="ri-geo-empty">No hay destinos reconocibles para mostrar.</div>}
-    <div className="ri-geo-zones"><h3>Zonas registradas</h3>
-     {points.slice(0,7).map(p=><button type="button" key={p.name} aria-pressed={p.name===selected?.name}
-      className={p.name===selected?.name?'is-active':''} onClick={()=>setChosen(p.name)}><span>{p.name}</span><strong>{p.count}</strong></button>)}
-     {unplaced>0&&<div className="ri-geo-unplaced"><span>Sin zona reconocible</span><b>{unplaced}</b></div>}
+   <div className="ri-geo-body">
+    <div className="ri-geo-maparea">
+     <svg className="ri-geo-svg" viewBox={'0 0 '+MAP_VIEW.width+' '+MAP_VIEW.height} role="img"
+      aria-label={'Mapa detallado de provincias españolas y distritos portugueses con '+placed+' '+label+' clasificados por zona'}>
+       <defs><clipPath id="ri-iberia-clip"><rect x="0" y="0" width={MAP_VIEW.width} height={MAP_VIEW.height}/></clipPath></defs>
+       <rect x="0" y="0" width={MAP_VIEW.width} height={MAP_VIEW.height} fill="#f8fbfd"/>
+       <g clipPath="url(#ri-iberia-clip)">
+        <g className="ri-map-graticule" aria-hidden="true">
+         {[100,240,380,520,660,800].map(v=><line key={'v'+v} x1={v} y1={0} x2={v} y2={MAP_VIEW.height}/>)}
+         {[90,220,350,480].map(v=><line key={'h'+v} x1={0} y1={v} x2={MAP_VIEW.width} y2={v}/>)}
+        </g>
+        <g transform={'translate('+xcenter+' '+ycenter+') scale('+zoom+')'}>
+         <g className="ri-map-boundaries">
+          {IBERIA_BOUNDARIES.map((place,i)=><path key={place.country+place.name+i} className={place.country==='ES'?'ri-map-province-es':'ri-map-district-pt'}
+           d={place.d} strokeLinejoin="round"><title>{place.name}</title></path>)}
+         </g>
+         <g className="ri-map-country-labels" aria-hidden="true">
+          <text x="365" y="258" textAnchor="middle">ESPAÑA</text>
+          <text x="119" y="316" textAnchor="middle">PORTUGAL</text>
+         </g>
+         <g className="ri-map-pins">
+          {points.map(p=>{
+           const radius=6.5+Math.sqrt(p.count/maximum)*8.5,isActive=selected?.name===p.name;
+           return <g key={p.name} className={'ri-geo-marker'+(isActive?' is-selected':'')} role="button" tabIndex={0}
+            aria-label={p.name+': '+p.count+' '+label} aria-pressed={isActive}
+            onPointerEnter={()=>setChosen(p.name)} onFocus={()=>setChosen(p.name)}
+            onClick={()=>setChosen(p.name)}
+            onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setChosen(p.name)}}}>
+            {isActive&&<circle cx={p.x} cy={p.y} r={radius+9} className="ri-map-pin-halo"/>}
+            <circle cx={p.x} cy={p.y} r={radius} className={mode==='pedidos'?'ri-map-pin-pedidos':'ri-map-pin-consultas'}/>
+            <text x={p.x} y={p.y+4} textAnchor="middle" className="ri-map-pin-count" pointerEvents="none">{p.count}</text>
+            <title>{p.name} · {p.count} {label}</title>
+           </g>;
+          })}
+         </g>
+        </g>
+       </g>
+     </svg>
+     <div className="ri-geo-zoom" role="group" aria-label="Zoom del mapa">
+      <button type="button" aria-label="Acercar mapa" title="Acercar" disabled={zoom>=2.4} onClick={()=>setZoom(v=>Math.min(2.4,Math.round((v+.2)*10)/10))}><Plus size={16}/></button>
+      <button type="button" aria-label="Alejar mapa" title="Alejar" disabled={zoom<=1} onClick={()=>setZoom(v=>Math.max(1,Math.round((v-.2)*10)/10))}><Minus size={16}/></button>
+      <button type="button" aria-label="Restablecer vista del mapa" title="Restablecer" disabled={zoom===1} onClick={()=>setZoom(1)}><RotateCcw size={15}/></button>
+     </div>
+     {!points.length&&<div className="ri-geo-no-points">No hay destinos reconocibles en este periodo.</div>}
+     <div className="ri-map-countries" aria-label="Desglose por país reconocible">
+      <span>ES · {countryCount.ES}</span><span>PT · {countryCount.PT}</span>
+     </div>
     </div>
-    <Link to={mode==='consultas'?'/oportunidades':'/pedidos'} className="ri-geo-link">Ver {label}<ArrowRight size={16}/></Link>
-   </aside>
-  </div>
-  <footer className="ri-geo-foot">Base cartográfica: Natural Earth (dominio público). Marcadores aproximados por provincia/distrito según el destino registrado; no localización exacta de personas ni geolocalización de visitantes.</footer>
+    <aside className="ri-geo-sidebar">
+     <div className="ri-map-selection">
+      <span className="ri-map-selection-label">ZONA SELECCIONADA</span>
+      {selected?<><strong>{selected.name}</strong>
+       <p><b>{selected.count}</b> {label} · {total?Math.round(selected.count/total*100):0}% del total del periodo</p>
+       <small>Marcador situado en capital provincial o distrital aproximada, nunca en la dirección del cliente.</small>
+      </>:<><strong>Sin zona seleccionable</strong><p>Los destinos no contienen una provincia o distrito identificable.</p></>}
+     </div>
+     <div className="ri-geo-zones">
+      <div className="ri-map-list-head"><h3>Distribución por zonas</h3><span>{points.length} zonas</span></div>
+      {points.length>8&&<label className="ri-map-filter"><Search size={14}/><input type="search" placeholder="Filtrar provincia o distrito" aria-label="Filtrar zonas" value={term} onChange={e=>{setTerm(e.target.value);setShowAll(true)}}/></label>}
+      <div className="ri-map-zones-table" role="group" aria-label="Seleccionar zona">
+       {display.map(p=><button type="button" key={p.name} className={p.name===selected?.name?'is-active':''}
+        aria-pressed={p.name===selected?.name} onClick={()=>setChosen(p.name)}>
+        <span>{p.name}</span><strong>{p.count}</strong><small>{total?Math.round(p.count/total*100):0}%</small>
+       </button>)}
+       {points.length===0&&<div className="ri-geo-empty">No hay datos de zonas reconocibles.</div>}
+       {points.length>0&&display.length===0&&<div className="ri-geo-empty">Sin coincidencias.</div>}
+       {unplaced>0&&<div className="ri-geo-unplaced"><span>Destino sin identificar</span><b>{unplaced}</b></div>}
+      </div>
+      {points.length>9&&!term&&<button type="button" className="ri-map-showall" onClick={()=>setShowAll(v=>!v)}>
+       {showAll?'Ver menos':'Ver todas las zonas ('+points.length+')'}
+      </button>}
+     </div>
+     <Link to={mode==='consultas'?'/oportunidades':'/pedidos'} className="ri-geo-link">Consultar registros <ArrowRight size={15}/></Link>
+    </aside>
+   </div>
+   <footer className="ri-geo-foot">Cartografía territorial generalizada: CartoDB Common Data (provincias españolas) y OpenStreetMap (distritos portugueses). No constituye cartografía oficial. Marcadores de referencia provincial/distrital; no se geolocalizan personas ni visitantes de la web.</footer>
  </section>;
 }
