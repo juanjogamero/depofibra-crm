@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, CircleAlert, Package, Plus, Search, Shield, X, Truck } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, Shield, X, Truck } from 'lucide-react';
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { ActionLink, Button, DataBar, Empty, Field, Modal, NoteDemo, PageHeader, Panel, Pill } from '../ui';
 import ResultsInsights from './ResultsInsights';
 import FinanceAnalytics from './FinanceAnalytics';
+import CatalogManager from './CatalogManager';
 
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
@@ -158,57 +159,7 @@ export function Finance(){
   return <FinanceAnalytics/>;
 }
 export function Catalog(){
-  const {data,addProduct}=useCrm();const [modal,setModal]=useState(false),[name,setName]=useState(''),[family,setFamily]=useState('Depósitos PRFV'),[capacity,setCapacity]=useState(''),[price,setPrice]=useState('0');
-  const save=(e:FormEvent)=>{e.preventDefault();if(name.trim()){addProduct({name,family,capacity,price:Number(price)||0,active:true});setModal(false);setName('');setCapacity('');setPrice('0')}};
-  const [query,setQuery]=useState('');
-  const [selectedFamily,setSelectedFamily]=useState('Todas');
-  const families=[...new Set(data.products.map(p=>p.family))].sort((a,b)=>a.localeCompare(b,'es'));
-  const term=query.trim().toLocaleLowerCase('es-ES');
-  const visible=data.products.filter(p=>
-    (selectedFamily==='Todas'||p.family===selectedFamily)
-    &&[p.id,p.name,p.family,p.capacity].join(' ').toLocaleLowerCase('es-ES').includes(term)
-  );
-  return <div className="page page-opportunities crm-workspace page-catalog">
-    <header className="op-screen-heading">
-      <div className="op-heading-copy"><h1>Catálogo</h1><p>Referencias internas de la demo para preparar presupuestos. Verifica cada producto y condición antes de ofertar.</p></div>
-      <div className="op-heading-actions"><button type="button" className="op-new-button" onClick={()=>setModal(true)}><Plus size={17}/>Añadir producto</button></div>
-    </header>
-    <nav className="op-phase-tabs catalog-phase-tabs" aria-label="Filtrar catálogo por familia">
-      {['Todas',...families].map(familyName=><button key={familyName} type="button" className={'op-phase-tab'+(selectedFamily===familyName?' is-active':'')} aria-pressed={selectedFamily===familyName} onClick={()=>setSelectedFamily(familyName)}>
-        <span>{familyName}</span><strong>{familyName==='Todas'?data.products.length:data.products.filter(p=>p.family===familyName).length}</strong>
-      </button>)}
-    </nav>
-    <div className="op-searchbar catalog-searchbar">
-      <label className="op-search"><Search size={18} aria-hidden="true"/>
-        <input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar producto, capacidad o referencia" aria-label="Buscar en el catálogo"/>
-        {query&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setQuery('')}><X size={15}/></button>}
-      </label>
-      <span className="catalog-list-meta">{visible.length} {visible.length===1?'referencia':'referencias'}</span>
-    </div>
-    <section className="catalog-records" aria-label="Productos de la demo">
-      <div className="catalog-record-heading" aria-hidden="true"><span>PRODUCTO / REFERENCIA</span><span>ESTADO</span><span>REFERENCIA ECONÓMICA</span></div>
-      <div className="catalog-list">{visible.map(p=><div className="catalog-list-item" key={p.id}>
-        <span className="catalog-product-icon"><Package size={21}/></span>
-        <div className="catalog-product-copy"><small>{p.family}</small><strong title={p.name}>{p.name}</strong><span>{p.capacity} · {p.id}</span></div>
-        <span className={'catalog-status'+(p.active?' is-active':'')}>{p.active?'Activo':'Inactivo'}</span>
-        <div className="catalog-private-value"><strong>{p.price?money(p.price):'Por verificar'}</strong><small>Referencia privada</small></div>
-      </div>)}
-      {!visible.length&&<Empty title="No hay referencias" body="Prueba otra búsqueda o selecciona una familia diferente."/>}</div>
-      <footer className="catalog-list-footer">Mostrando <strong>{visible.length}</strong> de <strong>{data.products.length}</strong> referencias de demostración</footer>
-    </section>
-    <div className="inline-tip catalog-security-note"><Shield size={17}/> No se han importado tarifas privadas históricas ni se presentan costes actuales no confirmados.</div>
-    {modal&&<Modal title="Añadir producto" onClose={()=>setModal(false)}>
-      <form className="modal-form" onSubmit={save}>
-        <Field label="Nombre"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Ej. Depósito horizontal con cunas"/></Field>
-        <div className="form-grid">
-          <Field label="Familia"><select value={family} onChange={e=>setFamily(e.target.value)}>{['Depósitos PRFV','Fosas sépticas','Piscinas','Cubas y cisternas','Otros'].map(x=><option key={x}>{x}</option>)}</select></Field>
-          <Field label="Capacidad"><input value={capacity} onChange={e=>setCapacity(e.target.value)} placeholder="Ej. 10.000 L"/></Field>
-        </div>
-        <Field label="Precio de referencia privado (€)"><input type="number" min="0" step=".01" value={price} onChange={e=>setPrice(e.target.value)}/></Field>
-        <div className="modal-actions"><Button variant="outline" onClick={()=>setModal(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Añadir producto</Button></div>
-      </form>
-    </Modal>}
-  </div>;
+  return <CatalogManager/>;
 }
 export function Configuration(){
   const {data,updateTransport,resetDemo}=useCrm();const t=data.transport;const [edit,setEdit]=useState({...t});

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Package, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
@@ -383,21 +383,103 @@ export function QuoteNew(){
  const {data,addQuote}=useCrm();const nav=useNavigate();const [params]=useSearchParams();
  const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!['Aceptada','Perdida'].includes(o.status))?.id||'');
  const lead=data.opportunities.find(o=>o.id===opId);
- const [product,setProduct]=useState((lead?.product||'')+(lead?.capacity?' · '+lead.capacity:''));
+ const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
+ const [product,setProduct]=useState(leadProduct(lead));
+ const [catalogId,setCatalogId]=useState('');
  const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[text,setText]=useState(''),[sent,setSent]=useState(false);
+ const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')||a.name.localeCompare(b.name,'es')||
+  (Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
+ const categories=(data.productCategories||[]).filter(c=>available.some(p=>p.categoryId===c.id));
+ const catalogProduct=data.products.find(p=>p.id===catalogId);
+ const selectedCategory=(data.productCategories||[]).find(c=>c.id===catalogProduct?.categoryId);
+ const attributes=selectedCategory?.attributes.filter(a=>a.value.trim())||[];
+ const chooseCatalog=(id:string)=>{
+  if(id==='manual'){
+   setCatalogId('');setAmount('');setText('');
+   return;
+  }
+  const p=data.products.find(x=>x.id===id&&x.active);
+  if(!p)return;
+  const c=(data.productCategories||[]).find(x=>x.id===p.categoryId);
+  setCatalogId(p.id);
+  setProduct((c?.name||p.name)+' · '+p.capacity);
+  setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
+  setText('');
+ };
  const generated=()=>{
   const greeting=(lead?.name||'').split(' ·')[0];
   return '¡Buenas tardes'+(greeting?', '+greeting:'')+'! 😊 Soy Juan, de Depofibra.\n\nYa tengo preparado el precio de la opción que nos consultaste:\n\n💧 '+(product||'Producto por definir')+'\n✅ PRECIO: '+decimal(Number(amount)||0)+'\n\n'+(details||'Podemos confirmar las características técnicas del modelo y las condiciones de entrega para dejarlo todo preparado.')+'\n\nSi te encaja, concretamos con la oficina las conexiones, el color y el resto de detalles.\n\n¿Qué te parece el presupuesto? ¡Muchas gracias! Un saludo.';
  };
- const save=(e:FormEvent)=>{e.preventDefault();if(!opId||!product.trim()||Number(amount)<=0)return;addQuote({opportunityId:opId,name:lead?.name||'Contacto ficticio',product,amount:Number(amount),commission:Number(commission)||0,transport:Number(transport)||0,status:sent?'Enviado':'Borrador',message:text||generated()});nav('/presupuestos')};
- return <div className="page page-crm-form"><Back to="/presupuestos" label="Volver a presupuestos"/><PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto" subtitle="Sin documentos: prepara un precio y un mensaje que puedas copiar y enviar."/>
- <form onSubmit={save} className="quote-builder"><div className="builder-main"><Panel title="Información de la oferta"><div className="form-grid"><Field label="Solicitud asociada"><select value={opId} required onChange={e=>{setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);setProduct(o?o.product+' · '+o.capacity:'')}}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field><Field label="Producto y capacidad"><input required value={product} onChange={e=>setProduct(e.target.value)}/></Field>
- <Field label="Precio comunicado (€)"><input type="number" required min="1" step=".01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0,00"/></Field><Field label="Transporte interno estimado (€)"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field></div>
- <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
- <div className="inline-tip"><Truck size={17}/> Consulta la calculadora privada en <Link to="/configuracion">Configuración</Link>. No prometas portes estimados.</div></Panel>
- <Panel title="Mensaje comercial" extra={<Button variant="subtle" onClick={()=>setText(generated())}><Sparkles size={16}/>Generar borrador</Button>}><Field label="Edita y revisa antes de copiar"><textarea rows={12} className="message-editor" value={text} onChange={e=>setText(e.target.value)} placeholder="Pulsa «Generar borrador» o escribe un mensaje personalizado."/></Field><div className="hint-row"><MessageCircle size={16}/> El CRM no genera proformas ni facturas oficiales.</div></Panel></div>
- <div className="builder-side"><Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{money(Number(amount)||0)}</strong></div><div className="summary-line"><span>Porte orientativo</span><strong>{money(Number(transport)||0)}</strong></div><div className="summary-line"><span>Comisión acordada</span><strong>{money(Number(commission)||0)}</strong></div><Field label="Comisión interna (€)"><input type="number" min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field><div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div></Panel>
- <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/><span><strong>Marcar como enviada</strong><small>Solo si ya has comunicado el precio (simulación).</small></span></label><Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/></Panel></div></form></div>;
+ const save=(e:FormEvent)=>{
+  e.preventDefault();
+  const value=Number(amount);
+  if(!opId||!product.trim()||!Number.isFinite(value)||value<=0)return;
+  addQuote({
+   opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
+   productId:catalogId||undefined,amount:value,
+   commission:Number(commission)||0,transport:Number(transport)||0,
+   status:sent?'Enviado':'Borrador',message:text||generated()
+  });
+  nav('/presupuestos');
+ };
+ return <div className="page page-crm-form page-quote-catalog"><Back to="/presupuestos" label="Volver a presupuestos"/>
+  <PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto" subtitle="Selecciona una referencia del catálogo para cargar su precio o introduce la oferta manualmente."/>
+ <form onSubmit={save} className="quote-builder">
+  <div className="builder-main">
+   <Panel title="Información de la oferta">
+    <div className="form-grid">
+     <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
+       setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
+       setProduct(leadProduct(o));setCatalogId('');setAmount('');setText('');
+     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
+     <Field label="Producto del catálogo o manual">
+      <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
+       <option value="manual">Escribir producto manualmente</option>
+       {categories.map(c=><optgroup key={c.id} label={c.name}>
+        {available.filter(p=>p.categoryId===c.id).map(p=><option key={p.id} value={p.id}>
+          {p.capacity} · {p.salePriceConfigured&&p.price>0?decimal(p.price):'Precio por verificar'}
+        </option>)}
+       </optgroup>)}
+       {available.filter(p=>!categories.some(c=>c.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
+      </select>
+     </Field>
+     <Field label="Producto y capacidad"><input required value={product} onChange={e=>{
+       setProduct(e.target.value);if(catalogId){setCatalogId('');setAmount('');}
+     }} placeholder="Ej. Depósito vertical base plana · 10.000 L"/></Field>
+     <Field label="Precio comunicado (€)"><input type="number" required min=".01" step=".01"
+      value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0,00"/></Field>
+     <Field label="Transporte interno estimado (€)"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
+    </div>
+    {catalogProduct&&<div className={'quote-catalog-feedback'+(catalogProduct.salePriceConfigured&&catalogProduct.price>0?' is-priced':' is-unpriced')}>
+     <div><Package size={17}/><strong>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Precio de catálogo precargado':'Referencia sin precio de venta'}</strong></div>
+     <p>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Puedes ajustar el importe de esta oferta sin modificar el precio guardado en el catálogo.':
+      'Introduce el precio manualmente antes de guardar la oferta; el catálogo no contiene un importe configurado para esta capacidad.'}</p>
+     {attributes.length>0&&<div className="quote-catalog-attributes">
+      <span>Atributos comunes de categoría (verifica su aplicación antes de ofertar):</span>
+      {attributes.map(a=><span key={a.id}>{a.label}: <b>{a.value}</b></span>)}
+     </div>}
+    </div>}
+    <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
+    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/configuracion">Configuración</Link> antes de comunicar condiciones.</div>
+   </Panel>
+   <Panel title="Mensaje comercial" extra={<Button variant="subtle" onClick={()=>setText(generated())}><Sparkles size={16}/>Generar borrador</Button>}>
+    <Field label="Edita y revisa antes de copiar"><textarea rows={12} className="message-editor" value={text} onChange={e=>setText(e.target.value)} placeholder="Pulsa «Generar borrador» o escribe un mensaje personalizado."/></Field>
+    <div className="hint-row"><MessageCircle size={16}/> El CRM no genera proformas ni facturas oficiales. Seleccionar un producto no envía el presupuesto.</div>
+   </Panel>
+  </div>
+  <div className="builder-side">
+   <Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{decimal(Number(amount)||0)}</strong></div>
+    <div className="summary-line"><span>Porte orientativo</span><strong>{decimal(Number(transport)||0)}</strong></div>
+    <div className="summary-line"><span>Comisión acordada</span><strong>{decimal(Number(commission)||0)}</strong></div>
+    <Field label="Comisión interna (€)"><input type="number" min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
+    <div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div>
+   </Panel>
+   <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
+     <span><strong>Marcar como enviada</strong><small>Solo si ya has comunicado el precio (simulación).</small></span></label>
+    <Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/>
+   </Panel>
+  </div>
+ </form></div>;
 }
 
 export function QuoteDetail(){
