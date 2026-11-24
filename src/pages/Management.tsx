@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, Shield, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { Button, Empty, Field, Modal, Panel } from '../ui';
@@ -163,14 +163,39 @@ export function Catalog(){
   return <CatalogManager/>;
 }
 export function Configuration(){
-  const {data,updateTransport,resetDemo}=useCrm();const t=data.transport;const [edit,setEdit]=useState({...t});
+ const {data,updateTransport,resetDemo}=useCrm();
+ const t=data.transport;
+ const [edit,setEdit]=useState({...t});
+ const validTariffs=Object.values(edit).every(value=>Number.isFinite(value)&&value>=0)&&edit.distanceLimit>=1;
 
-  return <div className="page page-opportunities crm-workspace page-configuration">
-    <header className="op-screen-heading"><div className="op-heading-copy">
-      <h1>Configuración</h1><p>Parámetros privados de transporte, calculadora orientativa y opciones de demostración del CRM.</p>
-    </div></header>
-    <div className="detail-grid configuration-content-grid"><Panel title="Precios de transporte configurables"><div className="form-stack"><div className="form-grid"><Field label="Hasta Ø 2,45 m · €/km"><input type="number" min="0" step=".05" value={edit.smallRate} onChange={e=>setEdit({...edit,smallRate:Number(e.target.value)})}/></Field><Field label="Desde Ø 3,00 m · €/km"><input type="number" min="0" step=".05" value={edit.largeRate} onChange={e=>setEdit({...edit,largeRate:Number(e.target.value)})}/></Field><Field label="Margen de seguridad (€)"><input type="number" min="0" step="1" value={edit.buffer} onChange={e=>setEdit({...edit,buffer:Number(e.target.value)})}/></Field><Field label="Límite de kilómetros"><input type="number" min="1" step="1" value={edit.distanceLimit} onChange={e=>setEdit({...edit,distanceLimit:Number(e.target.value)})}/></Field><Field label="Recargo especial (€)"><input type="number" min="0" step="1" value={edit.specialExtra} onChange={e=>setEdit({...edit,specialExtra:Number(e.target.value)})}/></Field></div><Button onClick={()=>updateTransport(edit)}><Check size={16}/>Guardar tarifas en esta demo</Button><div className="inline-tip"><Shield size={17}/> Los importes anteriores de presupuestos ya guardados no cambian al modificar tarifas.</div></div></Panel>
-    <TransportRouteCalculator tariffs={t}/></div>
-    <Panel title="Información de la demo" className="configuration-reset-panel"><div className="settings-reset"><div><strong>Restablecer datos ficticios</strong><p>Recupera los contactos, presupuestos, pedidos y tareas iniciales en este navegador.</p></div><Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de demostración?'))resetDemo()}}>Restablecer demo</Button></div></Panel>
-  </div>;
+ return <div className="page page-opportunities crm-workspace page-configuration">
+  <header className="op-screen-heading">
+   <div className="op-heading-copy">
+    <h1>Calculadora de transporte</h1>
+    <p>Calcula el porte orientativo desde Casariche en unos segundos.</p>
+   </div>
+  </header>
+  <TransportRouteCalculator tariffs={t}/>
+  <details className="transport-fast-settings">
+   <summary><span>Ajustes de tarifas</span><small>Modificar parámetros internos</small></summary>
+   <div className="transport-fast-settings-body">
+    <p>Estas tarifas son orientativas y editables. Los presupuestos anteriores no se recalculan.</p>
+    <div className="transport-fast-tariff-grid">
+     <Field label="Hasta Ø 2,45 m · €/km"><input type="number" min="0" step=".05" value={edit.smallRate} onChange={e=>setEdit({...edit,smallRate:Number(e.target.value)})}/></Field>
+     <Field label="Desde Ø 3,00 m · €/km"><input type="number" min="0" step=".05" value={edit.largeRate} onChange={e=>setEdit({...edit,largeRate:Number(e.target.value)})}/></Field>
+     <Field label="Ajuste fijo · €"><input type="number" min="0" step="1" value={edit.buffer} onChange={e=>setEdit({...edit,buffer:Number(e.target.value)})}/></Field>
+     <Field label="Recargo especial · €"><input type="number" min="0" step="1" value={edit.specialExtra} onChange={e=>setEdit({...edit,specialExtra:Number(e.target.value)})}/></Field>
+     <Field label="Límite de kilómetros"><input type="number" min="1" step="1" value={edit.distanceLimit} onChange={e=>setEdit({...edit,distanceLimit:Number(e.target.value)})}/></Field>
+    </div>
+    <Button disabled={!validTariffs} onClick={()=>updateTransport(edit)}><Check size={16}/>Guardar tarifas en esta demo</Button>
+   </div>
+  </details>
+  <details className="transport-fast-settings transport-fast-demo">
+   <summary><span>Datos de demostración</span><small>Opciones avanzadas</small></summary>
+   <div className="transport-fast-settings-body settings-reset">
+    <div><strong>Restablecer datos ficticios</strong><p>Reinicia los registros de este navegador. Esta acción no se puede deshacer.</p></div>
+    <Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de demostración?'))resetDemo()}}>Restablecer demo</Button>
+   </div>
+  </details>
+ </div>;
 }
