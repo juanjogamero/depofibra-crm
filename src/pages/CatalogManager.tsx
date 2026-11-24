@@ -126,7 +126,7 @@ export default function CatalogManager(){
     </div>
     <button type="button" className="catalog2-create-secondary" onClick={()=>openCategory()}><Plus size={16}/>Crear categoría</button>
    </aside>
-   <main className="catalog2-main">
+   <section className="catalog2-main" aria-label="Ficha de la categoría seleccionada">
     {selected?<>
      <div className="catalog2-category-heading">
       <div><span className="catalog2-eyebrow">CATEGORÍA SELECCIONADA</span>
@@ -165,7 +165,7 @@ export default function CatalogManager(){
      </section>
      <div className="catalog2-guidance"><ShieldCheck size={18}/><span>Introduce únicamente <b>precios de venta configurados para uso interno</b>, no costes de compra. Antes de comunicar una oferta, revisa impuestos, transporte, descarga, accesorios y condiciones técnicas. Las variantes sin precio requieren introducirlo manualmente en el presupuesto.</span></div>
     </>:<div className="catalog2-welcome"><FolderPlus size={30}/><h2>Empieza creando una categoría</h2><p>Después podrás añadir las capacidades, sus precios y los atributos compartidos.</p><button type="button" onClick={()=>openCategory()}>Crear primera categoría</button></div>}
-   </main>
+   </section>
   </div>
   {dialog==='category'&&<Modal title={editCat?'Editar categoría':'Crear categoría'} onClose={()=>setDialog(null)}>
     <form className="modal-form catalog2-modal-form" onSubmit={saveCategory}>
