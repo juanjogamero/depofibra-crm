@@ -1,0 +1,497 @@
+/* DEPOFIBRA CRM | Inicio de trabajo simplificado · 24/11/2026
+   Afecta solo a .dashboard-focus. No cambia el menú, otras páginas ni store.
+   En escritorio/portátil no hay desplazamiento de la página;
+   la lista interna puede desplazarse únicamente si el alto es insuficiente. */
+.app-body.is-dashboard .app-main>.page.page-dashboard.dashboard-hr.dashboard-focus {
+  display:flex;
+  flex-direction:column;
+  flex:1 1 0;
+  width:100%;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  max-height:100%;
+  max-width:none;
+  overflow:hidden;
+  gap:clamp(9px,1.5vh,15px);
+  padding:clamp(12px,1.8vh,21px) clamp(13px,1.7vw,25px);
+  background:transparent;
+  animation:none;
+  font-family:Inter,Arial,sans-serif;
+}
+.dashboard-focus * {box-sizing:border-box;}
+.dashboard-focus .focus-welcome {
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:space-between;
+  min-width:0;
+  min-height:63px;
+  gap:17px;
+}
+.dashboard-focus .focus-welcome>div:first-child {min-width:0;}
+.dashboard-focus .focus-eyebrow {
+  display:block;
+  margin-bottom:3px;
+  color:#6485a0;
+  font:750 9px/1.15 Inter,sans-serif;
+  letter-spacing:.1em;
+}
+.dashboard-focus .focus-welcome h1 {
+  margin:0;
+  color:#002d59;
+  font:800 clamp(21px,2.3vw,29px)/1.12 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.038em;
+}
+.dashboard-focus .focus-welcome p {
+  margin:5px 0 0;
+  color:#687f94;
+  font:500 11.9px/1.3 Inter,sans-serif;
+}
+.dashboard-focus .focus-welcome-aside {
+  display:flex;
+  align-items:flex-end;
+  flex:0 0 auto;
+  flex-direction:column;
+  gap:7px;
+}
+.dashboard-focus .focus-today {
+  color:#57718a;
+  font:700 11px/1.2 Inter,sans-serif;
+  text-transform:capitalize;
+}
+.dashboard-focus .focus-overdue {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#98612b;
+  text-decoration:none;
+  font:700 10.7px/1.2 Inter,sans-serif;
+}
+.dashboard-focus .focus-overdue:hover {color:#01488e;text-decoration:underline;}
+.dashboard-focus .focus-main {
+  display:grid;
+  flex:0 1 clamp(270px,46vh,432px);
+  grid-template-columns:minmax(0,1.66fr) minmax(292px,.86fr);
+  align-items:stretch;
+  gap:14px;
+  min-width:0;
+  min-height:0;
+}
+.dashboard-focus .focus-card,
+.dashboard-focus .focus-calendar {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  margin:0;
+  overflow:hidden;
+  border:1px solid rgba(171,197,220,.64);
+  border-radius:12px;
+  background:linear-gradient(155deg,rgba(255,255,255,.98),rgba(249,252,255,.96));
+  box-shadow:0 5px 20px rgba(0,45,89,.05);
+}
+.dashboard-focus .focus-card-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:13px;
+  min-height:61px;
+  padding:13px 16px 9px;
+}
+.dashboard-focus .focus-card-heading>div {min-width:0;}
+.dashboard-focus .focus-card-heading h2,
+.dashboard-focus .focus-calendar .hr-panel-heading h2 {
+  margin:0;
+  color:#002d59;
+  font:800 14px/1.28 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.027em;
+}
+.dashboard-focus .focus-card-heading p {
+  margin:4px 0 0;
+  color:#8799aa;
+  font:500 10.5px/1.3 Inter,sans-serif;
+}
+.dashboard-focus .focus-inline-link {
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+  gap:5px;
+  color:#01488e;
+  font:750 10.7px/1.3 Inter,sans-serif;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-inline-link:hover {text-decoration:underline;color:#002d59;}
+.dashboard-focus .focus-switch {
+  display:flex;
+  flex:0 0 auto;
+  gap:15px;
+  margin:0 16px 1px;
+  border-bottom:1px solid #e5edf3;
+}
+.dashboard-focus .focus-switch button {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:34px;
+  padding:5px 1px 9px;
+  border:0;
+  background:transparent;
+  color:#70889f;
+  font:650 11px/1.1 Inter,sans-serif;
+  cursor:pointer;
+}
+.dashboard-focus .focus-switch button:hover {color:#01488e;}
+.dashboard-focus .focus-switch button.is-active {color:#01488e;font-weight:800;}
+.dashboard-focus .focus-switch button.is-active::after {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  height:2px;
+  bottom:-1px;
+  border-radius:2px;
+  background:#01488e;
+}
+.dashboard-focus .focus-switch button span {
+  display:inline-grid;
+  place-items:center;
+  min-width:19px;
+  height:19px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#eaf2fb;
+  color:#285f88;
+  font:750 10px/1 Inter,sans-serif;
+}
+.dashboard-focus .focus-requests-list {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-height:0;
+  padding:0 12px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#bad0e1 transparent;
+}
+.dashboard-focus .focus-request-row {
+  display:flex;
+  flex:1 1 0;
+  align-items:center;
+  min-height:47px;
+  max-height:69px;
+  gap:11px;
+  padding:7px 3px;
+  border-bottom:1px solid #eaf0f6;
+  text-decoration:none;
+  color:inherit;
+  transition:background-color .15s ease;
+}
+.dashboard-focus .focus-request-row:last-child {border-bottom:0;}
+.dashboard-focus .focus-request-row:hover,
+.dashboard-focus .focus-request-row:focus-visible {
+  background:rgba(234,244,252,.7);
+  outline-offset:-2px;
+}
+.dashboard-focus .focus-request-avatar {
+  display:grid;
+  flex:0 0 32px;
+  place-items:center;
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#e3f1fa;
+  color:#01488e;
+  font:800 10px/1 Inter,sans-serif;
+}
+.dashboard-focus .focus-request-detail {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-width:0;
+  gap:4px;
+}
+.dashboard-focus .focus-request-detail strong {
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#143e60;
+  font:750 11.6px/1.25 Inter,sans-serif;
+}
+.dashboard-focus .focus-request-detail small {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#8499ad;
+  font:500 10px/1.2 Inter,sans-serif;
+}
+.dashboard-focus .focus-request-status {
+  flex:0 1 auto;
+  max-width:142px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  padding:5px 8px;
+  border-radius:6px;
+  background:#eaf3fb;
+  color:#356e9a;
+  font:750 10px/1.2 Inter,sans-serif;
+}
+.dashboard-focus .focus-request-status.is-urgent {color:#975f27;background:#fcf1e2;}
+.dashboard-focus .focus-request-row time {
+  flex:0 0 49px;
+  text-align:right;
+  color:#8499ad;
+  font:600 10px/1.2 Inter,sans-serif;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-request-arrow {flex:0 0 15px;color:#4a8bb8;}
+.dashboard-focus .focus-empty {
+  display:grid;
+  place-items:center;
+  flex:1 1 auto;
+  padding:20px;
+  color:#7890a3;
+  font:550 11.7px/1.55 Inter,sans-serif;
+  text-align:center;
+}
+.dashboard-focus .focus-requests-foot {
+  display:flex;
+  flex:0 0 26px;
+  align-items:center;
+  padding:5px 16px;
+  border-top:1px solid #edf2f6;
+  color:#93a4b4;
+  font:500 9.6px/1.25 Inter,sans-serif;
+}
+/* Se conserva el calendario funcional existente: selector de día,
+   vista rápida de tareas, alta y enlace a Agenda. */
+.dashboard-focus .focus-calendar {
+  position:relative;
+  isolation:isolate;
+  height:100%;
+  max-height:100%;
+}
+.dashboard-focus .focus-calendar .hr-panel-heading {
+  display:flex;
+  flex:0 0 48px;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 13px 7px;
+  gap:5px;
+  min-height:0;
+}
+.dashboard-focus .focus-calendar .hr-month-selector>span {min-width:92px;font-size:10.6px;}
+.dashboard-focus .focus-calendar .hr-month-selector button {flex:0 0 23px;width:23px;height:25px;}
+.dashboard-focus .focus-calendar .hr-calendar-weekdays {
+  flex:0 0 22px;
+  min-height:0;
+  margin:0 12px;
+}
+.dashboard-focus .focus-calendar .hr-calendar-days {
+  flex:1 1 auto;
+  min-height:0;
+  margin:0 12px;
+  grid-auto-rows:minmax(20px,1fr);
+}
+.dashboard-focus .focus-calendar .hr-calendar-day {
+  width:min(100%,32px);
+  min-height:0;
+  margin:0 auto;
+  font-size:10.7px;
+}
+.dashboard-focus .focus-calendar .hr-calendar-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex:0 0 40px;
+  gap:6px;
+  padding:4px 10px;
+  min-width:0;
+  border-top:1px solid #e9f0f6;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-calendar .hr-selected-date {font-size:10.1px;}
+.dashboard-focus .focus-calendar .hr-calendar-footer a {
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  color:#01488e;
+  font:750 10px/1.2 Inter,sans-serif;
+  white-space:nowrap;
+  text-decoration:none;
+}
+.dashboard-focus .focus-calendar .hr-calendar-footer a:hover {text-decoration:underline;}
+.dashboard-focus .focus-calendar .focus-calendar-create {
+  padding:5px 6px;
+  border-radius:6px;
+  background:#eaf3fc;
+}
+.dashboard-focus .focus-calendar .hr-calendar-inspector {bottom:40px;}
+
+/* Pulso pequeño: no es una recomendación automática de gasto publicitario. */
+.dashboard-focus .focus-pulse {
+  display:grid;
+  flex:0 0 clamp(136px,21vh,174px);
+  grid-template-columns:minmax(220px,.58fr) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr) auto;
+  align-items:center;
+  gap:0 22px;
+  padding:12px 19px 9px;
+}
+.dashboard-focus .focus-pulse-copy {min-width:0;}
+.dashboard-focus .focus-pulse-label {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#3b729e;
+  font:750 9.6px/1.2 Inter,sans-serif;
+  letter-spacing:.02em;
+}
+.dashboard-focus .focus-pulse h2 {
+  margin:5px 0 8px;
+  color:#002d59;
+  font:800 clamp(12px,1.2vw,15px)/1.24 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.03em;
+}
+.dashboard-focus .focus-pulse-trend {
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.dashboard-focus .focus-pulse-trend strong {
+  color:#01488e;
+  font:800 clamp(18px,2vw,25px)/1.1 "Plus Jakarta Sans",Inter,sans-serif;
+  letter-spacing:-.035em;
+}
+.dashboard-focus .focus-pulse-trend span {color:#879aac;font:500 10.3px Inter,sans-serif;}
+.dashboard-focus .focus-pulse-comparison {
+  margin:4px 0 5px;
+  color:#667f95;
+  font:500 10.5px/1.3 Inter,sans-serif;
+}
+.dashboard-focus .focus-pulse-chart {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2px;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+}
+.dashboard-focus .focus-chart-key {
+  display:flex;
+  justify-content:flex-end;
+  gap:13px;
+  color:#708ba1;
+  font:600 9.8px/1.1 Inter,sans-serif;
+}
+.dashboard-focus .focus-chart-key span {display:inline-flex;align-items:center;gap:5px;}
+.dashboard-focus .focus-chart-key i {
+  display:block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#01488e;
+}
+.dashboard-focus .focus-chart-key .is-quotes {background:#67afd5;}
+.dashboard-focus .focus-pulse-chart svg {
+  width:100%;
+  flex:1 1 auto;
+  min-height:0;
+  max-height:122px;
+  overflow:visible;
+}
+.dashboard-focus .focus-chart-labels {
+  display:flex;
+  justify-content:space-between;
+  margin:0 3.5% 0 4%;
+  gap:5px;
+  color:#819bb0;
+  font:500 9.1px/1.2 Inter,sans-serif;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-pulse-note {
+  grid-column:1/-1;
+  margin:0;
+  padding-top:5px;
+  border-top:1px solid #edf3f8;
+  color:#8ba0af;
+  font:500 9.4px/1.25 Inter,sans-serif;
+}
+/* Pantalla de portátil: no se altera el scroll exterior, se reduce la densidad. */
+@media (min-width:841px) and (max-height:735px) {
+  .app-body.is-dashboard .app-main>.page.page-dashboard.dashboard-hr.dashboard-focus {gap:8px;padding-top:9px;padding-bottom:9px;}
+  .dashboard-focus .focus-welcome {min-height:48px;}
+  .dashboard-focus .focus-welcome h1 {font-size:22px;}
+  .dashboard-focus .focus-welcome p {font-size:10.8px;margin-top:3px;}
+  .dashboard-focus .focus-main {flex-basis:clamp(235px,44vh,325px);gap:10px;}
+  .dashboard-focus .focus-pulse {flex-basis:clamp(110px,19vh,146px);padding:8px 13px;}
+  .dashboard-focus .focus-card-heading {min-height:46px;padding:8px 12px 6px;}
+  .dashboard-focus .focus-switch {margin-inline:12px;}
+  .dashboard-focus .focus-switch button {min-height:28px;padding:3px 1px 7px;}
+  .dashboard-focus .focus-request-row {min-height:42px;padding-block:4px;}
+  .dashboard-focus .focus-calendar .hr-panel-heading {flex-basis:39px;padding:7px 10px 5px;}
+  .dashboard-focus .focus-calendar .hr-calendar-footer {flex-basis:32px;}
+  .dashboard-focus .focus-pulse h2 {margin:3px 0;}
+  .dashboard-focus .focus-pulse-comparison {margin:3px 0;}
+}
+/* Narrow laptop or browser zoom: columns adapt to real available width. */
+@media (min-width:841px) {
+  @container crm-content (max-width:1000px) {
+    .dashboard-focus .focus-main {grid-template-columns:minmax(0,1.55fr) minmax(280px,.95fr);gap:10px;}
+    .dashboard-focus .focus-request-row {gap:7px;}
+    .dashboard-focus .focus-request-status {max-width:102px;font-size:9.4px;}
+    .dashboard-focus .focus-request-row time {display:none;}
+    .dashboard-focus .focus-pulse {grid-template-columns:minmax(205px,.61fr) minmax(0,1fr);gap:0 13px;}
+  }
+  @container crm-content (max-width:770px) {
+    .dashboard-focus .focus-main {grid-template-columns:minmax(0,1fr) minmax(255px,.9fr);}
+    .dashboard-focus .focus-request-status {display:none;}
+    .dashboard-focus .focus-request-detail strong {font-size:10.9px;}
+    .dashboard-focus .focus-calendar .hr-calendar-footer {gap:4px;}
+    .dashboard-focus .focus-calendar .hr-selected-date {display:none;}
+    .dashboard-focus .focus-pulse-trend span {display:none;}
+  }
+}
+@media (max-width:840px) {
+  .app-body.is-dashboard .app-main {overflow-y:auto;}
+  .app-body.is-dashboard .app-main>.page.page-dashboard.dashboard-hr.dashboard-focus {
+    display:flex;
+    flex-direction:column;
+    height:auto;
+    min-height:100%;
+    max-height:none;
+    overflow:visible;
+    padding:14px 10px calc(72px + env(safe-area-inset-bottom));
+    gap:12px;
+  }
+  .dashboard-focus .focus-welcome {min-height:0;flex-wrap:wrap;align-items:flex-start;gap:8px;}
+  .dashboard-focus .focus-welcome-aside {align-items:flex-start;}
+  .dashboard-focus .focus-main {display:flex;flex:0 0 auto;flex-direction:column;gap:11px;}
+  .dashboard-focus .focus-requests {height:340px;flex:0 0 340px;}
+  .dashboard-focus .focus-calendar {height:345px;flex:0 0 345px;}
+  .dashboard-focus .focus-pulse {display:flex;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:10px;min-height:245px;padding:14px;}
+  .dashboard-focus .focus-pulse-chart {height:125px;flex:0 0 125px;}
+  .dashboard-focus .focus-pulse-note {width:100%;}
+}
+@media (max-width:430px) {
+  .dashboard-focus .focus-card-heading h2 {font-size:12.8px;}
+  .dashboard-focus .focus-card-heading p {font-size:10px;}
+  .dashboard-focus .focus-request-status {max-width:95px;font-size:9px;}
+  .dashboard-focus .focus-request-row time {display:none;}
+  .dashboard-focus .focus-welcome p {font-size:10.8px;}
+  .dashboard-focus .focus-today {font-size:10px;}
+  .dashboard-focus .focus-calendar .hr-calendar-footer a {font-size:9.8px;}
+  .dashboard-focus .focus-chart-labels {font-size:8px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .dashboard-focus .focus-request-row {transition:none;}
+}
