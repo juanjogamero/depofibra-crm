@@ -3,11 +3,11 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Package, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
-import { type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
+import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
 const statuses: OpportunityStatus[]=['Nueva','Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento','Aceptada','Perdida'];
-const channels: Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
+const channels: Channel[]=CHANNELS;
 const quoteStatuses:QuoteStatus[]=['Borrador','Enviado','Aceptado','Rechazado'];
 
 type OpportunityQuickFilter = 'Todas'|'Nueva'|'En gestión'|'Por presupuestar'|'Presupuesto enviado'|'Aceptada'|'Perdida';
@@ -28,7 +28,7 @@ export function Opportunities(){
  const [filtersOpen,setFiltersOpen]=useState(false);
  const [datesOpen,setDatesOpen]=useState(false);
  const [modal,setModal]=useState(false);
- const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
+ const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,originChannel:'' as Channel|'',contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const [quickCategoryId,setQuickCategoryId]=useState('');
  const [quickAnswers,setQuickAnswers]=useState<Record<string,string>>({});
  const isClosed=(s:OpportunityStatus)=>s==='Aceptada'||s==='Perdida';
@@ -47,11 +47,11 @@ export function Opportunities(){
  const list=data.opportunities.filter(o=>
    quickMatch(o.status,quick)
    &&(status==='Todos los estados'||o.status===status)
-   &&(channel==='Todos los canales'||o.channel===channel)
+   &&(channel==='Todos los canales'||sourceChannel(o)===channel)
    &&(!overdueOnly||isOverdue(o))
    &&(!dateFrom||(o.receivedAt||o.createdAt).slice(0,10)>=dateFrom)
    &&(!dateTo||(o.receivedAt||o.createdAt).slice(0,10)<=dateTo)
-   &&[o.id,o.name,o.product,o.capacity,o.destination,o.alias,o.channel,o.contact,o.nextAction]
+   &&[o.id,o.name,o.product,o.capacity,o.destination,o.alias,o.channel,sourceChannel(o),o.contact,o.nextAction]
        .join(' ').toLocaleLowerCase('es-ES').includes(query)
  ).sort((a,b)=>{
    if(sort==='Próximo seguimiento')return (a.nextDate||'9999-12-31').localeCompare(b.nextDate||'9999-12-31')
@@ -63,13 +63,13 @@ export function Opportunities(){
  const dateRangeLabel=dateFrom&&dateTo?formatRangeDate(dateFrom)+' – '+formatRangeDate(dateTo):dateFrom?'Desde '+formatRangeDate(dateFrom):dateTo?'Hasta '+formatRangeDate(dateTo):'Todas las fechas';
  const exportFilteredCsv=()=>{
    if(!list.length)return;
-   const headers=['Referencia','Cliente','Producto','Capacidad','Localidad','Canal','Recibida','Estado','Próxima acción','Fecha de seguimiento'];
+   const headers=['Referencia','Cliente','Producto','Capacidad','Localidad','Canal de contacto','Origen captación','Recibida','Estado','Próxima acción','Fecha de seguimiento'];
    const safeCell=(value:string)=>{
      const normalized=String(value??'');
      const safe=/^\s*[=+@-]/.test(normalized)?"'"+normalized:normalized;
      return '"'+safe.replace(/"/g,'""')+'"';
    };
-   const rows=list.map(o=>[o.id,o.name,o.product,o.capacity,o.destination,o.channel,(o.receivedAt||o.createdAt).slice(0,10),o.status,o.nextAction,o.nextDate]);
+   const rows=list.map(o=>[o.id,o.name,o.product,o.capacity,o.destination,o.channel,sourceChannel(o),(o.receivedAt||o.createdAt).slice(0,10),o.status,o.nextAction,o.nextDate]);
    const csv='\uFEFF'+[headers,...rows].map(row=>row.map(safeCell).join(';')).join('\r\n');
    const file=new Blob([csv],{type:'text/csv;charset=utf-8;'});
    const url=URL.createObjectURL(file);
@@ -82,7 +82,7 @@ export function Opportunities(){
    setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  const clearFilters=()=>{setSearch('');setQuick('Todas');setStatus('Todos los estados');setChannel('Todos los canales');setSort('Recientes');setOverdueOnly(false);setDateFrom('');setDateTo('')};
- const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;const cat=data.productCategories?.find(c=>c.id===quickCategoryId);addOpportunity({...form,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial',categoryId:cat?.id,attributeAnswers:cat?.attributes.filter(a=>a.responseType&&!a.hidden&&quickAnswers[a.id]?.trim()).map(a=>({attributeId:a.id,label:a.label,value:quickAnswers[a.id]}))});setModal(false);setQuickCategoryId('');setQuickAnswers({});setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
+ const save=(e:FormEvent)=>{e.preventDefault();if(!form.name.trim()||!form.product.trim())return;const cat=data.productCategories?.find(c=>c.id===quickCategoryId);addOpportunity({...form,originChannel:form.originChannel||undefined,name:form.name.trim(),status:'Nueva',nextAction:'Responder consulta inicial',categoryId:cat?.id,attributeAnswers:cat?.attributes.filter(a=>a.responseType&&!a.hidden&&quickAnswers[a.id]?.trim()).map(a=>({attributeId:a.id,label:a.label,value:quickAnswers[a.id]}))});setModal(false);setQuickCategoryId('');setQuickAnswers({});setForm({...form,name:'',contact:'',alias:'',capacity:'',destination:'',message:''})};
  return <div className="page page-opportunities">
    <div className="op-screen-heading">
      <div className="op-heading-copy">
@@ -185,7 +185,7 @@ export function Opportunities(){
      <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Solo datos de prueba durante el desarrollo público" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
-   <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Consulta agrícola ficticia"/></Field><Field label="Canal de entrada"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
+   <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Consulta agrícola ficticia"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
    <Field label="Contacto"><input value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})} placeholder="Identificador de ejemplo"/></Field><Field label="Alias"><input value={form.alias} onChange={e=>setForm({...form,alias:e.target.value})} placeholder="@alias"/></Field>
    <Field label="Categoría (opcional)"><select value={quickCategoryId} onChange={e=>{
     const id=e.target.value;const cat=data.productCategories?.find(c=>c.id===id);
@@ -208,7 +208,7 @@ export function Opportunities(){
 export function OpportunityNew(){
  const nav=useNavigate();const {data,addOpportunity}=useCrm();
  const [name,setName]=useState(''),[product,setProduct]=useState('Depósito vertical base plana');
- const [channel,setChannel]=useState<Channel>('WhatsApp'),[cap,setCap]=useState(''),[dest,setDest]=useState('');
+ const [channel,setChannel]=useState<Channel>('WhatsApp'),[originChannel,setOriginChannel]=useState<Channel|''>(''),[cap,setCap]=useState(''),[dest,setDest]=useState('');
  const [categoryId,setCategoryId]=useState(''),[answers,setAnswers]=useState<Record<string,string>>({});
  const category=data.productCategories?.find(c=>c.id===categoryId);
  return <div className="page page-crm-form">
@@ -217,7 +217,7 @@ export function OpportunityNew(){
   <Panel title="Datos iniciales" className="limited-panel">
    <form className="form-stack" onSubmit={e=>{
      e.preventDefault();if(!name.trim()||!product.trim())return;
-     addOpportunity({name:name.trim(),channel,contact:'',alias:'',conversation:'',product,capacity:cap,
+     addOpportunity({name:name.trim(),channel,originChannel:originChannel||undefined,contact:'',alias:'',conversation:'',product,capacity:cap,
        destination:dest,status:'Nueva',nextAction:'Responder consulta inicial',nextDate:today(),message:'',
        categoryId:category?.id,
        attributeAnswers:category?.attributes.filter(a=>a.responseType&&!a.hidden&&answers[a.id]?.trim())
@@ -226,7 +226,7 @@ export function OpportunityNew(){
    }}>
     <Field label="Nombre o identificador"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre ficticio"/></Field>
     <div className="form-grid">
-     <Field label="Canal"><select value={channel} onChange={e=>setChannel(e.target.value as Channel)}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
+     <Field label="Canal de contacto"><select value={channel} onChange={e=>setChannel(e.target.value as Channel)}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={originChannel} onChange={e=>setOriginChannel(e.target.value as Channel|'')}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
      <Field label="Categoría (opcional)"><select value={categoryId} onChange={e=>{
       const c=data.productCategories?.find(x=>x.id===e.target.value);
       setCategoryId(e.target.value);setAnswers({});
@@ -251,7 +251,7 @@ export function OpportunityDetail(){
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
  return <div className="page page-crm-record"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><Link className="btn btn-primary" to={'/presupuestos/nuevo?op='+o.id}><Plus size={16}/>Preparar presupuesto</Link></div>
  <div className="detail-tabs">{['Resumen','Presupuestos','Actividad'].map(t=><button key={t} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t}{t==='Presupuestos'&&<span className="tab-count">{quotes.length}</span>}</button>)}</div>
- {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de la consulta"><div className="info-grid"><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity||'Sin concretar'}/><Info label="Localidad" value={o.destination||'Pendiente'}/><Info label="Canal" value={o.channel}/><Info label="Contacto" value={o.contact||'Sin datos'}/><Info label="Alias" value={o.alias||'No disponible'}/><Info label="Registrado" value={dateText(o.createdAt)}/><Info label="Referencia" value={o.id}/></div>
+ {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de la consulta"><div className="info-grid"><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity||'Sin concretar'}/><Info label="Localidad" value={o.destination||'Pendiente'}/><Info label="Canal contacto" value={o.channel}/><Info label="Origen captación" value={o.originChannel||'No identificado (informe usa canal de contacto)'}/><Info label="Contacto" value={o.contact||'Sin datos'}/><Info label="Alias" value={o.alias||'No disponible'}/><Info label="Registrado" value={dateText(o.createdAt)}/><Info label="Referencia" value={o.id}/></div>
  {o.attributeAnswers?.length&&<><h4 className="minor-title">Atributos indicados por el comprador</h4>
   <div className="info-grid">{o.attributeAnswers.map(a=><Info key={a.attributeId} label={a.label} value={a.value}/>)}</div>
  </>}

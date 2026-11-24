@@ -14,7 +14,7 @@ const sourcePlaces:[string,number,number,string[]][]=[
  ['Cádiz',-6.29,36.53,['cadiz']],['Huelva',-6.94,37.26,['huelva']],
  ['Madrid',-3.70,40.42,['madrid']],['Barcelona',2.17,41.39,['barcelona']],
  ['Girona',2.82,41.98,['girona','gerona']],['Lleida',0.62,41.61,['lleida','lerida']],
- ['Tarragona',1.24,41.11,['tarragona']],['Valencia',-0.38,39.47,['valencia']],
+ ['Tarragona',1.24,41.11,['tarragona']],['Illes Balears',2.65,39.57,['illes balears','islas baleares','baleares','palma de mallorca','mallorca','menorca','ibiza','eivissa','formentera']],['Valencia',-0.38,39.47,['valencia']],
  ['Castellón',-0.06,39.98,['castellon','castello']],['Alicante',-0.48,38.35,['alicante','alacant']],
  ['Murcia',-1.13,37.99,['murcia']],['Albacete',-1.86,39.00,['albacete']],
  ['Cuenca',-2.13,40.07,['cuenca']],['Toledo',-4.02,39.86,['toledo']],

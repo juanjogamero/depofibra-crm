@@ -2,7 +2,7 @@
 import {useMemo,useState,type ReactNode} from 'react';
 import {Link} from 'react-router-dom';
 import {ArrowRight,Info,Search} from 'lucide-react';
-import {money,type CrmState,type Opportunity,type Quote,type Order,type Channel} from '../domain';
+import {money,CHANNELS,sourceChannel,type CrmState,type Opportunity,type Quote,type Order,type Channel} from '../domain';
 
 type Dataset={data:CrmState;leads:Opportunity[];quotes:Quote[];orders:Order[]};
 const n=(x:number)=>new Intl.NumberFormat('es-ES').format(x);
@@ -53,7 +53,7 @@ export function ProductsResearch(props:Dataset){
   sort==='quotes'?b.quotes-a.quotes||b.leads-a.leads:
   b.orders-a.orders||b.leads-a.leads);
  const total=props.orders.length,delivered=props.orders.filter(o=>o.factory==='Entregado').length;
- const top=list.find(x=>x.orders>0);
+ const top=[...rows].sort((a,b)=>b.orders-a.orders||a.key.localeCompare(b.key,'es')).find(x=>x.orders>0);
  return <section className="ri-study-section">
   <Head title="Rendimiento por producto" subtitle="Consultas, propuestas, pedidos y entregas por producto o capacidad anotados" extra={<RowLink to="/catalogo">Catálogo</RowLink>}/>
   <Strip items={[
@@ -80,14 +80,13 @@ export function ProductsResearch(props:Dataset){
 }
 
 export type ChannelRow={name:Channel;total:number;accepted:number;lost:number;quotedLeads:number;orders:number;delivered:number;orderAmount:number};
-const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function buildChannelMetrics(data:CrmState,leads:Opportunity[]):ChannelRow[]{
  const byLead=new Map<string,Quote[]>();
  data.quotes.forEach(q=>{if(!q.opportunityId)return;const prev=byLead.get(q.opportunityId)||[];prev.push(q);byLead.set(q.opportunityId,prev)});
  const byQuote=new Map<string,Order[]>();
  data.orders.forEach(o=>{if(!o.quoteId)return;const prev=byQuote.get(o.quoteId)||[];prev.push(o);byQuote.set(o.quoteId,prev)});
  return CHANNELS.map(name=>{
-  const group=leads.filter(x=>x.channel===name);
+  const group=leads.filter(x=>sourceChannel(x)===name);
   const linkedQuotes=new Map(group.flatMap(x=>byLead.get(x.id)||[]).map(q=>[q.id,q]));
   const linkedOrders=new Map([...linkedQuotes.keys()].flatMap(id=>byQuote.get(id)||[]).map(o=>[o.id,o]));
   const relatedOrders=[...linkedOrders.values()];
@@ -102,7 +101,7 @@ export function buildChannelMetrics(data:CrmState,leads:Opportunity[]):ChannelRo
 export function ChannelsResearch({data,leads}:Dataset){
  const [metric,setMetric]=useState<'total'|'accepted'|'orders'>('total');
  const rows=buildChannelMetrics(data,leads).sort((a,b)=>b[metric]-a[metric]||a.name.localeCompare(b.name,'es'));
- const leading=rows.find(x=>x.total>0);
+ const leading=[...rows].sort((a,b)=>b.total-a.total).find(x=>x.total>0);
  return <section className="ri-study-section">
   <Head title="Consultas y resultados por plataforma" subtitle="De qué canal llegan oportunidades y qué recorrido tienen dentro del CRM" extra={<RowLink to="/oportunidades">Oportunidades</RowLink>}/>
   <Strip items={[
@@ -120,7 +119,7 @@ export function ChannelsResearch({data,leads}:Dataset){
     <td>{n(x.quotedLeads)}</td><td>{n(x.accepted)}</td><td>{pct(x.accepted,x.total)}</td>
     <td>{n(x.orders)}</td><td>{n(x.delivered)}</td><td>{euro(x.orderAmount)}</td></tr>)}</tbody>
   </table></div>
-  <InfoLine>Para cada canal se toman las consultas creadas en el periodo elegido. Los presupuestos y pedidos vinculados reflejan su estado acumulado actual, incluso si se crearon después; no se presupone atribución de Analytics. Los pedidos sin relación verificable con una oportunidad quedan fuera del reparto por canal.</InfoLine>
+  <InfoLine>Se usa el origen de captación declarado cuando existe; en registros antiguos sin origen se utiliza el canal de contacto como aproximación, sin atribuirlo automáticamente a una campaña. Para cada canal se toman las consultas creadas en el periodo elegido. Los presupuestos y pedidos vinculados reflejan su estado acumulado actual, incluso si se crearon después; no se presupone atribución de Analytics. Los pedidos sin relación verificable con una oportunidad quedan fuera del reparto por canal.</InfoLine>
  </section>;
 }
 

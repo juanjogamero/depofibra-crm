@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useState} from 'react';
 import {Download,FileJson2,FileSpreadsheet,ShieldCheck,X} from 'lucide-react';
-import type {CrmState,Opportunity,Quote,Order} from '../domain';
+import {sourceChannel,type CrmState,type Opportunity,type Quote,type Order} from '../domain';
 import {resolveDestinationArea} from './ResultsIberiaMap';
 import {buildProducts,buildChannelMetrics} from './ResultsResearchPanels';
 
@@ -16,7 +16,7 @@ type Snapshot={
 type Point={label:string;leads:number;quotes:number};
 type Dataset='oportunidades'|'presupuestos'|'pedidos'|'canales'|'productos'|'zonas'|'actividad'|'rendimiento_productos'|'rendimiento_canales'|'estados_presupuestos'|'estados_pedidos';
 const tables:Record<Dataset,string>={
- oportunidades:'Oportunidades anonimizadas',presupuestos:'Presupuestos',pedidos:'Pedidos',
+ oportunidades:'Oportunidades seudonimizadas',presupuestos:'Presupuestos',pedidos:'Pedidos',
  canales:'Canales',productos:'Productos consultados',zonas:'Zonas agrupadas',actividad:'Evolución comercial',
  rendimiento_productos:'Rendimiento completo por producto',rendimiento_canales:'Consultas a pedidos por plataforma',
  estados_presupuestos:'Estados de presupuestos',estados_pedidos:'Estados de pedidos'
@@ -61,7 +61,7 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
   return resolveDestinationArea(c?.destination||p?.destination||'');
  }));
  const leadRows=s.leads.map(o=>({
-  referencia:leads.get(o.id),fecha:o.createdAt,canal:o.channel,producto:o.product,
+  referencia:leads.get(o.id),fecha:o.createdAt,canal_contacto:o.channel,origen_captacion:sourceChannel(o),origen_declarado:Boolean(o.originChannel),producto:o.product,
   capacidad:o.capacity,zona:resolveDestinationArea(o.destination),estado_actual:o.status,
   fecha_siguiente_accion:o.nextDate||null,motivo_perdida_categoria:lossCategory(o.lostReason)
  }));
@@ -93,7 +93,8 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
     'Los estados de oportunidades y pedidos son actuales y pueden ser posteriores a su fecha de registro.',
     'Las zonas son provincias/distritos reconocibles por su texto; ubicación aproximada, nunca domicilio.',
     'Con periodo historial completo, la gráfica solo recoge las últimas ocho semanas.',
-    'No incluye visitas GA4, Search Console, campañas ni edades; fuentes no conectadas.'
+    'No incluye visitas GA4, Search Console, campañas ni edades; fuentes no conectadas.',
+    'En oportunidades sin origen de captación declarado, el origen exportado es una aproximación basada en el canal de contacto.'
    ]
   },
   indicadores:{
