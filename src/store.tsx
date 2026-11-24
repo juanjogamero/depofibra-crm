@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type TransportSettings, mockData, today, uid } from './domain';
+import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, mockData, today, uid } from './domain';
 
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
@@ -17,21 +17,54 @@ type ContextValue = {
   addTask: (title: string, due: string, context: string) => void;
   toggleTask: (id: string) => void;
   addProduct: (item: Omit<Product, 'id'>) => void;
+  updateProduct: (id: string, patch: Partial<Omit<Product, 'id'>>) => void;
+  addProductCategory: (category: ProductCategory) => void;
+  updateProductCategory: (id: string, patch: Partial<Omit<ProductCategory, 'id'>>) => void;
   updateTransport: (p: Partial<TransportSettings>) => void;
   addDocumentName: (customerId: string, name: string) => void;
   resetDemo: () => void;
 };
 
 const STORAGE_KEY = 'depofibra-crm-demo-v1';
+/** On loading a legacy local demo, group existing references by family + name.
+ * No prices, attributes, customers, quotes or orders are invented or overwritten. */
+function normalizeCatalog(source: CrmState): CrmState {
+  const categories:ProductCategory[] = Array.isArray(source.productCategories)
+    ? source.productCategories.filter(c=>Boolean(c&&c.id&&c.name)).map(c=>({...c,attributes:Array.isArray(c.attributes)?c.attributes:[]}))
+    : [];
+  const byId=new Set(categories.map(c=>c.id));
+  const byLegacyKey=new Map<string,string>();
+  const key=(family:string,name:string)=>family.trim().toLocaleLowerCase('es-ES')+'|'+name.trim().toLocaleLowerCase('es-ES');
+  for(const p of source.products||[]){
+    if(p.categoryId&&byId.has(p.categoryId))byLegacyKey.set(key(p.family,p.name),p.categoryId);
+  }
+  const products=(source.products||[]).map(p=>{
+    if(p.categoryId&&byId.has(p.categoryId))return p;
+    const legacy=key(p.family,p.name);
+    let id=byLegacyKey.get(legacy);
+    if(!id){
+      id=uid('CAT');
+      const name=p.name.trim()==='Depósito vertical base plana'
+        ? 'Depósitos de poliéster verticales de base plana'
+        : p.name.trim()||'Categoría sin nombre';
+      categories.push({id,name,family:p.family,attributes:[]});
+      byLegacyKey.set(legacy,id);
+      byId.add(id);
+    }
+    return {...p,categoryId:id};
+  });
+  return {...source,products,productCategories:categories};
+}
 function initialData(): CrmState {
   try {
     const json = localStorage.getItem(STORAGE_KEY);
     if (json) {
       const parsed = JSON.parse(json) as CrmState;
-      if (Array.isArray(parsed.opportunities) && Array.isArray(parsed.orders) && parsed.transport) return parsed;
+      if (Array.isArray(parsed.opportunities) && Array.isArray(parsed.orders)
+          && Array.isArray(parsed.products) && parsed.transport) return normalizeCatalog(parsed);
     }
   } catch { /* demo storage unavailable */ }
-  return mockData;
+  return normalizeCatalog(mockData);
 }
 const Ctx = createContext<ContextValue | null>(null);
 export function CrmProvider({ children }: { children: ReactNode }) {
@@ -100,7 +133,22 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     addTask: (title: string, due: string, context: string) => setData(d => ({ ...d, tasks: [{ id: uid('TA'), title, due, context, done: false }, ...d.tasks] })),
     toggleTask: (id: string) => setData(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) })),
-    addProduct: (item: Omit<Product, 'id'>) => setData(d => ({ ...d, products: [{ ...item, id: uid('PR') }, ...d.products] })),
+    addProduct: (item: Omit<Product, 'id'>) => setData(d => ({ ...d,
+      products: [{ ...item, id: uid('PR') }, ...d.products] })),
+    updateProduct: (id: string, patch: Partial<Omit<Product, 'id'>>) => setData(d => ({
+      ...d,products:d.products.map(p=>p.id===id?{...p,...patch}:p)
+    })),
+    addProductCategory: (category: ProductCategory) => setData(d => {
+      if((d.productCategories||[]).some(c=>c.id===category.id))return d;
+      return {...d,productCategories:[...(d.productCategories||[]),category]};
+    }),
+    updateProductCategory: (id: string, patch: Partial<Omit<ProductCategory, 'id'>>) => setData(d => ({
+      ...d,
+      productCategories:(d.productCategories||[]).map(c=>c.id===id?{...c,...patch}:c),
+      products:d.products.map(p=>p.categoryId===id?{
+        ...p,name:patch.name??p.name,family:patch.family??p.family
+      }:p)
+    })),
     updateTransport: (p: Partial<TransportSettings>) => setData(d => ({ ...d, transport: { ...d.transport, ...p } })),
     addDocumentName: (customerId: string, name: string) => setData(d => ({ ...d, customers: d.customers.map(c => c.id === customerId ? { ...c, documentNames: [...c.documentNames, name] } : c) })),
     resetDemo: () => setData(structuredClone(mockData)),
