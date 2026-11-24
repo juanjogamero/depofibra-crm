@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
-  Layers3, Package, Search, Users
+  Layers3, Search, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
 import ResultsIberiaMap from './ResultsIberiaMap';
