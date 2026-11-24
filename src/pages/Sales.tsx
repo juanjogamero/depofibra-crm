@@ -403,7 +403,7 @@ export function QuoteNew(){
   const c=(data.productCategories||[]).find(x=>x.id===p.categoryId);
   setCatalogId(p.id);
   setProduct((c?.name||p.name)+' · '+p.capacity);
-  setAmount(Number.isFinite(p.price)&&p.price>0?String(p.price):'');
+  setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
   setText('');
  };
  const generated=()=>{
@@ -437,7 +437,7 @@ export function QuoteNew(){
        <option value="manual">Escribir producto manualmente</option>
        {categories.map(c=><optgroup key={c.id} label={c.name}>
         {available.filter(p=>p.categoryId===c.id).map(p=><option key={p.id} value={p.id}>
-          {p.capacity} · {p.price>0?decimal(p.price):'Sin precio configurado'}
+          {p.capacity} · {p.salePriceConfigured&&p.price>0?decimal(p.price):'Precio por verificar'}
         </option>)}
        </optgroup>)}
        {available.filter(p=>!categories.some(c=>c.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
@@ -450,9 +450,9 @@ export function QuoteNew(){
       value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0,00"/></Field>
      <Field label="Transporte interno estimado (€)"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
     </div>
-    {catalogProduct&&<div className={'quote-catalog-feedback'+(catalogProduct.price>0?' is-priced':' is-unpriced')}>
-     <div><Package size={17}/><strong>{catalogProduct.price>0?'Precio de catálogo precargado':'Referencia sin precio de venta'}</strong></div>
-     <p>{catalogProduct.price>0?'Puedes ajustar el importe de esta oferta sin modificar el precio guardado en el catálogo.':
+    {catalogProduct&&<div className={'quote-catalog-feedback'+(catalogProduct.salePriceConfigured&&catalogProduct.price>0?' is-priced':' is-unpriced')}>
+     <div><Package size={17}/><strong>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Precio de catálogo precargado':'Referencia sin precio de venta'}</strong></div>
+     <p>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Puedes ajustar el importe de esta oferta sin modificar el precio guardado en el catálogo.':
       'Introduce el precio manualmente antes de guardar la oferta; el catálogo no contiene un importe configurado para esta capacidad.'}</p>
      {attributes.length>0&&<div className="quote-catalog-attributes">
       <span>Atributos comunes de categoría (verifica su aplicación antes de ofertar):</span>
