@@ -49,7 +49,6 @@ function Value({label,value,note,href,icon}:{label:string;value:string;note:stri
   </Link>;
 }
 export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;period:InsightsPeriod;summary:CommercialPeriod}){
-  const [moreMetrics,setMoreMetrics]=useState(false);
   const total=summary.leads.length;
   const accepted=summary.accepted.length;
   const quoteLeadIds=useMemo(()=>new Set(data.quotes.map(q=>q.opportunityId).filter(Boolean)),[data.quotes]);
@@ -60,88 +59,73 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
   const average=summary.orders.length?summary.amount/summary.orders.length:0;
   const previous=previousCount(data.opportunities,period);
   const todayTasks=data.tasks.filter(t=>!t.done&&t.due<today()).length;
-  const priority=summary.overdue>0?{
-    title:summary.overdue===1?'Hay un seguimiento vencido':'Hay seguimientos vencidos',
-    text:'Revisa estas oportunidades antes de valorar ampliar la inversión en campañas.'
-  }:firstResponse>0?{
-    title:'Hay consultas nuevas que atender',
-    text:'Prioriza la respuesta y el seguimiento antes de impulsar nuevas campañas.'
-  }:notQuoted>0?{
-    title:'Hay oportunidades por presupuestar',
-    text:'Completa las propuestas pendientes para avanzar hacia el cierre.'
-  }:{
-    title:'Sin alertas vencidas en este periodo',
-    text:'El siguiente paso es revisar la calidad de las consultas, los cierres y los costes reales.'
-  };
-  return <section className="ri-command" aria-labelledby="ri-command-title">
-    <div className="ri-command-head">
-      <div><span className="ri-command-eyebrow">LECTURA DE DIRECCIÓN</span>
-        <h2 id="ri-command-title">Pulso comercial</h2>
-        <p>Un resumen para detectar oportunidades, trabajo pendiente y capacidad de cierre.</p>
-      </div>
-      <span className="ri-command-period">{periodText(period)} · CRM de demostración</span>
+  const pending=firstResponse+notQuoted+summary.overdue;
+  const priority=summary.overdue>0?'Revisa primero los seguimientos vencidos':
+    firstResponse>0?'Atiende las consultas nuevas antes de ampliar captación':
+    notQuoted>0?'Prepara los presupuestos que siguen pendientes':
+    'Sin urgencias comerciales detectadas en el periodo';
+  return <section className="ri-focus-overview" aria-labelledby="ri-focus-title">
+    <header className="ri-focus-head">
+      <div><h2 id="ri-focus-title">Pulso comercial</h2><p>Lo esencial de la actividad registrada</p></div>
+      <small>{periodText(period)}</small>
+    </header>
+    <div className="ri-focus-stats">
+      <Link to="/oportunidades" className="ri-focus-stat"><span>Consultas</span><strong>{num.format(total)}</strong><small>Entradas del periodo</small></Link>
+      <Link to="/presupuestos" className="ri-focus-stat"><span>Presupuestos</span><strong>{num.format(summary.quotes.length)}</strong><small>Propuestas creadas</small></Link>
+      <Link to="/oportunidades" className="ri-focus-stat"><span>Aceptadas</span><strong>{num.format(accepted)}</strong><small>{pct(accepted,total)}% de las consultas</small></Link>
+      <Link to="/pedidos" className="ri-focus-stat"><span>Pedidos</span><strong>{num.format(summary.orders.length)}</strong><small>{summary.delivered} entregados</small></Link>
     </div>
-    <div className="ri-command-featured">
-      <article className="ri-cmd-leads">
-        <span className="ri-cmd-leads-top"><Inbox size={18}/> ENTRADA DE OPORTUNIDADES</span>
-        <div className="ri-cmd-main-number"><strong>{num.format(total)}</strong><span>{total===1?'consulta recibida':'consultas recibidas'}</span></div>
-        <Comparison now={total} previous={previous}/>
-        <span className="ri-cmd-source">Origen: oportunidades registradas en el periodo</span>
-      </article>
-      <article className="ri-cmd-conversion">
-        <div className="ri-cmd-card-heading"><span>Conversión comercial</span><TrendingUp size={20}/></div>
-        <div className="ri-cmd-conv-content">
-          <svg viewBox="0 0 170 170" role="img" aria-label={pct(accepted,total)+'% de las oportunidades recibidas están aceptadas'}>
-            <circle cx="85" cy="85" r="62" fill="none" stroke="#e8f0f7" strokeWidth="19"/>
-            <circle cx="85" cy="85" r="62" fill="none" stroke="#1475bf" strokeWidth="19"
+    <div className="ri-focus-signal">
+      <span><TrendingUp size={16}/> Evolución de consultas</span>
+      <Comparison now={total} previous={previous}/>
+    </div>
+    <div className="ri-focus-lower">
+      <div className="ri-focus-priority">
+        <div className="ri-focus-priority-title"><div><h3>Por atender</h3><p>{priority}</p></div><strong>{pending}</strong></div>
+        <div className="ri-focus-priority-list">
+          <Link to="/oportunidades"><span>Nuevas sin responder</span><strong>{firstResponse}</strong></Link>
+          <Link to="/oportunidades"><span>Por presupuestar</span><strong>{notQuoted}</strong></Link>
+          <Link to="/agenda" className={summary.overdue?'is-warning':''}><span>Seguimientos vencidos</span><strong>{summary.overdue}</strong></Link>
+        </div>
+      </div>
+      <div className="ri-focus-conversion">
+        <div><h3>Estado de las consultas</h3><p>Situación actual de las oportunidades del periodo</p></div>
+        <div className="ri-focus-conversion-main">
+          <svg viewBox="0 0 170 170" role="img" aria-label={pct(accepted,total)+'% de consultas aceptadas'}>
+            <circle cx="85" cy="85" r="62" fill="none" stroke="#e8f0f7" strokeWidth="18"/>
+            <circle cx="85" cy="85" r="62" fill="none" stroke="#1475bf" strokeWidth="18"
               strokeDasharray={(pct(accepted,total)/100*389.56)+' 389.56'} transform="rotate(-90 85 85)" strokeLinecap="round"/>
             <text x="85" y="83" textAnchor="middle" className="ri-cmd-conv-percent">{pct(accepted,total)}%</text>
             <text x="85" y="106" textAnchor="middle" className="ri-cmd-conv-label">aceptadas</text>
           </svg>
-          <div className="ri-cmd-conv-summary">
-            <div><CheckCircle2 size={17}/><span>Oportunidades aceptadas</span><strong>{accepted}</strong></div>
-            <div><CircleAlert size={17}/><span>Oportunidades perdidas</span><strong>{summary.lost.length}</strong></div>
-            <div><Clock3 size={17}/><span>Continúan abiertas</span><strong>{summary.open.length}</strong></div>
+          <div className="ri-focus-conversion-legend">
+            <div><CheckCircle2 size={15}/><span>Aceptadas</span><strong>{accepted}</strong></div>
+            <div><Clock3 size={15}/><span>Abiertas</span><strong>{summary.open.length}</strong></div>
+            <div><CircleAlert size={15}/><span>Perdidas</span><strong>{summary.lost.length}</strong></div>
           </div>
         </div>
-        <p>Estado actual de las oportunidades recibidas en el periodo, no porcentaje de pedidos entregados.</p>
-      </article>
-      <article className="ri-cmd-actions">
-        <div className="ri-cmd-card-heading"><span>Necesita atención</span><CalendarClock size={20}/></div>
-        <div className="ri-cmd-action-rows">
-          <Link to="/oportunidades" className="ri-cmd-action-row"><span>Sin responder <small>Estado «Nueva»</small></span><strong>{firstResponse}</strong></Link>
-          <Link to="/oportunidades" className="ri-cmd-action-row"><span>Por presupuestar <small>Estado actual</small></span><strong>{notQuoted}</strong></Link>
-          <Link to="/agenda" className={'ri-cmd-action-row'+(summary.overdue?' is-warning':'')}><span>Seguimientos vencidos <small>Próxima acción anterior a hoy</small></span><strong>{summary.overdue}</strong></Link>
-        </div>
-        <div className="ri-cmd-advice"><b>{priority.title}</b><span>{priority.text}</span></div>
-      </article>
+      </div>
     </div>
-    <div className="ri-command-morebar">
-      <span>¿Quieres revisar presupuestos e importes?</span>
-      <button type="button" aria-expanded={moreMetrics} aria-controls="ri-extra-metrics" onClick={()=>setMoreMetrics(v=>!v)}>
-        {moreMetrics?'Ocultar indicadores':'Ver 6 indicadores adicionales'} <ArrowRight size={15}/>
-      </button>
-    </div>
-    {moreMetrics&&<div id="ri-extra-metrics">
-    <div className="ri-command-values" aria-label="Indicadores complementarios">
-      <Value label="Presupuestos creados" value={num.format(summary.quotes.length)}
-        note="Por fecha de creación" icon={<FileText size={17}/>} href="/presupuestos"/>
-      <Value label="Cobertura presupuestada" value={pct(quoted,total)+'%'}
-        note={quoted+' de '+total+' consultas con propuesta vinculada, aunque sea posterior'} icon={<ClipboardList size={17}/>} href="/oportunidades"/>
-      <Value label="Presupuestos enviados" value={num.format(awaitingQuote)}
-        note="Estado actual de los creados en el periodo" icon={<ArrowUpRight size={17}/>} href="/presupuestos"/>
-      <Value label="Pedidos registrados" value={num.format(summary.orders.length)}
-        note={summary.delivered+' entregados en el periodo'} icon={<PackageCheck size={17}/>} href="/pedidos"/>
-      <Value label="Importe de pedidos" value={money(summary.amount)}
-        note="Volumen registrado; no facturación propia" icon={<Wallet size={17}/>} href="/pedidos"/>
-      <Value label="Importe medio/pedido" value={summary.orders.length?money(average):'—'}
-        note={summary.orders.length+' pedidos como base'} icon={<TrendingUp size={17}/>} href="/pedidos"/>
-    </div>
-    </div>}
-    <div className="ri-command-foot">
-      <span><CircleAlert size={16}/> Datos locales de demostración. Las comparaciones y los estados no acreditan ingresos reales ni rentabilidad.</span>
-      {todayTasks>0&&<Link to="/agenda">{todayTasks} {todayTasks===1?'tarea vencida':'tareas vencidas'} en agenda <ArrowRight size={15}/></Link>}
-    </div>
+    <details className="ri-focus-details">
+      <summary>Ver más indicadores <span>Presupuestos vinculados, importes y pedidos</span></summary>
+      <div className="ri-command-values" aria-label="Indicadores complementarios">
+        <Value label="Presupuestos creados" value={num.format(summary.quotes.length)}
+          note="Por fecha de creación" icon={<FileText size={17}/>} href="/presupuestos"/>
+        <Value label="Cobertura presupuestada" value={pct(quoted,total)+'%'}
+          note={quoted+' de '+total+' consultas con propuesta vinculada, aunque sea posterior'} icon={<ClipboardList size={17}/>} href="/oportunidades"/>
+        <Value label="Presupuestos enviados" value={num.format(awaitingQuote)}
+          note="Estado actual de los creados en el periodo" icon={<ArrowUpRight size={17}/>} href="/presupuestos"/>
+        <Value label="Pedidos registrados" value={num.format(summary.orders.length)}
+          note={summary.delivered+' entregados'} icon={<PackageCheck size={17}/>} href="/pedidos"/>
+        <Value label="Importe de pedidos" value={money(summary.amount)}
+          note="Volumen registrado; no facturación propia" icon={<Wallet size={17}/>} href="/pedidos"/>
+        <Value label="Importe medio/pedido" value={summary.orders.length?money(average):'—'}
+          note={summary.orders.length+' pedidos como base'} icon={<TrendingUp size={17}/>} href="/pedidos"/>
+      </div>
+    </details>
+    <footer className="ri-focus-foot"><span>Datos locales de demostración; no representan facturación ni rentabilidad real.</span>
+      {todayTasks>0&&<Link to="/agenda">{todayTasks} {todayTasks===1?'tarea vencida':'tareas vencidas'} en agenda <ArrowRight size={14}/></Link>}
+    </footer>
   </section>;
 }
 export function ResultsActivityBoard({points,period,caption}:{points:ActivityBucket[];period:InsightsPeriod;caption:string}){
