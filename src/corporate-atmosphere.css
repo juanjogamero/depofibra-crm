@@ -1,0 +1,246 @@
+/* DEPOFIBRA CRM · Capa atmosférica corporativa
+   24/11/2026 · prueba visual solicitada por Dirección.
+   Solo pintura: NO cambia ancho, altura, grid, paddings, overflow,
+   scroll, z-index, orden, datos, comportamiento ni tablas responsive.
+   Gradientes estáticos (sin animaciones, imágenes ni filtros de coste alto).
+*/
+:root {
+  --df-atmo-navy:#002d59;
+  --df-atmo-blue:#01488e;
+  --df-atmo-ink:#173f61;
+  --df-atmo-border:rgba(154,184,210,.46);
+  --df-atmo-shadow:0 7px 23px rgba(0,45,89,.063),0 1px 3px rgba(0,45,89,.025);
+  --df-atmo-shadow-hover:0 10px 27px rgba(0,45,89,.082),0 2px 5px rgba(0,45,89,.025);
+}
+
+/* El humo está en la superficie de trabajo, no en un elemento fijo encima:
+   conserva todos los clics y la posición de los paneles y de los scrolls. */
+.app-body .app-main,
+.app-body.is-dashboard .app-main {
+  background-color:#f0f6fa;
+  background-image:
+    radial-gradient(ellipse 55% 39% at 4% 12%, rgba(54,130,186,.145) 0%,rgba(129,180,214,.076) 34%,transparent 78%),
+    radial-gradient(ellipse 52% 49% at 96% 14%,rgba(11,81,139,.11) 0%,rgba(142,185,216,.047) 47%,transparent 82%),
+    radial-gradient(ellipse 52% 43% at 65% 75%,rgba(105,160,198,.113) 0%,rgba(160,201,225,.047) 40%,transparent 81%),
+    radial-gradient(ellipse 45% 34% at 4% 97%,rgba(1,72,142,.068) 0%,transparent 82%),
+    linear-gradient(155deg,#f5f9fd 0%,#f0f6fb 43%,#edf4f9 100%);
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+
+/* Retirar SOLO el relleno opaco de cada página para que el fondo con
+   degradados se vea a través de los huecos, sin tocar las geometrías. */
+.app-body .app-main > .page.page-opportunities,
+.app-body .app-main > .page.crm-workspace,
+.app-body .app-main > .page.page-agenda,
+.app-body .app-main > .page.page-results,
+.app-body .app-main > .page.page-dashboard,
+.app-body .app-main > .page.page-crm-record,
+.app-body .app-main > .page.page-crm-form {
+  background:transparent;
+}
+.app-body.is-opportunities .app-main > .page.page-opportunities,
+.app-body.is-dashboard .app-main > .page.page-dashboard.dashboard-hr.dashboard-vektora.vek2-dashboard,
+.app-body.is-opportunities .app-main > .page.crm-workspace {
+  background:transparent;
+}
+
+/* Superficies: leve transparencia y reflejo interior. Se evita backdrop-filter
+   para mantener rendimiento en portátiles y legibilidad de cifras y tablas. */
+.app-body .app-main :is(
+  .op-table-panel,
+  .results-kpi,
+  .results-panel,
+  .results-integrations,
+  .agenda-tasks-card,
+  .agenda-side-card,
+  .catalog-records,
+  .record-hero,
+  .panel,
+  .kpi,
+  .vek2-card,
+  .hr-right-card.vek2-card
+) {
+  background:linear-gradient(151deg,rgba(255,255,255,.967) 0%,rgba(255,255,255,.94) 46%,rgba(248,252,255,.912) 100%);
+  border-color:var(--df-atmo-border);
+  box-shadow:var(--df-atmo-shadow);
+}
+
+/* Mantener por encima la fotografía editorial en los banners de comisiones. */
+.page-commissions .commission-banner {
+  box-shadow:0 7px 22px rgba(0,31,64,.13);
+}
+
+/* Los paneles son visualmente independientes del fondo, sin aumentar altura,
+   ni introducir marcos, scrolls o pseudo-elementos sobre las tablas. */
+.app-body .app-main :is(
+  .op-table-panel,
+  .results-panel,
+  .results-integrations,
+  .agenda-tasks-card,
+  .agenda-side-card,
+  .catalog-records,
+  .record-hero,
+  .panel,
+  .vek2-card,
+  .hr-right-card.vek2-card
+) {
+  border-color:rgba(172,198,220,.56);
+}
+.app-body .app-main :is(.results-kpi,.crm-workspace-kpis .kpi,.kpi) {
+  background:
+    radial-gradient(ellipse 74% 79% at 100% 0%,rgba(181,213,235,.155),transparent 85%),
+    linear-gradient(148deg,rgba(255,255,255,.98) 0%,rgba(250,253,255,.94) 100%);
+  border-color:rgba(166,194,217,.52);
+}
+
+/* KPI únicamente: resalte suave de ratón, sin transformaciones que muevan
+   números o provoquen saltos en cuadrículas de portátil. */
+.app-body .app-main :is(.results-kpi,.crm-workspace-kpis .kpi,.kpi) {
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.app-body .app-main :is(.results-kpi,.crm-workspace-kpis .kpi,.kpi):hover {
+  border-color:rgba(118,163,199,.66);
+  box-shadow:var(--df-atmo-shadow-hover);
+}
+.app-body .app-main .crm-workspace-kpis .kpi:hover {transform:none;}
+
+/* Cabeceras: una línea institucional muy discreta, sin ocupar espacio. */
+.app-body .app-main :is(.panel-head,.vek2-card-heading,.hr-panel-heading) {
+  position:relative;
+}
+.app-body .app-main :is(.panel-head,.vek2-card-heading,.hr-panel-heading)::after {
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:46px;
+  height:2px;
+  border-radius:4px;
+  pointer-events:none;
+  opacity:.46;
+  background:linear-gradient(90deg,#01488e 0%,rgba(1,72,142,.08) 100%);
+}
+/* El indicador circular de Finanzas mantiene su ::before original corregido;
+   no aplicar ni paneles ni capas a .finance-donut. */
+
+/* Títulos y textos secundarios: contraste ligeramente más sereno. */
+.app-body .app-main :is(
+  .op-heading-copy h1,
+  .page-header h1,
+  .record-hero h1,
+  .panel-head h3,
+  .results-panel-heading h2,
+  .results-integrations-head h2,
+  .agenda-card-heading h2,
+  .agenda-side-heading h2
+) {color:#002d59;}
+.app-body .app-main :is(
+  .op-heading-copy p,
+  .page-header p,
+  .record-hero p
+) {color:#657f95;}
+
+/* Tablas y listados. No se cambian altura, distribución ni sticky headers. */
+.app-body .app-main .op-data-table thead th {
+  background:#f3f8fc;
+  color:#637f96;
+  border-bottom-color:rgba(183,206,225,.6);
+}
+.app-body .app-main .op-data-table tbody tr {
+  transition:background-color .16s ease;
+}
+.app-body .app-main .op-data-table tbody tr:hover {
+  background:rgba(232,245,253,.64);
+}
+.app-body .app-main .catalog-record-heading,
+.app-body .app-main .agenda-list-columns {
+  background:#f4f9fd;
+  border-bottom-color:rgba(183,206,225,.58);
+}
+.app-body .app-main .catalog-list-item:hover,
+.app-body .app-main .agenda-task-row:hover,
+.app-body .app-main .agenda-task-row:focus-within {
+  background:rgba(232,245,253,.6);
+}
+.app-body .app-main .op-table-footer,
+.app-body .app-main .catalog-list-footer,
+.app-body .app-main .agenda-list-footer {
+  background:rgba(246,250,254,.84);
+  border-top-color:rgba(188,209,227,.54);
+}
+
+/* Tabs sin redimensionar ni recolocar su subrayado activo. */
+.app-body .app-main .op-phase-tab:not(.is-active) {
+  background:rgba(255,255,255,.77);
+  border-color:rgba(183,207,226,.64);
+}
+.app-body .app-main .op-phase-tab:not(.is-active):hover {
+  background:#f1f8fd;
+  border-color:#a9cce6;
+}
+.app-body .app-main .op-phase-tab.is-active {
+  background:rgba(250,253,255,.97);
+  box-shadow:0 2px 7px rgba(0,45,89,.05);
+}
+
+/* Inputs y búsqueda: foco más legible sin ampliar contenedores. */
+.app-body .app-main :is(
+  .op-search,
+  .op-date-range-trigger,
+  .op-filter-toggle,
+  .form-field input,
+  .form-field select,
+  .form-field textarea
+) {
+  background-color:rgba(255,255,255,.95);
+  border-color:rgba(174,199,219,.73);
+}
+.app-body .app-main :is(
+  .op-search,
+  .op-date-range-trigger,
+  .op-filter-toggle
+):hover {border-color:#93bcdb;}
+.app-body .app-main :is(
+  .op-search,
+  .form-field input,
+  .form-field select,
+  .form-field textarea
+):focus-within {
+  border-color:#6d9dc4;
+}
+
+/* Secciones de datos: separación visual refinada y sin exceso de tarjetas. */
+.app-body .app-main :is(.knowledge-note,.agenda-knowledge-note,.inline-tip,.results-context-note) {
+  background-color:rgba(235,243,250,.7);
+  border-color:rgba(183,207,226,.55);
+}
+
+/* No alterar el contenido de banners fotográficos ni los tonos de estados,
+   badges, gráficos, leyendas y etiquetas de éxito/alerta. */
+@media (max-width:840px) {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {
+    background-image:
+      radial-gradient(ellipse 67% 32% at 0% 0%,rgba(74,142,188,.115),transparent 81%),
+      radial-gradient(ellipse 70% 40% at 100% 80%,rgba(44,110,161,.086),transparent 82%),
+      linear-gradient(165deg,#f4f9fc 0%,#eef5fa 100%);
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-body .app-main :is(.results-kpi,.crm-workspace-kpis .kpi,.kpi),
+  .app-body .app-main .op-data-table tbody tr {transition:none;}
+}
+@media (prefers-contrast:more) {
+  .app-body .app-main :is(.panel,.kpi,.op-table-panel,.results-panel,.results-kpi,.vek2-card) {
+    background:#fff;
+    border-color:#819eb5;
+  }
+}
+@media print {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {background:#fff;}
+  .app-body .app-main :is(.panel,.kpi,.op-table-panel,.results-panel,.results-kpi,.vek2-card) {
+    background:#fff;box-shadow:none;
+  }
+}
