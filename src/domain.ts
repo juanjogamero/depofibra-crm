@@ -7,6 +7,9 @@ export type Opportunity = {
   id: string; name: string; channel: Channel; contact: string; alias: string; conversation: string;
   product: string; capacity: string; destination: string; status: OpportunityStatus;
   createdAt: string; receivedAt?: string; nextAction: string; nextDate: string; message: string; lostReason?: string; activity: TimelineItem[];
+  /** Opt-in category and answers from internal request form; never assumed for old opportunities. */
+  categoryId?: string;
+  attributeAnswers?: {attributeId:string;label:string;value:string}[];
 };
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
@@ -24,7 +27,14 @@ export type Order = {
 };
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
 export type Task = { id: string; title: string; due: string; context: string; done: boolean };
-export type CatalogAttribute = { id: string; label: string; value: string };
+export type AttributeAnswerType = 'single'|'multiple'|'boolean'|'centimetres'|'text';
+/** Existing category technical specs (no responseType) remain static. New typed attributes are request questions. */
+export type CatalogAttribute = {
+  id: string; label: string; value: string;
+  responseType?: AttributeAnswerType;
+  options?: string[];
+  hidden?: boolean;
+};
 export type ProductCategory = {
   id: string; name: string; family: string; attributes: CatalogAttribute[];
 };
@@ -36,6 +46,7 @@ export type Product = {
   salePriceConfigured?: boolean;
   /** Optional for legacy CRM products; populated by catalog migration without losing existing data. */
   categoryId?: string;
+  description?: string;
 };
 export type TransportSettings = { smallRate: number; largeRate: number; buffer: number; distanceLimit: number; specialExtra: number };
 export type CrmState = {

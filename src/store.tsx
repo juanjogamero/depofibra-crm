@@ -142,13 +142,19 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       if((d.productCategories||[]).some(c=>c.id===category.id))return d;
       return {...d,productCategories:[...(d.productCategories||[]),category]};
     }),
-    updateProductCategory: (id: string, patch: Partial<Omit<ProductCategory, 'id'>>) => setData(d => ({
-      ...d,
-      productCategories:(d.productCategories||[]).map(c=>c.id===id?{...c,...patch}:c),
-      products:d.products.map(p=>p.categoryId===id?{
-        ...p,name:patch.name??p.name,family:patch.family??p.family
-      }:p)
-    })),
+    updateProductCategory: (id: string, patch: Partial<Omit<ProductCategory, 'id'>>) => setData(d => {
+      const oldCategory=(d.productCategories||[]).find(c=>c.id===id);
+      return {
+        ...d,
+        productCategories:(d.productCategories||[]).map(c=>c.id===id?{...c,...patch}:c),
+        products:d.products.map(p=>p.categoryId===id?{
+          ...p,
+          // Rename legacy variants named identically to the category, but preserve explicit product names.
+          name:patch.name&&p.name===oldCategory?.name?patch.name:p.name,
+          family:patch.family??p.family
+        }:p)
+      };
+    }),
     updateTransport: (p: Partial<TransportSettings>) => setData(d => ({ ...d, transport: { ...d.transport, ...p } })),
     addDocumentName: (customerId: string, name: string) => setData(d => ({ ...d, customers: d.customers.map(c => c.id === customerId ? { ...c, documentNames: [...c.documentNames, name] } : c) })),
     resetDemo: () => setData(normalizeCatalog(structuredClone(mockData))),
