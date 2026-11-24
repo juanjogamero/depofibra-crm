@@ -51,7 +51,7 @@ export default function CatalogManager(){
  const openVariant=(p?:Product)=>{
    if(!selected)return;
    setEditProduct(p?.id||'');
-   setCapacity(p?.capacity||'');setPrice(p?.price>0?String(p.price):'');
+   setCapacity(p?.capacity||'');setPrice(p&&p.price>0?String(p.price):'');
    setActive(p?.active??true);
    setError('');setDialog('variant');
  };
