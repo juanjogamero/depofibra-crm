@@ -1,16 +1,18 @@
 export type OpportunityStatus = 'Nueva' | 'Cualificación' | 'Por presupuestar' | 'Presupuesto enviado' | 'Seguimiento' | 'Aceptada' | 'Perdida';
 export type QuoteStatus = 'Borrador' | 'Enviado' | 'Aceptado' | 'Rechazado';
 export type FactoryStatus = 'Pendiente' | 'Confirmando detalles' | 'En fabricación' | 'Preparado' | 'En tránsito' | 'Entregado';
-export type Channel = 'Web' | 'WhatsApp' | 'Wallapop' | 'Facebook' | 'Teléfono' | 'Otro';
+export type Channel = 'Web' | 'WhatsApp' | 'Wallapop' | 'Facebook Marketplace' | 'Facebook' | 'Instagram' | 'Teléfono' | 'Correo electrónico' | 'Recomendación' | 'Otro';
+export const CHANNELS: Channel[] = ['Web','WhatsApp','Wallapop','Facebook Marketplace','Facebook','Instagram','Teléfono','Correo electrónico','Recomendación','Otro'];
 export type TimelineItem = { at: string; text: string; by: string };
 export type Opportunity = {
-  id: string; name: string; channel: Channel; contact: string; alias: string; conversation: string;
+  id: string; name: string; channel: Channel; /** Captación inicial, si se conoce; no inferir retrospectivamente. */ originChannel?: Channel; contact: string; alias: string; conversation: string;
   product: string; capacity: string; destination: string; status: OpportunityStatus;
   createdAt: string; receivedAt?: string; nextAction: string; nextDate: string; message: string; lostReason?: string; activity: TimelineItem[];
   /** Opt-in category and answers from internal request form; never assumed for old opportunities. */
   categoryId?: string;
   attributeAnswers?: {attributeId:string;label:string;value:string}[];
 };
+export const sourceChannel = (o:Opportunity):Channel => o.originChannel || o.channel;
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
