@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, ChevronLeft, ChevronRight, Plus, X, TrendingUp, CalendarClock } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, ChevronLeft, ChevronRight, Plus, X, TrendingUp, CalendarClock, Search } from 'lucide-react';
 import { useCrm } from '../store';
 import { dateText, dayDiff, today, type Opportunity, type Quote, type Task } from '../domain';
 
@@ -44,63 +44,119 @@ function receivedDate(o:Opportunity) {
     hour:valid?date.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):''
   };
 }
-function shortInitials(name:string) {
-  const words=name.replace(/\s*·\s*ejemplo$/i,'').trim().split(/\s+/).filter(Boolean);
-  return words.length>1
-    ?(words[0][0]+words[words.length-1][0]).toLocaleUpperCase('es-ES')
-    :(words[0]||'?').slice(0,2).toLocaleUpperCase('es-ES');
+type QuickMatch={title:string;detail:string;destination:string;type:string;keywords:string};
+const fold=(s:string)=>s.toLocaleLowerCase('es-ES').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function QuickSearch(){
+  const {data}=useCrm();
+  const navigate=useNavigate();
+  const [query,setQuery]=useState('');
+  const [open,setOpen]=useState(false);
+  const [active,setActive]=useState(0);
+  const matches=useMemo(()=>{
+    const term=fold(query.trim());
+    if(term.length<2)return [];
+    const all:QuickMatch[]=[
+      ...data.opportunities.map(o=>({title:o.product,detail:o.name+' · '+o.id+' · '+o.capacity,type:'Oportunidad',destination:'/oportunidades/'+o.id,keywords:[o.product,o.name,o.id,o.capacity,o.channel,o.destination,o.contact].join(' ')})),
+      ...data.customers.map(c=>({title:c.name,detail:c.destination+' · '+c.id,type:'Cliente',destination:'/clientes/'+c.id,keywords:[c.name,c.id,c.destination,c.contact].join(' ')})),
+      ...data.quotes.map(q=>({title:q.name,detail:q.product+' · '+q.id,type:'Presupuesto',destination:'/presupuestos/'+q.id,keywords:[q.name,q.product,q.id,q.status].join(' ')})),
+      ...data.orders.map(o=>({title:o.buyerName,detail:o.product+' · '+o.id,type:'Pedido',destination:'/pedidos/'+o.id,keywords:[o.buyerName,o.id,o.product,o.capacity,o.factory].join(' ')})),
+      ...data.tasks.map(t=>({title:t.title,detail:t.context+' · '+dateText(t.due),type:'Tarea',destination:'/agenda?fecha='+t.due,keywords:[t.title,t.context,t.due].join(' ')}))
+    ];
+    return all.filter(x=>fold(x.keywords).includes(term)).slice(0,7);
+  },[query,data]);
+  const go=(item:QuickMatch)=>{setOpen(false);setQuery('');setActive(0);navigate(item.destination);};
+  return <div className="focus-search" role="search" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setOpen(false);}}>
+    <div className={'focus-search-field'+(open?' is-open':'')}>
+      <Search size={19} aria-hidden="true"/>
+      <input type="search" aria-label="Buscar en todo el CRM" aria-expanded={open&&query.trim().length>=2} aria-controls="focus-search-results"
+        autoComplete="off" value={query} placeholder="Buscar clientes, oportunidades, presupuestos, pedidos o tareas..."
+        onFocus={()=>setOpen(true)}
+        onChange={e=>{setQuery(e.target.value);setActive(0);setOpen(true);}}
+        onKeyDown={e=>{
+          if(e.key==='Escape'){setOpen(false);e.currentTarget.blur();}
+          if(e.key==='ArrowDown'&&matches.length){e.preventDefault();setOpen(true);setActive(i=>(i+1)%matches.length);}
+          if(e.key==='ArrowUp'&&matches.length){e.preventDefault();setOpen(true);setActive(i=>(i-1+matches.length)%matches.length);}
+          if(e.key==='Enter'&&matches.length){e.preventDefault();go(matches[Math.min(active,matches.length-1)]);}
+        }}/>
+      {query&&<button type="button" className="focus-search-clear" aria-label="Limpiar búsqueda" onClick={()=>{setQuery('');setActive(0);setOpen(false);}}><X size={15}/></button>}
+      <span className="focus-search-hint">Búsqueda rápida</span>
+    </div>
+    {open&&query.trim().length>=2&&<div className="focus-search-results" id="focus-search-results" aria-label="Resultados de búsqueda">
+      <div className="focus-search-results-label">Resultados en registros locales</div>
+      {matches.length?matches.map((item,i)=><button type="button" key={item.type+item.destination} className={'focus-search-result'+(i===active?' is-active':'')}
+        onMouseDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>go(item)}>
+        <span className="focus-search-result-kind">{item.type}</span>
+        <span className="focus-search-result-copy"><strong>{item.title}</strong><small>{item.detail}</small></span>
+        <ArrowRight size={15} aria-hidden="true"/>
+      </button>):<div className="focus-search-none">No hay coincidencias. Prueba otra palabra, nombre o referencia.</div>}
+    </div>}
+  </div>;
 }
 function isPending(o:Opportunity) {
   return o.status!=='Aceptada'&&o.status!=='Perdida';
 }
+function daysOpen(o:Opportunity) {
+  return dayDiff(o.createdAt);
+}
+function isOldPending(o:Opportunity) {
+  return isPending(o)&&(daysOpen(o)>=7||Boolean(o.nextDate&&o.nextDate<today()));
+}
 function needsAttention(o:Opportunity) {
-  return isPending(o) && (o.status==='Nueva'||o.status==='Por presupuestar'||Boolean(o.nextDate&&o.nextDate<today()));
+  return isPending(o)&&(o.status==='Nueva'||o.status==='Por presupuestar'||isOldPending(o));
 }
 function priority(o:Opportunity) {
-  return o.nextDate&&o.nextDate<today()?0:o.status==='Nueva'?1:o.status==='Por presupuestar'?2:3;
+  return o.nextDate&&o.nextDate<today()?0:isOldPending(o)?1:o.status==='Nueva'?2:o.status==='Por presupuestar'?3:4;
 }
 function FocusRequests({opportunities}:{opportunities:Opportunity[]}) {
-  const [view,setView]=useState<'atender'|'ultimas'>('atender');
+  const [view,setView]=useState<'atender'|'ultimas'|'antiguas'>('atender');
   const sorted=[...opportunities].sort((a,b)=>(b.receivedAt||b.createdAt).localeCompare(a.receivedAt||a.createdAt));
-  const attention=sorted.filter(needsAttention).sort((a,b)=>priority(a)-priority(b));
-  const items=(view==='atender'?attention:sorted).slice(0,4);
+  const attention=sorted.filter(needsAttention).sort((a,b)=>priority(a)-priority(b)||a.createdAt.localeCompare(b.createdAt));
+  const old=sorted.filter(isOldPending).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+  const items=(view==='atender'?attention:view==='antiguas'?old:sorted).slice(0,4);
   return <section className="focus-card focus-requests" aria-labelledby="focus-requests-title">
     <div className="focus-card-heading">
       <div>
-        <h2 id="focus-requests-title">Consultas que importan</h2>
-        <p>Lo más reciente y lo que necesita una respuesta</p>
+        <h2 id="focus-requests-title">Oportunidades recientes y pendientes</h2>
+        <p>Nuevas entradas y seguimientos que llevan tiempo abiertos</p>
       </div>
       <Link to="/oportunidades" className="focus-inline-link">Ver todas <ArrowRight size={15}/></Link>
     </div>
-    <div className="focus-switch" role="group" aria-label="Elegir tipo de solicitudes">
+    <div className="focus-switch" role="group" aria-label="Filtrar oportunidades del resumen">
       <button type="button" aria-pressed={view==='atender'} className={view==='atender'?'is-active':''} onClick={()=>setView('atender')}>
         Para atender <span>{attention.length}</span>
       </button>
       <button type="button" aria-pressed={view==='ultimas'} className={view==='ultimas'?'is-active':''} onClick={()=>setView('ultimas')}>
         Últimas entradas
       </button>
+      <button type="button" aria-pressed={view==='antiguas'} className={view==='antiguas'?'is-active':''} onClick={()=>setView('antiguas')}>
+        Pendientes antiguos <span>{old.length}</span>
+      </button>
     </div>
     <div className="focus-requests-list">
       {items.map(o=>{
+        const age=daysOpen(o);
         const d=receivedDate(o);
         const overdue=isPending(o)&&Boolean(o.nextDate&&o.nextDate<today());
-        const label=overdue?'Seguimiento vencido':o.status==='Nueva'?'Sin responder':o.status==='Por presupuestar'?'Por presupuestar':o.status;
+        const label=overdue?'Seguimiento vencido':o.status==='Nueva'?'Nueva':isOldPending(o)?'Pendiente antiguo':o.status;
         return <Link to={'/oportunidades/'+o.id} className="focus-request-row" key={o.id}>
-          <span className="focus-request-avatar" aria-hidden="true">{shortInitials(o.name)}</span>
+          <span className="focus-request-avatar" aria-hidden="true"><CalendarClock size={17}/></span>
           <span className="focus-request-detail">
-            <strong title={o.name}>{o.name}</strong>
-            <small title={o.product+' · '+o.capacity}>{o.product}{o.capacity?' · '+o.capacity:''}</small>
+            <strong title={o.product+' · '+o.capacity}>{o.product}{o.capacity?' · '+o.capacity:''}</strong>
+            <small title={o.name+' · '+o.id}>{o.id} · {o.name}</small>
           </span>
-          <span className={'focus-request-status'+(overdue||o.status==='Nueva'?' is-urgent':'')}>{label}</span>
-          <time dateTime={o.receivedAt||o.createdAt} title={d.label+(d.hour?' a las '+d.hour:'')}>{d.date}</time>
+          <span className={'focus-request-status'+(overdue||o.status==='Nueva'||isOldPending(o)?' is-urgent':'')}>{label}</span>
+          <span className="focus-request-age" title={'Entrada: '+d.label+(d.hour?' a las '+d.hour:'')}>
+            <strong>{age<=0?'Hoy':age===1?'Ayer':'Hace '+age+' días'}</strong>
+            <small>{d.date}</small>
+          </span>
           <ArrowRight className="focus-request-arrow" size={16} aria-hidden="true"/>
         </Link>;
       })}
       {!items.length&&<div className="focus-empty">
-        {view==='atender'?'Sin consultas que requieran atención inmediata. Puedes revisar las últimas entradas.':'Todavía no hay consultas registradas.'}
+        {view==='antiguas'?'No hay oportunidades abiertas con más de una semana ni seguimientos vencidos.':view==='atender'?'Sin oportunidades que requieran atención inmediata. Revisa las últimas entradas.':'Todavía no hay consultas registradas.'}
       </div>}
     </div>
-    <div className="focus-requests-foot"><span>Solicitudes registradas en este CRM de demostración</span></div>
+    <div className="focus-requests-foot"><span>Resumen de registros locales de demostración · Antiguos: 7 días o seguimiento vencido</span></div>
   </section>;
 }
 function smoothLine(values:number[],x:(i:number)=>number,y:(value:number)=>number) {
@@ -236,13 +292,14 @@ export default function Dashboard(){
       <div>
         <span className="focus-eyebrow">TU ESPACIO DE TRABAJO</span>
         <h1>{greeting}</h1>
-        <p>Las consultas, la agenda y el ritmo comercial. Todo a mano.</p>
+        <p>Oportunidades por atender, calendario y evolución comercial.</p>
       </div>
       <div className="focus-welcome-aside">
         <span className="focus-today">{date}</span>
         {pendingTasks>0&&<Link to="/agenda" className="focus-overdue"><CalendarClock size={15}/>{pendingTasks} {pendingTasks===1?'tarea vencida':'tareas vencidas'}</Link>}
       </div>
     </header>
+    <QuickSearch/>
     <div className="focus-main">
       <FocusRequests opportunities={data.opportunities}/>
       <MiniCalendar tasks={data.tasks}/>

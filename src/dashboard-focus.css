@@ -495,3 +495,266 @@
 @media(prefers-reduced-motion:reduce) {
   .dashboard-focus .focus-request-row {transition:none;}
 }
+
+
+/* REG-0114 · Ajustes tras revisión de Dirección: tipografía acorde con
+   listados corporativos, prioridad por oportunidad y búsqueda de verdad.
+   Solo estilos de Inicio; ningún cambio en el diseño de otras secciones. */
+.dashboard-focus .focus-welcome h1 {
+  font-size:clamp(25px,2.1vw,31px);
+  letter-spacing:-.035em;
+}
+.dashboard-focus .focus-eyebrow {font-size:10px;}
+.dashboard-focus .focus-welcome p {font-size:12.4px;line-height:1.4;}
+.dashboard-focus .focus-today {font-size:12px;}
+.dashboard-focus .focus-overdue {font-size:11.4px;}
+.dashboard-focus .focus-card-heading h2,
+.dashboard-focus .focus-calendar .hr-panel-heading h2 {
+  font-size:15.5px;
+}
+.dashboard-focus .focus-card-heading p {font-size:11.7px;}
+.dashboard-focus .focus-inline-link {font-size:11.6px;}
+.dashboard-focus .focus-switch {gap:15px;}
+.dashboard-focus .focus-switch button {font-size:11.6px;}
+.dashboard-focus .focus-request-detail strong {font-size:12.7px;}
+.dashboard-focus .focus-request-detail small {font-size:11px;}
+.dashboard-focus .focus-request-status {font-size:10.6px;max-width:154px;}
+.dashboard-focus .focus-request-avatar {
+  background:#eaf2fb;
+  color:#296c9f;
+}
+.dashboard-focus .focus-request-age {
+  display:flex;
+  flex:0 0 88px;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:3px;
+  text-align:right;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-request-age strong {
+  color:#345f7e;
+  font:750 11px/1.15 Inter,sans-serif;
+}
+.dashboard-focus .focus-request-age small {
+  color:#91a4b5;
+  font:500 10px/1.15 Inter,sans-serif;
+}
+.dashboard-focus .focus-requests-foot {flex-basis:28px;font-size:10.5px;}
+.dashboard-focus .focus-request-row {
+  min-height:52px;
+  max-height:74px;
+}
+.dashboard-focus .focus-pulse h2 {font-size:15px;}
+.dashboard-focus .focus-pulse-label {font-size:10.7px;}
+.dashboard-focus .focus-pulse-comparison {font-size:11.5px;}
+.dashboard-focus .focus-pulse-trend span {font-size:11px;}
+.dashboard-focus .focus-pulse-note {font-size:10.3px;}
+.dashboard-focus .focus-chart-key {font-size:10.5px;}
+.dashboard-focus .focus-chart-labels {font-size:9.7px;}
+.dashboard-focus .focus-calendar .hr-month-selector>span {font-size:11.3px;}
+.dashboard-focus .focus-calendar .hr-calendar-day {font-size:11.4px;}
+.dashboard-focus .focus-calendar .hr-selected-date,
+.dashboard-focus .focus-calendar .hr-calendar-footer a {font-size:10.7px;}
+.dashboard-focus .focus-main {flex-basis:clamp(255px,39vh,377px);}
+.dashboard-focus .focus-pulse {flex-basis:clamp(145px,20vh,180px);}
+.dashboard-focus .focus-welcome {min-height:64px;}
+
+/* Búsqueda universal: se trabaja directamente sobre los registros DEMO
+   existentes (oportunidades, clientes, presupuestos, pedidos y tareas).
+   La lista flotante no aumenta la altura ni modifica los scrolls. */
+.dashboard-focus .focus-search {
+  position:relative;
+  z-index:35;
+  display:block;
+  flex:0 0 auto;
+  width:100%;
+  min-width:0;
+}
+.dashboard-focus .focus-search-field {
+  display:flex;
+  align-items:center;
+  min-width:0;
+  min-height:45px;
+  gap:12px;
+  padding:0 15px;
+  border:1px solid rgba(164,192,217,.68);
+  border-radius:10px;
+  background:rgba(255,255,255,.95);
+  box-shadow:0 3px 13px rgba(0,45,89,.035);
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.dashboard-focus .focus-search-field>svg {
+  flex:0 0 19px;
+  color:#457ca7;
+}
+.dashboard-focus .focus-search-field:is(:focus-within,.is-open) {
+  border-color:#80b2d7;
+  box-shadow:0 0 0 3px rgba(1,72,142,.075);
+}
+.dashboard-focus .focus-search-field input {
+  display:block;
+  flex:1 1 auto;
+  min-width:0;
+  height:43px;
+  padding:0;
+  margin:0;
+  border:0;
+  outline:0;
+  color:#1f4564;
+  background:transparent;
+  font:500 13px/1.35 Inter,sans-serif;
+}
+.dashboard-focus .focus-search-field input::placeholder {color:#8a9fb0;}
+.dashboard-focus .focus-search-clear {
+  display:grid;
+  flex:0 0 25px;
+  place-items:center;
+  width:25px;
+  height:25px;
+  padding:0;
+  border:0;
+  border-radius:6px;
+  background:#edf4fa;
+  color:#617e94;
+  cursor:pointer;
+}
+.dashboard-focus .focus-search-clear:hover {color:#01488e;background:#e1eef9;}
+.dashboard-focus .focus-search-hint {
+  flex:0 0 auto;
+  padding-left:12px;
+  border-left:1px solid #e2ebf2;
+  color:#91a2b1;
+  font:650 10.7px/1.2 Inter,sans-serif;
+  white-space:nowrap;
+}
+.dashboard-focus .focus-search-results {
+  position:absolute;
+  top:calc(100% + 5px);
+  left:0;
+  right:0;
+  z-index:36;
+  max-height:min(370px,53vh);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:7px;
+  border:1px solid #d4e3ee;
+  border-radius:11px;
+  background:#fff;
+  box-shadow:0 18px 36px rgba(0,45,89,.17);
+  scrollbar-width:thin;
+}
+.dashboard-focus .focus-search-results-label {
+  padding:6px 9px 9px;
+  color:#8295a6;
+  font:750 10px/1.2 Inter,sans-serif;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.dashboard-focus .focus-search-result {
+  display:flex;
+  align-items:center;
+  width:100%;
+  min-height:50px;
+  gap:11px;
+  padding:8px 11px;
+  border:0;
+  border-radius:8px;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+  font-family:Inter,sans-serif;
+}
+.dashboard-focus .focus-search-result:is(:hover,.is-active,:focus-visible) {
+  background:#eef6fc;
+  outline:none;
+}
+.dashboard-focus .focus-search-result-kind {
+  flex:0 0 101px;
+  color:#24669a;
+  font:750 10.7px/1.3 Inter,sans-serif;
+}
+.dashboard-focus .focus-search-result-copy {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-width:0;
+  gap:4px;
+}
+.dashboard-focus .focus-search-result-copy strong {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#163f61;
+  font:750 12.3px/1.2 Inter,sans-serif;
+}
+.dashboard-focus .focus-search-result-copy small {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#7892a7;
+  font:500 10.7px/1.2 Inter,sans-serif;
+}
+.dashboard-focus .focus-search-result>svg {flex:0 0 15px;color:#6794b6;}
+.dashboard-focus .focus-search-none {
+  padding:14px;
+  color:#6b8399;
+  font:500 11.6px/1.4 Inter,sans-serif;
+}
+
+/* La superposición de búsqueda queda por encima de paneles y calendario. */
+.dashboard-focus .focus-main {position:relative;z-index:1;}
+.dashboard-focus .focus-welcome {position:relative;z-index:2;}
+@media (min-width:841px) and (max-height:735px) {
+  .dashboard-focus .focus-welcome {min-height:49px;}
+  .dashboard-focus .focus-welcome h1 {font-size:24px;}
+  .dashboard-focus .focus-welcome p {font-size:11.5px;}
+  .dashboard-focus .focus-search-field {min-height:39px;}
+  .dashboard-focus .focus-search-field input {height:37px;font-size:12.3px;}
+  .dashboard-focus .focus-main {flex-basis:clamp(225px,36vh,304px);}
+  .dashboard-focus .focus-pulse {flex-basis:clamp(112px,18vh,142px);}
+  .dashboard-focus .focus-request-row {min-height:44px;}
+  .dashboard-focus .focus-card-heading h2 {font-size:14px;}
+}
+@media (min-width:841px) {
+  @container crm-content (max-width:1100px) {
+    .dashboard-focus .focus-request-age {flex-basis:72px;}
+    .dashboard-focus .focus-request-age strong {font-size:10.4px;}
+    .dashboard-focus .focus-switch {gap:10px;}
+    .dashboard-focus .focus-switch button {font-size:10.7px;}
+    .dashboard-focus .focus-request-row {gap:8px;}
+  }
+  @container crm-content (max-width:920px) {
+    .dashboard-focus .focus-request-age {display:none;}
+    .dashboard-focus .focus-search-hint {display:none;}
+    .dashboard-focus .focus-request-status {max-width:111px;font-size:9.7px;}
+    .dashboard-focus .focus-switch {gap:8px;}
+    .dashboard-focus .focus-switch button {font-size:10px;}
+    .dashboard-focus .focus-card-heading h2 {font-size:13.9px;}
+  }
+  @container crm-content (max-width:760px) {
+    .dashboard-focus .focus-request-status {display:none;}
+    .dashboard-focus .focus-switch button span {display:none;}
+    .dashboard-focus .focus-switch button {font-size:9.6px;}
+    .dashboard-focus .focus-calendar .hr-calendar-footer {gap:4px;}
+  }
+}
+@media (max-width:840px) {
+  .dashboard-focus .focus-main {flex-basis:auto;}
+  .dashboard-focus .focus-search-hint {display:none;}
+  .dashboard-focus .focus-request-age {flex-basis:69px;}
+  .dashboard-focus .focus-card-heading h2 {font-size:14px;}
+  .dashboard-focus .focus-requests {height:360px;flex-basis:360px;}
+}
+@media (max-width:460px) {
+  .dashboard-focus .focus-request-age {display:none;}
+  .dashboard-focus .focus-switch {gap:9px;}
+  .dashboard-focus .focus-switch button {font-size:10px;}
+  .dashboard-focus .focus-switch button span {display:none;}
+  .dashboard-focus .focus-search-field {padding:0 11px;}
+  .dashboard-focus .focus-search-field input {font-size:11.9px;}
+  .dashboard-focus .focus-search-result-kind {flex-basis:72px;font-size:9.5px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .dashboard-focus .focus-search-field {transition:none;}
+}
