@@ -1,13 +1,15 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
   Layers3, Search, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
 import ResultsIberiaMap from './ResultsIberiaMap';
-import {ResultsExecutiveOverview,ResultsActivityBoard} from './ResultsDecisionPanels';
+import {ResultsExecutiveOverview} from './ResultsDecisionPanels';
 import ResultsExport from './ResultsExport';
+import ResultsTrendReport from './ResultsTrendReport';
+import {ProductsResearch,ChannelsResearch,QuotesResearch,OrdersResearch} from './ResultsResearchPanels';
 import {ProductRankCard,DistributionCard} from './ResultsProductPanels';
 import { today, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
 
@@ -181,8 +183,11 @@ function SourceCard({name,status,details,icon}:{name:string;status:string;detail
 }
 export default function ResultsInsights(){
   const {data}=useCrm();
-  const [period,setPeriod]=useState<Period>('all');
-  const [view,setView]=useState<'overview'|'activity'|'products'|'geo'|'conversion'|'sources'>('overview');
+  const [period,setPeriod]=useState<Period>('90');
+  const navigate=useNavigate();
+  const route=useParams()['*']||'overview';
+  const allowed=['overview','activity','products','channels','zones','quotes','orders','conversion','sources'];
+  const view=allowed.includes(route)?route:'overview';
   const insights=useMemo(()=>{
     const leads=data.opportunities.filter(o=>dateWithin(o.createdAt,period));
     const quotes=data.quotes.filter(q=>dateWithin(q.createdAt,period));
@@ -226,57 +231,61 @@ export default function ResultsInsights(){
   const mapOrders=useMemo(()=>insights.orders.map(o=>({destination:orderDestination(o,data)})),[insights.orders,data]);
 
   const sections=[
-    {id:'overview' as const,number:'01',label:'Resumen y mapa',description:'Indicadores principales y mapa comercial completo'},
-    {id:'activity' as const,number:'02',label:'Actividad',description:'Prioridades, evolución y cifras comerciales completas'},
-    {id:'products' as const,number:'03',label:'Productos',description:'Demanda, capacidades y pedidos'},
-    {id:'geo' as const,number:'04',label:'Canales',description:'Canales registrados y calidad de las consultas'},
-    {id:'conversion' as const,number:'05',label:'Conversión',description:'Cierres y seguimientos'},
-    {id:'sources' as const,number:'06',label:'Fuentes externas',description:'Conexiones y limitaciones'}
+    {id:'overview',label:'Resumen y mapa',description:'Panorama comercial y distribución territorial'},
+    {id:'activity',label:'Evolución',description:'Ritmo de consultas, presupuestos y actividad pendiente'},
+    {id:'products',label:'Productos',description:'Más solicitados, pedidos, capacidades y entregas'},
+    {id:'channels',label:'Canales',description:'Origen de las consultas y resultados por plataforma'},
+    {id:'zones',label:'Zonas',description:'Mapa detallado y destinos de consultas/pedidos'},
+    {id:'quotes',label:'Presupuestos',description:'Propuestas, estados, importes y tiempos registrados'},
+    {id:'orders',label:'Pedidos',description:'Producto, volumen, estados y entregas'},
+    {id:'conversion',label:'Conversión',description:'Embudo, pérdidas y seguimientos'},
+    {id:'sources',label:'Web y SEO',description:'Fuentes GSC, GA4 y GTM, aún no conectadas'}
   ];
-  return <div className="page page-opportunities page-results page-results-insights">
+  const selectedReport=sections.find(section=>section.id===view)||sections[0];
+  const goToReport=(id:string)=>navigate(id==='overview'?'/resultados':'/resultados/'+id);
+  return <div className="page page-opportunities page-results page-results-insights ri-gsc">
     <header className="ri-header">
       <div className="ri-header-copy">
-        <h1>Resultados</h1>
-        <p>Consultas, pedidos y tendencias para decidir con claridad.</p>
-      </div>
-      <div className="ri-header-actions">
-        <Link to="/oportunidades" className="ri-link">Oportunidades <ArrowRight size={15}/></Link>
+        <h1>Rendimiento</h1>
+        <p>Estadísticas comerciales · {selectedReport.description}</p>
       </div>
     </header>
     <div className="ri-toolbar ri-toolbar-workspace">
-      <div className="ri-source-badge"><span className="ri-status-dot"/>Datos de prueba · CRM local</div>
       <div className="ri-toolbar-actions">
-        <label className="ri-period"><CalendarDays size={17}/><span>Periodo</span>
-          <select value={period} onChange={e=>setPeriod(e.target.value as Period)} aria-label="Filtrar estadísticas por periodo">
-            <option value="all">Todo el historial</option>
-            <option value="30">Últimos 30 días</option>
-            <option value="90">Últimos 90 días</option>
-            <option value="365">Últimos 12 meses</option>
+        <div className="ri-period-pills" role="group" aria-label="Periodo de análisis">
+          {([
+            ['30','30 días'],['90','3 meses'],['365','12 meses'],['all','Histórico']
+          ] as const).map(([id,label])=><button type="button" key={id}
+            aria-pressed={period===id} className={period===id?'is-active':''}
+            onClick={()=>setPeriod(id)}>{period===id?'✓ ':''}{label}</button>)}
+        </div>
+        <label className="ri-report-selector"><span>Informe</span>
+          <select aria-label="Seleccionar subapartado de Resultados" value={view} onChange={e=>goToReport(e.target.value)}>
+            {sections.map(section=><option key={section.id} value={section.id}>{section.label}</option>)}
           </select>
         </label>
-        <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
       </div>
+      <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
     </div>
-    <nav className="ri-section-nav" aria-label="Apartados de Resultados">
-      {sections.map(section=><button type="button" key={section.id}
-        className={'ri-section-tab'+(view===section.id?' is-active':'')}
-        aria-current={view===section.id?'page':undefined}
-        aria-pressed={view===section.id}
-        title={section.description} onClick={()=>setView(section.id)}>
-        <span className="ri-section-tab-text"><strong>{section.label}</strong></span>
-      </button>)}
-    </nav>
+    <div className="ri-data-context"><span className="ri-status-dot"/> Datos locales de demostración · No conectados con Analytics o Search Console</div>
     <div className="ri-active-content">
+
     {view==='overview'&&<>
       <ResultsExecutiveOverview data={data} period={period} summary={insights} mode="summary"/>
+      <div className="ri-overview-signals">
+        <span><strong>Principal canal:</strong> {insights.channels[0]?.channel||'Sin datos'} · {insights.channels[0]?.total||0} consultas</span>
+        <span><strong>Producto más pedido:</strong> {insights.orderTypes[0]?.label||'Sin datos'} · {insights.orderTypes[0]?.count||0} pedidos</span>
+        <Link to="/resultados/channels">Analizar canales <ArrowRight size={14}/></Link>
+      </div>
       <ResultsIberiaMap leads={mapLeads} orders={mapOrders}/>
     </>}
     {view==='activity'&&<>
+      <ResultsTrendReport key={period} points={times.points} caption={times.caption} period={period}/>
       <ResultsExecutiveOverview data={data} period={period} summary={insights} mode="detail"/>
-      <ResultsActivityBoard key={period} points={times.points} period={period} caption={times.caption}/>
     </>}
     {view==='products'&&<>
-      <p className="ri-view-caption">Interés en productos, capacidades solicitadas y pedidos registrados.</p>
+      <ProductsResearch data={data} leads={insights.leads} quotes={insights.quotes} orders={insights.orders}/>
+      <div className="ri-view-section-label"><h2>Gráficos de productos y capacidades</h2><p>Selección interactiva por ranking y distribución.</p></div>
       <div className="ri-product-card-grid">
         <ProductRankCard title="Productos más consultados" subtitle="Tipos solicitados en las oportunidades"
           items={insights.familyDemand} kind="consultas" to="/oportunidades"/>
@@ -290,27 +299,47 @@ export default function ResultsInsights(){
           subtitle="Último estado de gestión registrado" to="/pedidos"/>
       </div>
     </>}
-    {view==='geo'&&<>
-      <p className="ri-view-caption">Origen de las consultas, oportunidades aceptadas y calidad de los canales anotados.</p>
-      <div className="ri-acquisition-grid">
-        <Panel title="Origen de las consultas" subtitle="Selecciona un canal para ver su aportación" className="ri-panel-channels">
+
+    {view==='channels'&&<>
+      <ChannelsResearch data={data} leads={insights.leads} quotes={insights.quotes} orders={insights.orders}/>
+      <div className="ri-acquisition-grid ri-gsc-channels">
+        <Panel title="Distribución interactiva de canales" subtitle="Selecciona un canal para inspeccionar consultas y aceptadas" className="ri-panel-channels">
           <ChannelDonut channels={insights.channels}/>
-          <div className="ri-inline-note">Canal anotado en el CRM, no atribución automática de Analytics.</div>
+          <div className="ri-inline-note">El canal procede de la oportunidad; no identifica sesiones ni campañas web.</div>
         </Panel>
-        <Panel title="Calidad de los canales" subtitle="Consultas y oportunidades actualmente aceptadas">
+        <Panel title="Lectura de la captación" subtitle="Datos para evaluar dónde se genera trabajo">
           <div className="ri-channel-table">
             <div className="ri-channel-table-head"><span>Canal</span><span>Consultas</span><span>Aceptadas</span><span>Ratio</span></div>
             {insights.channels.length?insights.channels.map(row=><div key={row.channel} className="ri-channel-table-row">
               <strong>{row.channel}</strong><span>{row.total}</span><span>{row.wins}</span>
               <b>{row.total?Math.round(row.wins/row.total*100):0}%</b>
-            </div>):<p>No hay consultas de este periodo.</p>}
+            </div>):<p>No hay consultas en este periodo.</p>}
           </div>
-          <div className="ri-inline-note">Ratios descriptivos según estados actuales; no justifican inversión por sí solos.</div>
+          <div className="ri-inline-note">La relación entre consultas y aceptadas no acredita rentabilidad ni atribución publicitaria.</div>
         </Panel>
       </div>
     </>}
+    {view==='zones'&&<>
+      <ResultsIberiaMap leads={mapLeads} orders={mapOrders}/>
+      <div className="ri-gsc-location-grid">
+        <Panel title="Destinos anotados en consultas" subtitle="Texto del lugar de entrega registrado, sin geocodificar">
+          <RankedBars items={insights.areaLeads} limit={12} destination="/oportunidades"/>
+        </Panel>
+        <Panel title="Destinos anotados en pedidos" subtitle="Cliente, presupuesto u oportunidad si está vinculada">
+          <RankedBars items={insights.areaOrders} limit={12} destination="/pedidos"/>
+        </Panel>
+      </div>
+    </>}
+    {view==='quotes'&&<>
+      <QuotesResearch data={data} leads={insights.leads} quotes={insights.quotes} orders={insights.orders}/>
+    </>}
+    {view==='orders'&&<>
+      <OrdersResearch data={data} leads={insights.leads} quotes={insights.quotes} orders={insights.orders}/>
+      <div className="ri-view-section-label"><h2>Distribución de estados</h2></div>
+      <DistributionCard items={insights.orderStatuses} kind="estados" title="Situación de los pedidos" subtitle="Último estado registrado en el CRM" to="/pedidos"/>
+    </>}
     {view==='conversion'&&<>
-      <p className="ri-view-caption">Cierres, pérdidas y seguimientos que conviene revisar.</p>
+      <div className="ri-view-section-label"><h2>Conversión y seguimiento</h2><p>Vínculos comerciales, pérdidas y acciones pendientes.</p></div>
       <div className="ri-grid-three">
         <Panel title="De la consulta al pedido" subtitle="Etapas con vínculos de CRM comprobables" extra={<CheckCircle2 size={21}/>}>
           <FunnelExplorer stages={insights.stageCounts}/>
@@ -332,7 +361,7 @@ export default function ResultsInsights(){
       </div>
     </>}
     {view==='sources'&&<>
-      <p className="ri-view-caption">Estado de las fuentes externas: aún no están sincronizadas con la demo.</p>
+      <div className="ri-view-section-label"><h2>Fuentes digitales</h2><p>Preparación para integrar datos comprobables de Search Console, Analytics y Tag Manager.</p></div>
       <section className="ri-integration-panel">
         <div className="ri-integration-note"><CircleAlert size={18}/><span>Estas fuentes <strong>no están sincronizadas</strong> con la demo actual. Por ahora no existen aquí datos de sesiones, campañas, edades ni búsquedas de Google.</span></div>
         <div className="ri-sources">
