@@ -27,7 +27,7 @@ export function AppRoutes() {
     <Route path="/pedidos/:id" element={<OrderDetail/>}/>
     <Route path="/comisiones" element={<Commissions/>}/>
     <Route path="/agenda" element={<Agenda/>}/>
-    <Route path="/resultados" element={<Results/>}/>
+    <Route path="/resultados/*" element={<Results/>}/>
     <Route path="/finanzas" element={<Finance/>}/>
     <Route path="/catalogo" element={<Catalog/>}/>
     <Route path="/configuracion" element={<Configuration/>}/>

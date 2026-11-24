@@ -2,6 +2,7 @@ import {useEffect,useMemo,useState} from 'react';
 import {Download,FileJson2,FileSpreadsheet,ShieldCheck,X} from 'lucide-react';
 import type {CrmState,Opportunity,Quote,Order} from '../domain';
 import {resolveDestinationArea} from './ResultsIberiaMap';
+import {buildProducts,buildChannelMetrics} from './ResultsResearchPanels';
 
 type Period='all'|'30'|'90'|'365';
 type Group={label:string;count:number};
@@ -13,10 +14,12 @@ type Snapshot={
  orderStatuses:Group[];lossReasons:Group[];stageCounts:Group[];
 };
 type Point={label:string;leads:number;quotes:number};
-type Dataset='oportunidades'|'presupuestos'|'pedidos'|'canales'|'productos'|'zonas'|'actividad';
+type Dataset='oportunidades'|'presupuestos'|'pedidos'|'canales'|'productos'|'zonas'|'actividad'|'rendimiento_productos'|'rendimiento_canales'|'estados_presupuestos'|'estados_pedidos';
 const tables:Record<Dataset,string>={
  oportunidades:'Oportunidades anonimizadas',presupuestos:'Presupuestos',pedidos:'Pedidos',
- canales:'Canales',productos:'Productos consultados',zonas:'Zonas agrupadas',actividad:'Evolución comercial'
+ canales:'Canales',productos:'Productos consultados',zonas:'Zonas agrupadas',actividad:'Evolución comercial',
+ rendimiento_productos:'Rendimiento completo por producto',rendimiento_canales:'Consultas a pedidos por plataforma',
+ estados_presupuestos:'Estados de presupuestos',estados_pedidos:'Estados de pedidos'
 };
 function aliases(ids:string[],prefix:string){
  const entries=new Map<string,string>();
@@ -46,6 +49,10 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
  const quotes=aliases(data.quotes.map(q=>q.id),'PRE');
  const orders=aliases(data.orders.map(o=>o.id),'PED');
  const customers=aliases(data.customers.map(c=>c.id),'CLI');
+ const performanceProducts=buildProducts({data,leads:s.leads,quotes:s.quotes,orders:s.orders});
+ const performanceChannels=buildChannelMetrics(data,s.leads);
+ const quoteStates=groups(s.quotes.map(q=>q.status));
+ const orderStates=groups(s.orders.map(o=>o.factory));
  const areasLead=groups(s.leads.map(o=>resolveDestinationArea(o.destination)));
  const areasOrder=groups(s.orders.map(o=>{
   const q=data.quotes.find(q=>q.id===o.quoteId);
@@ -76,7 +83,7 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
  });
  return {
   metadata:{
-   esquema:'depofibra-analitica-anonimizada-v1',generado:new Date().toISOString(),
+   esquema:'depofibra-analitica-anonimizada-v2',generado:new Date().toISOString(),
    periodo:period==='all'?'Historial completo':'Últimos '+period+' días',
    fuente:'CRM local de DEMOSTRACIÓN, sin backend ni analítica web sincronizada',
    privacidad:'Identificadores seudonimizados. Sin nombres, alias, contactos, conversaciones, notas ni direcciones exactas.',
@@ -103,7 +110,9 @@ function report(data:CrmState,s:Snapshot,period:Period,series:Point[]){
    canales:s.channels,productos_consultados:s.familyDemand,capacidades:s.capacityDemand,
    productos_con_pedidos:s.orderTypes,estados_pedidos:s.orderStatuses,
    motivos_perdida:groups(s.lost.map(o=>lossCategory(o.lostReason))),embudo:s.stageCounts,
-   zonas_consultas:areasLead,zonas_pedidos:areasOrder,evolucion:series
+   zonas_consultas:areasLead,zonas_pedidos:areasOrder,evolucion:series,
+   rendimiento_por_producto:performanceProducts,rendimiento_por_canal:performanceChannels,
+   estados_presupuestos:quoteStates,estados_pedidos_agrupados:orderStates
   },
   registros_anonimizados:{oportunidades:leadRows,presupuestos:quoteRows,pedidos:orderRows},
   preguntas_para_analisis:[
@@ -156,7 +165,11 @@ export default function ResultsExport({data,snapshot,period,series}:{
    presupuestos:content.registros_anonimizados.presupuestos,
    pedidos:content.registros_anonimizados.pedidos,
    canales:content.estadisticas.canales,productos:[...content.estadisticas.productos_consultados.map(r=>({tipo:'Consulta',...r})),...content.estadisticas.productos_con_pedidos.map(r=>({tipo:'Pedido',...r}))],
-   zonas:[...content.estadisticas.zonas_consultas.map(r=>({tipo:'Consulta',...r})),...content.estadisticas.zonas_pedidos.map(r=>({tipo:'Pedido',...r}))],actividad:content.estadisticas.evolucion
+   zonas:[...content.estadisticas.zonas_consultas.map(r=>({tipo:'Consulta',...r})),...content.estadisticas.zonas_pedidos.map(r=>({tipo:'Pedido',...r}))],actividad:content.estadisticas.evolucion,
+   rendimiento_productos:content.estadisticas.rendimiento_por_producto,
+   rendimiento_canales:content.estadisticas.rendimiento_por_canal,
+   estados_presupuestos:content.estadisticas.estados_presupuestos,
+   estados_pedidos:content.estadisticas.estados_pedidos_agrupados
   }[dataset];
   try{save(csv(rows),'depofibra-'+dataset+'-'+date+'.csv','text/csv;charset=utf-8');
    setMessage('CSV descargado localmente.');
@@ -175,7 +188,7 @@ export default function ResultsExport({data,snapshot,period,series}:{
     <div className="ri-export-options">
      <section>
       <FileJson2 size={24}/><h3>Informe para IA · JSON</h3>
-      <p>Indicadores, productos, canales, zonas, evolución y registros vinculados con referencias seudonimizadas. Incluye advertencias y preguntas de análisis.</p>
+      <p>Indicadores, análisis de productos y plataformas hasta pedidos, zonas, evolución y registros vinculados con referencias seudonimizadas. Incluye advertencias y preguntas de análisis.</p>
       <button type="button" className="ri-export-primary" onClick={downloadJson}>Descargar informe JSON</button>
      </section>
      <section>

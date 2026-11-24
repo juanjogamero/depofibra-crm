@@ -24,6 +24,8 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
   const location = useLocation();
   const navRef = useRef<HTMLDivElement>(null);
   const [activePosition, setActivePosition] = useState<{ y: number; height: number } | null>(null);
+  const [resultsExpanded,setResultsExpanded] = useState(location.pathname.startsWith('/resultados'));
+  useEffect(()=>{if(location.pathname.startsWith('/resultados'))setResultsExpanded(true)},[location.pathname]);
 
   // Medimos la opción seleccionada y movemos una única pastilla entre enlaces.
   // Esto evita el parpadeo de dos fondos al cambiar de página.
@@ -50,7 +52,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
     observer.observe(container);
     observer.observe(activeLink);
     return () => observer.disconnect();
-  }, [location.pathname, collapsed, role]);
+  }, [location.pathname, collapsed, role, resultsExpanded]);
   const pending = data.opportunities.filter(o => !['Aceptada','Perdida'].includes(o.status)).length;
   const groups: Group[] = role === 'fabrica'
     ? [{ caption:'ÁREA DEL FABRICANTE', links:[{label:'Mis pedidos',path:'/fabrica',icon:Factory},{label:'Pedidos',path:'/pedidos',icon:PackageCheck}] }]
@@ -95,7 +97,27 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
         />
         {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
           <div className="nav-caption">{g.caption}</div>
-          {g.links.map(n=><NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
+          {g.links.map(n=>n.path==='/resultados'?<div className="ri-sidebar-results" key={n.path}>
+            <div className="ri-sidebar-results-parent">
+              <NavLink to="/resultados" end title="Resultados" aria-label="Abrir Resumen y mapa" onClick={()=>{setResultsExpanded(true);onClose()}}
+                className={({isActive})=>'nav-link '+(isActive||(collapsed&&location.pathname.startsWith('/resultados'))?'active':location.pathname.startsWith('/resultados')?'is-section-current':'')}>
+                <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
+              </NavLink>
+              <button type="button" className="ri-sidebar-toggle" aria-label={resultsExpanded?'Contraer submenú de Resultados':'Expandir submenú de Resultados'}
+                aria-expanded={resultsExpanded} aria-controls="ri-sidebar-reports"
+                onClick={()=>setResultsExpanded(v=>!v)} title="Mostrar informes de Resultados"><ChevronDown size={15}/></button>
+            </div>
+            {resultsExpanded&&!collapsed&&<nav id="ri-sidebar-reports" className="ri-sidebar-subnav" aria-label="Informes de Resultados">
+              {[
+                ['','Resumen y mapa'],['activity','Evolución'],['products','Productos'],
+                ['channels','Canales'],['zones','Zonas'],['quotes','Presupuestos'],
+                ['orders','Pedidos'],['conversion','Conversión'],['sources','Web y SEO']
+              ].map(([path,label])=><NavLink key={path} to={path?'/resultados/'+path:'/resultados'} end
+                onClick={onClose} className={({isActive})=>'nav-link ri-sidebar-sublink'+(isActive?' active':'')}>
+                <span>{label}</span>
+              </NavLink>)}
+            </nav>}
+          </div>:<NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
             <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
             {n.badge !== undefined && n.badge>0 && <span className="nav-count">{n.badge}</span>}
           </NavLink>)}
@@ -191,7 +213,7 @@ export default function App() {
   const onOrdersList = location.pathname === '/pedidos';
   const onCommissionsList = location.pathname === '/comisiones';
   const onAgendaList = location.pathname === '/agenda';
-  const onResultsList = location.pathname === '/resultados';
+  const onResultsList = location.pathname.startsWith('/resultados');
   const onFinance = location.pathname === '/finanzas';
   const onCatalog = location.pathname === '/catalogo';
   const onConfiguration = location.pathname === '/configuracion';
