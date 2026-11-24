@@ -65,6 +65,11 @@ function resolve(destination:string){
  }
  return undefined;
 }
+/** Only a recognisable province/district label; never export a raw destination/address. */
+export function resolveDestinationArea(destination:string):string {
+ const point=resolve(destination);
+ return point ? point.name : 'Sin ubicar';
+}
 function group(destinations:Input[]){
  const points=new Map<string,Location>();
  let unplaced=0;
