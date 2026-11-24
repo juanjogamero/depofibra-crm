@@ -559,6 +559,7 @@
   width:34px;height:34px;min-width:34px;
 }
 .sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink:focus-visible {
+  background:#eaf2fb;color:#01488e;
   outline:2px solid #6ca6d3;outline-offset:-2px;
 }
 
