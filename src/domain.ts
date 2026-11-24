@@ -20,12 +20,15 @@ export type Order = {
   factory: FactoryStatus; createdAt: string; deliveryDate: string; notes: string;
   color: string; connections: string; activity: TimelineItem[];
 };
+export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
 export type Task = { id: string; title: string; due: string; context: string; done: boolean };
 export type Product = { id: string; name: string; family: string; capacity: string; price: number; active: boolean };
 export type TransportSettings = { smallRate: number; largeRate: number; buffer: number; distanceLimit: number; specialExtra: number };
 export type CrmState = {
   opportunities: Opportunity[]; quotes: Quote[]; customers: Customer[]; orders: Order[];
   tasks: Task[]; products: Product[]; transport: TransportSettings;
+  /** Fechas verificadas para nuevas liquidaciones. Opcional para datos locales anteriores. */
+  commissionPayments?: CommissionPayment[];
 };
 
 export const dt = (days = 0): string => {
@@ -81,5 +84,6 @@ export const mockData: CrmState = {
     { id: 'PR-005', name: 'Fosa séptica estanca', family: 'Fosas sépticas', capacity: 'A determinar', price: 0, active: true },
     { id: 'PR-006', name: 'Cuba suelta para remolque', family: 'Cubas y cisternas', capacity: '8.000 L', price: 0, active: true },
   ],
+  commissionPayments: [],
   transport: { smallRate: 0, largeRate: 0, buffer: 0, distanceLimit: 300, specialExtra: 0 }
 };

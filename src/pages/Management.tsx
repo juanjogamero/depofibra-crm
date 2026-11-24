@@ -1,10 +1,11 @@
-import { useState, type CSSProperties, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, CircleAlert, Clock3, CreditCard, Factory, FileText, Inbox, Landmark, Layers3, Package, Plus, Search, Shield, X, TrendingUp, Truck, Wallet } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, CircleAlert, Package, Plus, Search, Shield, X, Truck } from 'lucide-react';
 import { useCrm } from '../store';
 import { type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { ActionLink, Button, DataBar, Empty, Field, Modal, NoteDemo, PageHeader, Panel, Pill } from '../ui';
 import ResultsInsights from './ResultsInsights';
+import FinanceAnalytics from './FinanceAnalytics';
 
 const CHANNELS:Channel[]=['Web','WhatsApp','Wallapop','Facebook','Teléfono','Otro'];
 export function Agenda(){
@@ -154,16 +155,7 @@ export function Results(){
 }
 
 export function Finance(){
-  const {data}=useCrm();
-  const volume=data.orders.reduce((a,o)=>a+o.amount,0),earned=data.orders.reduce((a,o)=>a+o.commission,0),paid=data.orders.reduce((a,o)=>a+o.commissionPaid,0);
-  const ratio=earned?Math.round(paid/earned*100):0;
-  return <div className="page page-opportunities crm-workspace page-finance">
-    <header className="op-screen-heading"><div className="op-heading-copy">
-      <h1>Finanzas</h1><p>Control interno de operaciones, comisiones generadas y cobros registrados en la demo.</p>
-    </div><div className="op-heading-actions"><Link to="/comisiones" className="op-new-button"><Wallet size={16}/>Mis comisiones</Link></div></header>
-    <div className="kpi-grid crm-workspace-kpis finance-kpis"><div className="kpi"><div className="kpi-top">Importe de pedidos<Landmark size={19}/></div><div className="kpi-value">{money(volume)}</div><div className="kpi-foot">No equivale a facturación propia</div></div><div className="kpi"><div className="kpi-top">Comisiones generadas<Wallet size={19}/></div><div className="kpi-value">{money(earned)}</div><div className="kpi-foot">Por ventas registradas</div></div><div className="kpi"><div className="kpi-top">Comisiones cobradas<CheckCircle2 size={19}/></div><div className="kpi-value">{money(paid)}</div><div className="kpi-foot">Importes recibidos en demo</div></div><div className="kpi"><div className="kpi-top">Pendiente de cobro<Clock3 size={19}/></div><div className="kpi-value">{money(earned-paid)}</div><div className="kpi-foot">Saldo aún por liquidar</div></div></div>
-    <div className="detail-grid finance-content-grid"><Panel title="Situación de cobro"><div className="finance-visual"><div className="finance-donut" style={{'--pct':ratio+'%'} as CSSProperties}><span>{ratio}%<small>Cobrado</small></span></div><div className="finance-legend"><div><i className="legend-blue"/><span>Cobrado</span><strong>{money(paid)}</strong></div><div><i className="legend-pale"/><span>Por cobrar</span><strong>{money(earned-paid)}</strong></div></div></div><div className="hint-row">La comisión generada se atribuye a la venta; la cobrada, a la liquidación efectiva.</div></Panel><Panel title="Indicadores pendientes de integración"><div className="insight-list"><div><CircleAlert size={18}/><span>Beneficio neto: necesita costes y gastos directos verificados.</span></div><div><CircleAlert size={18}/><span>Publicidad: inversión y atribución a consultas/ventas reales.</span></div><div><CircleAlert size={18}/><span>Facturación: los documentos los emite la empresa del fabricante.</span></div></div></Panel></div>
-  </div>;
+  return <FinanceAnalytics/>;
 }
 export function Catalog(){
   const {data,addProduct}=useCrm();const [modal,setModal]=useState(false),[name,setName]=useState(''),[family,setFamily]=useState('Depósitos PRFV'),[capacity,setCapacity]=useState(''),[price,setPrice]=useState('0');
