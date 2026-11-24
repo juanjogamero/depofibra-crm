@@ -23,6 +23,7 @@ import './commissions-dashboard.css';
 import './agenda-dashboard.css';
 import './results-dashboard.css';
 import './remaining-crm-screens.css';
+import './laptop-layout.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
