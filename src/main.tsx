@@ -32,6 +32,7 @@ import './finance-analytics.css';
 import './catalog-manager.css';
 import './transport-route.css';
 import './results-clean.css';
+import './results-console.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
