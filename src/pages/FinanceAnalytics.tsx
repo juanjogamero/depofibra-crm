@@ -2,13 +2,13 @@ import {useMemo,useState,type ReactNode,type CSSProperties} from 'react';
 import {Link} from 'react-router-dom';
 import {ArrowRight,BarChart3,CalendarDays,CheckCircle2,Clock3,Download,Info,Landmark,Wallet} from 'lucide-react';
 import {useCrm} from '../store';
-import {money,today,type Order} from '../domain';
+import {decimal,today,type Order} from '../domain';
 
 type Period='month'|'six'|'twelve'|'year'|'custom'|'all';
 type Status='all'|'unpaid'|'partial'|'paid';
 type MonthRow={month:string;generated:number;collected:number;orders:number;volume:number};
 const numerals=new Intl.NumberFormat('es-ES');
-const currency=(v:number)=>money(Number.isFinite(v)?v:0);
+const currency=(v:number)=>decimal(Number.isFinite(v)?v:0);
 const positive=(v:number)=>Number.isFinite(v)?Math.max(0,v):0;
 function plusMonths(key:string,n:number):string{
  const [year,month]=key.split('-').map(Number);
@@ -190,7 +190,7 @@ export default function FinanceAnalytics(){
       {years.map(y=><option value={y} key={y}>{y}</option>)}
     </select></label>
     <label>Mes <input type="month" aria-label="Seleccionar mes concreto" value={customMonth}
-      onChange={e=>{setCustomMonth(e.target.value);setPeriod('custom');setChosen(null)}}/></label>
+      onChange={e=>{if(!e.target.value)return;setCustomMonth(e.target.value);setPeriod('custom');setChosen(null)}}/></label>
     <button type="button" className="fin-export" onClick={()=>exportFinance(rows,selectedOrders,label)}
       title="Descargar datos de comisiones filtrados sin nombres ni teléfonos"><Download size={16}/>CSV</button>
    </div>
