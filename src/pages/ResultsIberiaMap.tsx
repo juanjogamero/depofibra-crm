@@ -50,7 +50,7 @@ const sourcePlaces:[string,number,number,string[]][]=[
  ['Castelo Branco',-7.49,39.82,['castelo branco']]
 ];
 const firstPortuguese=sourcePlaces.findIndex(x=>x[0]==='Lisboa');
-const places:Place[]=sourcePlaces.map(([name,lon,lat,aliases],index)=>({name,lon,lat,aliases,country:index<firstPortuguese?'ES':'PT'}));
+const places:Place[]=sourcePlaces.map(([name,lon,lat,aliases],index)=>({name,lon,lat,aliases,country:(index<firstPortuguese?'ES':'PT') as 'ES'|'PT'}));
 function normalize(value:string){
  return ' '+value.toLocaleLowerCase('es-ES').normalize('NFD')
   .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim()+' ';
