@@ -93,7 +93,7 @@ export function ResultsExecutiveOverview({data,period,summary}:{data:CrmState;pe
           <svg viewBox="0 0 170 170" role="img" aria-label={pct(accepted,total)+'% de las oportunidades recibidas están aceptadas'}>
             <circle cx="85" cy="85" r="62" fill="none" stroke="#e8f0f7" strokeWidth="19"/>
             <circle cx="85" cy="85" r="62" fill="none" stroke="#1475bf" strokeWidth="19"
-              strokeDasharray={(pct(accepted,total)/100*389.56)+' 389.56' transform="rotate(-90 85 85)" strokeLinecap="round"/>
+              strokeDasharray={(pct(accepted,total)/100*389.56)+' 389.56'} transform="rotate(-90 85 85)" strokeLinecap="round"/>
             <text x="85" y="83" textAnchor="middle" className="ri-cmd-conv-percent">{pct(accepted,total)}%</text>
             <text x="85" y="106" textAnchor="middle" className="ri-cmd-conv-label">aceptadas</text>
           </svg>
