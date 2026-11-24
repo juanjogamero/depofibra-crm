@@ -100,7 +100,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
           {g.links.map(n=>n.path==='/resultados'?<div className="ri-sidebar-results" key={n.path}>
             <div className="ri-sidebar-results-parent">
               <NavLink to="/resultados" end title="Resultados" aria-label="Abrir Resumen y mapa" onClick={()=>{setResultsExpanded(true);onClose()}}
-                className={({isActive})=>'nav-link '+(isActive?'active':location.pathname.startsWith('/resultados')?'is-section-current':'')}>
+                className={({isActive})=>'nav-link '+(isActive||(collapsed&&location.pathname.startsWith('/resultados'))?'active':location.pathname.startsWith('/resultados')?'is-section-current':'')}>
                 <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
               </NavLink>
               <button type="button" className="ri-sidebar-toggle" aria-label={resultsExpanded?'Contraer submenú de Resultados':'Expandir submenú de Resultados'}
