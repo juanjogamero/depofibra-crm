@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
-  FileText, Globe2, Inbox, Layers3, MapPin, Package, Search, TrendingUp, Users
+  FileText, Inbox, Layers3, MapPin, Package, Search, TrendingUp, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
 import { money, today, type Channel, type Opportunity, type Order, type Quote, type CrmState } from '../domain';
@@ -111,13 +111,13 @@ function RankedBars({items,tone='blue',empty='No hay registros en este periodo.'
     </div>)}
   </div>:<div className="ri-empty">{empty}</div>;
 }
-function Panel({title,subtitle,children,extra,className=''}:{title:string;subtitle:string;children:React.ReactNode;extra?:React.ReactNode;className?:string}){
+function Panel({title,subtitle,children,extra,className=''}:{title:string;subtitle:string;children:ReactNode;extra?:ReactNode;className?:string}){
   return <section className={'ri-panel '+className}>
     <div className="ri-panel-head"><div><h2>{title}</h2><p>{subtitle}</p></div>{extra}</div>
     <div className="ri-panel-content">{children}</div>
   </section>;
 }
-function SourceCard({name,status,details,icon}:{name:string;status:string;details:string;icon:React.ReactNode}){
+function SourceCard({name,status,details,icon}:{name:string;status:string;details:string;icon:ReactNode}){
   return <div className="ri-source">
     <span className="ri-source-icon">{icon}</span>
     <div className="ri-source-copy"><strong>{name}</strong><p>{details}</p></div>
