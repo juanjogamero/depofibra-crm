@@ -246,3 +246,60 @@ test('Sin barra superior en fichas y formularios; menú móvil accesible en toda
   await expect(page.locator('.sidebar')).not.toHaveClass(/is-open/);
  }
 });
+
+
+test('Agenda compacta: calendario proporcionado, día actual seleccionado y notas sin ocupar media pantalla',async({page})=>{
+ test.setTimeout(60000);
+ await page.setViewportSize({width:1440,height:850});
+ await open(page,'/agenda');
+ const calendar=page.locator('.agenda-pro-calendar');
+ const notes=page.locator('.agenda-pro-notes');
+ const tasks=page.locator('.agenda-pro-tasks');
+ await expect(calendar).toBeVisible();
+ await expect(notes).toBeVisible();
+ await expect(tasks).toBeVisible();
+ const [calBox,noteBox,taskBox]=await Promise.all([calendar.boundingBox(),notes.boundingBox(),tasks.boundingBox()]);
+ expect(calBox).toBeTruthy();expect(noteBox).toBeTruthy();expect(taskBox).toBeTruthy();
+ expect(calBox.width,'calendario no debe ocupar media pantalla').toBeLessThanOrEqual(445);
+ expect(calBox.height,'las seis semanas y agenda del día deben caber compactas').toBeLessThanOrEqual(435);
+ expect(noteBox.width,'notas aprovechan el ancho liberado').toBeGreaterThan(calBox.width);
+ expect(taskBox.y,'tabla de tareas visible en primera pantalla').toBeLessThan(630);
+ await expect(calendar.locator('.agenda-pro-day[aria-pressed=true]')).toHaveCount(1);
+ await expect(calendar.locator('.agenda-pro-day')).toHaveCount(30);
+ const month=await calendar.locator('.agenda-pro-month strong').textContent();
+ await calendar.getByRole('button',{name:'Mes siguiente'}).click();
+ expect(await calendar.locator('.agenda-pro-month strong').textContent()).not.toBe(month);
+ await calendar.getByRole('button',{name:'Mes anterior'}).click();
+ await expect(calendar.locator('.agenda-pro-month strong')).toHaveText(month);
+ await calendar.locator('.agenda-pro-day').nth(14).click();
+ await expect(calendar.locator('.agenda-pro-day[aria-pressed=true]')).toHaveCount(1);
+ await expect(page.getByRole('button',{name:'Mostrar todas las fechas'})).toBeVisible();
+ await page.getByRole('button',{name:'Mostrar todas las fechas'}).click();
+ await expect(page.getByRole('button',{name:'Mostrar todas las fechas'})).toHaveCount(0);
+});
+test('Resultados: nueve informes mantienen contenidos y controles en diseño ligero y responsive',async({page})=>{
+ test.setTimeout(125000);
+ const routes=['','activity','products','channels','zones','quotes','orders','conversion','sources'];
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.setViewportSize({width:1366,height:850});
+ for(const route of routes){
+  await open(page,'/resultados'+(route?'/'+route:''));
+  await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
+  await expect(page.getByRole('group',{name:'Periodo de análisis'})).toBeVisible();
+  await expect(page.getByLabel('Seleccionar subapartado de Resultados')).toHaveValue(route||'overview');
+  const length=await page.locator('.ri-active-content').evaluate(x=>x.textContent?.trim().length??0);
+  expect(length,'el informe '+(route||'overview')+' conserva su información').toBeGreaterThan(40);
+  const shadow=await page.locator('.ri-active-content :is(.ri-study-section,.ri-panel,.ri-geo-card,.ri-trend-report)').first().evaluate(el=>getComputedStyle(el).boxShadow).catch(()=>null);
+  if(shadow!==null)expect(shadow).toBe('none');
+ }
+ for(const viewport of [{width:390,height:844},{width:768,height:850}]){
+  await page.setViewportSize(viewport);
+  for(const route of ['','products','channels','quotes','sources']){
+   await open(page,'/resultados'+(route?'/'+route:''));
+   await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
+   const scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
+   expect(scroll,'sin desbordamiento global en '+(route||'overview')+' a '+viewport.width).toBeLessThanOrEqual(viewport.width+4);
+  }
+ }
+ expect(errors).toEqual([]);
+});
