@@ -267,7 +267,7 @@ export default function ResultsInsights(){
       </div>
       <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
     </div>
-    <div className="ri-data-context"><span className="ri-status-dot"/> Datos locales de demostración · No conectados con Analytics o Search Console</div>
+    <div className="ri-data-context"><span className="ri-status-dot"/> Datos de este navegador · Sin conexión a Analytics ni Search Console</div>
     <div className="ri-active-content">
 
     {view==='overview'&&<>
@@ -364,7 +364,7 @@ export default function ResultsInsights(){
       <div className="ri-view-section-label"><h2>Fuentes digitales</h2><p>Estructura de consulta preparada para incorporar datos reales una vez verificadas las conexiones.</p></div>
       <ResultsExternalSources/>
       <section className="ri-integration-panel">
-        <div className="ri-integration-note"><CircleAlert size={18}/><span>Estas fuentes <strong>no están sincronizadas</strong> con la demo actual. Por ahora no existen aquí datos de sesiones, campañas, edades ni búsquedas de Google.</span></div>
+        <div className="ri-integration-note"><CircleAlert size={18}/><span>Estas fuentes <strong>no están sincronizadas</strong> con el CRM actual. Por ahora no existen aquí datos de sesiones, campañas, edades ni búsquedas de Google.</span></div>
         <div className="ri-sources">
           <SourceCard icon={<BarChart3 size={19}/>} name="Google Analytics 4" status="Sin conectar" details="Sesiones, procedencia, campañas, conversiones y, si está disponible legalmente, demografía agregada."/>
           <SourceCard icon={<Search size={19}/>} name="Search Console" status="Sin conectar" details="Clics, impresiones, CTR, consultas y páginas de búsqueda orgánica."/>
@@ -377,6 +377,6 @@ export default function ResultsInsights(){
       </section>
     </>}
     </div>
-    <footer className="ri-footer ri-workspace-footer">Datos locales de demostración. Antes de tomar decisiones sobre campañas o inversión, comprueba la calidad de las consultas, los cierres, el coste de captación y la rentabilidad real.</footer>
+    <footer className="ri-footer ri-workspace-footer">Datos del navegador, sin conciliación contable. Antes de tomar decisiones sobre campañas o inversión, comprueba la calidad de las consultas, los cierres, el coste de captación y la rentabilidad real.</footer>
   </div>;
 }
