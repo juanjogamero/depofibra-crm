@@ -39,7 +39,7 @@
   border:0;
   background:transparent;
   color:#01488e;
-  font:700 inherit;
+  font-weight:700;
   cursor:pointer;
 }
 .page-catalog.catalog3 .catalog3-path button:hover {text-decoration:underline;}
