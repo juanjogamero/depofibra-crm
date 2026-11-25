@@ -584,8 +584,9 @@ export function QuoteDetail(){
  const linked=data.orders.find(o=>o.quoteId===q.id);
  const currentStatus=pendingStatus||q.status;
  const changed=currentStatus!==q.status;
+ const needsAcceptance=currentStatus==='Aceptado'&&!linked;
  const saveStatus=()=>{
-   if(!changed)return;
+   if(!changed&&!needsAcceptance)return;
    if(currentStatus==='Aceptado'){
      if(linked)return;
      if(!window.confirm('¿Confirmar que el cliente ha aceptado este presupuesto? Se creará su ficha y un pedido pendiente de formalización, sin registrar ningún cobro.'))return;
@@ -631,12 +632,12 @@ export function QuoteDetail(){
                {quoteStatuses.map(s=><option key={s} value={s}>{s}</option>)}
              </select>
            </Field>
-           {changed&&!q.archivedAt&&!linked&&<div className="crm-quote-save-row">
+           {(changed||needsAcceptance)&&!q.archivedAt&&!linked&&<div className="crm-quote-save-row">
              <Button onClick={saveStatus}><Check size={16}/>{currentStatus==='Aceptado'?'Guardar aceptación':'Guardar estado'}</Button>
              <button type="button" className="crm-record-secondary" onClick={()=>setPendingStatus('')}>Cancelar</button>
            </div>}
            {currentStatus==='Aceptado'&&!linked&&!q.archivedAt&&<p className="crm-inline-help">Al guardar se creará el cliente y su pedido. El pago quedará pendiente de verificación.</p>}
-           {!changed&&!linked&&<p className="crm-inline-help">Elige otro estado y pulsa «Guardar» para confirmar el cambio.</p>}
+           {!changed&&!linked&&!needsAcceptance&&<p className="crm-inline-help">Elige otro estado y pulsa «Guardar» para confirmar el cambio.</p>}
            {linked&&<Link className="crm-record-secondary crm-quote-order-link" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id} <ArrowRight size={16}/></Link>}
          </div>
        </Panel>
