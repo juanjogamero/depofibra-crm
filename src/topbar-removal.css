@@ -1,0 +1,26 @@
+/* REG-0165 · Sin cabecera superior en ningún módulo o ficha del CRM.
+ * La navegación permanece en el menú lateral y su acceso móvil.
+ * No se reserva ninguna altura para la barra eliminada. */
+.app-body { position:relative; }
+.app-body .dashboard-mobile-menu { display:none; }
+@media (max-width:840px) {
+  .app-body .dashboard-mobile-menu {
+    position:absolute;
+    z-index:12;
+    top:12px;
+    right:14px;
+    display:grid;
+    place-items:center;
+    width:38px;
+    height:38px;
+    border:1px solid #d4e2ee;
+    border-radius:8px;
+    background:#fff;
+    color:#01488e;
+    cursor:pointer;
+  }
+  /* Formularios y fichas no tienen cabecera propia adaptada al botón móvil. */
+  .app-body:not(.is-dashboard):not(.is-opportunities) .app-main > .page {
+    padding-top:64px;
+  }
+}

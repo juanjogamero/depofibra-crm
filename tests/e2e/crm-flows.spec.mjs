@@ -29,6 +29,7 @@ test('Navegación de todas las áreas e informes, sin fallos JS',async({page})=>
   await expect(page.locator('#root')).toBeVisible();
   await expect(page.locator('h1').first(),route).toBeVisible();
   await expect(page.locator('#root'),route).not.toBeEmpty();
+  await expect(page.locator('header.topbar'),route+' no debe mostrar barra superior').toHaveCount(0);
  }
  expect(jsErrors,JSON.stringify(jsErrors)).toEqual([]);
 });
@@ -227,4 +228,21 @@ test('Vista de oficina: rutas acotadas sin simular permisos de servidor',async({
  await expect(page.getByRole('heading',{name:'Acceso y seguridad'})).toBeVisible();
  // Los roles de la interfaz NO equivalen a autenticación en servidor.
  await expect(page.getByText(/sistema de cuentas seguro/)).toBeVisible();
+});
+
+
+test('Sin barra superior en fichas y formularios; menú móvil accesible en todas',async({page})=>{
+ const detailRoutes=['/oportunidades/OP-104','/oportunidades/nueva','/presupuestos/PRE-024','/presupuestos/nuevo','/clientes/CLI-001','/pedidos/PED-203'];
+ for(const route of detailRoutes){
+  await page.setViewportSize({width:1366,height:850});
+  await open(page,route);
+  await expect(page.locator('header.topbar'),route).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Abrir menú lateral'}),route+' escritorio').toBeHidden();
+  await page.setViewportSize({width:390,height:844});
+  await expect(page.getByRole('button',{name:'Abrir menú lateral'}),route+' móvil').toBeVisible();
+  await page.getByRole('button',{name:'Abrir menú lateral'}).click();
+  await expect(page.locator('.sidebar')).toHaveClass(/is-open/);
+  await page.getByRole('button',{name:'Cerrar menú'}).click();
+  await expect(page.locator('.sidebar')).not.toHaveClass(/is-open/);
+ }
 });
