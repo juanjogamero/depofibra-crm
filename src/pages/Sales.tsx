@@ -184,8 +184,8 @@ export function Opportunities(){
      </div>
      <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</footer>
    </section>
- {modal&&<Modal title="Registrar solicitud" subtitle="Solo datos de prueba durante el desarrollo público" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
-   <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Consulta agrícola ficticia"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
+ {modal&&<Modal title="Registrar solicitud" subtitle="Se guarda en este navegador; no introduzcas información sensible" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
+   <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Empresa o referencia de consulta"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
    <Field label="Contacto"><input value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})} placeholder="Identificador de ejemplo"/></Field><Field label="Alias"><input value={form.alias} onChange={e=>setForm({...form,alias:e.target.value})} placeholder="@alias"/></Field>
    <Field label="Categoría (opcional)"><select value={quickCategoryId} onChange={e=>{
     const id=e.target.value;const cat=data.productCategories?.find(c=>c.id===id);
@@ -213,7 +213,7 @@ export function OpportunityNew(){
  const category=data.productCategories?.find(c=>c.id===categoryId);
  return <div className="page page-crm-form">
   <Back to="/oportunidades" label="Volver a oportunidades"/>
-  <PageHeader title="Nueva solicitud" subtitle="Registro manual de una oportunidad en el CRM de demostración."/>
+  <PageHeader title="Nueva solicitud" subtitle="Registra una consulta manual en el CRM de este navegador."/>
   <Panel title="Datos iniciales" className="limited-panel">
    <form className="form-stack" onSubmit={e=>{
      e.preventDefault();if(!name.trim()||!product.trim())return;
@@ -224,7 +224,7 @@ export function OpportunityNew(){
         .map(a=>({attributeId:a.id,label:a.label,value:answers[a.id]}))
      });nav('/oportunidades');
    }}>
-    <Field label="Nombre o identificador"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre ficticio"/></Field>
+    <Field label="Nombre o identificador"><input required value={name} onChange={e=>setName(e.target.value)} placeholder="Nombre de la empresa o referencia"/></Field>
     <div className="form-grid">
      <Field label="Canal de contacto"><select value={channel} onChange={e=>setChannel(e.target.value as Channel)}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={originChannel} onChange={e=>setOriginChannel(e.target.value as Channel|'')}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
      <Field label="Categoría (opcional)"><select value={categoryId} onChange={e=>{
@@ -424,7 +424,7 @@ export function Quotes(){
      </div>
      <footer className="op-table-footer">
        Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.length}</strong> presupuestos
-       <span className="quote-footer-note">Importes ofertados registrados · Estados de demostración</span>
+       <span className="quote-footer-note">Importes y estados anotados en este navegador</span>
      </footer>
    </section>
  </div>;
@@ -538,8 +538,8 @@ export function QuoteDetail(){
  const linked=data.orders.find(o=>o.quoteId===q.id);
  return <div className="page page-crm-record"><Back to="/presupuestos" label="Volver a presupuestos"/><div className="record-hero"><div><div className="eyebrow">{q.id} · {dateText(q.createdAt)}</div><h1>{q.name}</h1><p>{q.product}</p></div><Status value={q.status}/></div>
  <div className="detail-grid"><Panel title="Mensaje comercial"><textarea className="message-editor message-card" value={text} onChange={e=>setText(e.target.value)} rows={14}/><div className="action-line"><CopyButton text={text}/><Button variant="outline" onClick={()=>updateQuote(q.id,{message:text})}><Check size={16}/>Guardar texto</Button></div><div className="hint-row">Copiar no equivale a enviar. Cambia el estado únicamente cuando proceda.</div></Panel>
- <div className="right-stack"><Panel title="Control de presupuesto"><div className="money-summary"><span>Importe ofertado</span><strong>{money(q.amount)}</strong></div><div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div><div className="summary-line"><span>Transporte interno</span><strong>{money(q.transport)}</strong></div><Field label="Estado"><select value={q.status} onChange={e=>updateQuote(q.id,{status:e.target.value as QuoteStatus})}>{quoteStatuses.map(s=><option key={s}>{s}</option>)}</select></Field>{!linked&&q.status!=='Rechazado'&&<Button onClick={()=>{if(window.confirm('¿Crear pedido pendiente de formalización? (solo demo)')){acceptQuote(q.id);nav('/pedidos')}}}><CheckCircle2 size={17}/>Aceptado: crear pedido</Button>}{linked&&<Link className="btn btn-outline" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id}<ArrowRight size={16}/></Link>}</Panel>
+ <div className="right-stack"><Panel title="Control de presupuesto"><div className="money-summary"><span>Importe ofertado</span><strong>{money(q.amount)}</strong></div><div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div><div className="summary-line"><span>Transporte interno</span><strong>{money(q.transport)}</strong></div><Field label="Estado"><select value={q.status} onChange={e=>updateQuote(q.id,{status:e.target.value as QuoteStatus})}>{quoteStatuses.map(s=><option key={s}>{s}</option>)}</select></Field>{!linked&&q.status!=='Rechazado'&&<Button onClick={()=>{if(window.confirm('¿Crear pedido pendiente de formalización en este CRM?')){acceptQuote(q.id);nav('/pedidos')}}}><CheckCircle2 size={17}/>Aceptado: crear pedido</Button>}{linked&&<Link className="btn btn-outline" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id}<ArrowRight size={16}/></Link>}</Panel>
  <Panel title="Documentación de oficina"><div className="inline-tip"><CircleAlert size={17}/> La proforma y la factura las emite la oficina del fabricante, no el CRM.</div></Panel></div></div></div>;
 }
 
-function Missing({to}:{to:string}){return <div className="page"><Back to={to} label="Volver al listado"/><Empty title="Registro no encontrado" body="Puede que los datos de demostración se hayan reiniciado."/></div>}
+function Missing({to}:{to:string}){return <div className="page"><Back to={to} label="Volver al listado"/><Empty title="Registro no encontrado" body="Puede que los datos de este navegador se hayan reiniciado."/></div>}
