@@ -3,7 +3,7 @@ import { useCrm } from './store';
 import Dashboard from './pages/Dashboard';
 import { Opportunities, OpportunityNew, OpportunityDetail, Quotes, QuoteNew, QuoteDetail } from './pages/Sales';
 import { Clients, ClientDetail, Orders, OrderDetail, Commissions, FactoryHome } from './pages/Operations';
-import { Agenda, Results, Finance, Catalog, Configuration } from './pages/Management';
+import { Agenda, Results, Finance, Catalog, Configuration, TransportCalculator } from './pages/Management';
 
 export function AppRoutes() {
   const {role}=useCrm();
@@ -11,6 +11,7 @@ export function AppRoutes() {
     <Route path="/fabrica" element={<FactoryHome/>}/>
     <Route path="/pedidos" element={<Orders/>}/>
     <Route path="/pedidos/:id" element={<OrderDetail/>}/>
+    <Route path="/configuracion/*" element={<Configuration/>}/>
     <Route path="*" element={<Navigate replace to="/fabrica"/>}/>
   </Routes>;
   return <Routes>
@@ -30,7 +31,8 @@ export function AppRoutes() {
     <Route path="/resultados/*" element={<Results/>}/>
     <Route path="/finanzas" element={<Finance/>}/>
     <Route path="/catalogo" element={<Catalog/>}/>
-    <Route path="/configuracion" element={<Configuration/>}/>
+    <Route path="/transporte" element={<TransportCalculator/>}/>
+    <Route path="/configuracion/*" element={<Configuration/>}/>
     <Route path="*" element={<Navigate replace to="/"/>}/>
   </Routes>;
 }
