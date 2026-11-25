@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, ExternalLink, X, Pencil, Trash2, RotateCcw, Archive, ClipboardCheck } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
+import QuoteLineItems from '../QuoteLineItems';
 import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, type QuoteItemKind, type QuoteLineItem, quoteItemsSubtotal, quoteItemTotal, roundEuros, uid, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
@@ -684,20 +685,22 @@ export function QuoteDetail(){
    <div className="detail-grid crm-quote-detail-grid">
      <Panel title="Resumen del presupuesto">
        <div className="crm-quote-summary">
-         <div><span>Importe ofertado</span><strong>{decimal(q.amount)}</strong></div>
+         <div><span>{q.items?.length?'Total sin IVA':'Importe ofertado registrado'}</span><strong>{decimal(q.amount)}</strong></div>
          <div><span>Producto</span><strong>{q.product}</strong></div>
          <div><span>Cliente</span><strong>{q.name}</strong></div>
          <div><span>Registrado</span><strong>{dateText(q.createdAt)}</strong></div>
        </div>
        {q.opportunityId&&<Link className="crm-text-link" to={'/oportunidades/'+q.opportunityId}>Abrir solicitud relacionada <ArrowRight size={16}/></Link>}
        {q.details&&<div className="crm-quote-details"><strong>Características y condiciones anotadas</strong><p>{q.details}</p></div>}
+       <div className="crm-quote-detail-heading"><h3>Productos y conceptos incluidos</h3><p>Precios de venta por concepto{q.items?.length?' · todos sin IVA':' · el desglose no consta en este presupuesto anterior'}.</p></div>
+       <QuoteLineItems items={q.items} total={q.amount} legacyProduct={q.product}/>
        <p className="crm-inline-help">Los mensajes comerciales se redactan fuera del CRM. Aquí se conserva exclusivamente el control del presupuesto.</p>
      </Panel>
      <div className="right-stack">
        <Panel title="Estado y formalización">
-         <div className="summary-line"><span>Importe</span><strong>{money(q.amount)}</strong></div>
-         <div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div>
-         <div className="summary-line"><span>Transporte orientativo</span><strong>{money(q.transport)}</strong></div>
+         <div className="summary-line"><span>{q.items?.length?'Total sin IVA':'Importe global'}</span><strong>{decimal(q.amount)}</strong></div>
+         <div className="summary-line"><span>Comisión interna (aparte)</span><strong>{decimal(q.commission)}</strong></div>
+         <div className="summary-line"><span>Porte interno orientativo (no suma)</span><strong>{decimal(q.transport)}</strong></div>
          <div className="crm-quote-status-control">
            <Field label="Estado del presupuesto">
              <select value={currentStatus} disabled={Boolean(q.archivedAt||linked)} onChange={e=>setPendingStatus(e.target.value as QuoteStatus)}>
