@@ -11,6 +11,8 @@ export type Opportunity = {
   /** Opt-in category and answers from internal request form; never assumed for old opportunities. */
   categoryId?: string;
   attributeAnswers?: {attributeId:string;label:string;value:string}[];
+  /** Baja recuperable para no perder referencias de ofertas o pedidos. */
+  deletedAt?: string;
 };
 export const sourceChannel = (o:Opportunity):Channel => o.originChannel || o.channel;
 export type Quote = {
@@ -18,6 +20,10 @@ export type Quote = {
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
   /** Optional reference to chosen catalog variant; quoted amount and name stay as historical snapshot. */
   productId?: string;
+  /** Archivo recuperable. Nunca afecta a ofertas aceptadas ni vinculadas a pedidos. */
+  archivedAt?: string;
+  /** Tras restaurar, ampliar el periodo de visibilidad otros 20 días. */
+  retainedUntil?: string;
 };
 export type Customer = { id: string; name: string; contact: string; destination: string; createdAt: string; notes: string; documentNames: string[] };
 export type Order = {
@@ -26,7 +32,10 @@ export type Order = {
   paymentMode: 'Pendiente' | 'Anticipo verificado' | 'Pago completo verificado';
   factory: FactoryStatus; createdAt: string; deliveryDate: string; notes: string;
   color: string; connections: string; activity: TimelineItem[];
+  /** Verificaciones del flujo de coordinación con Fábrica; no equivalen a certificados. */
+  factoryChecklist?: Partial<Record<FactoryCheckKey,boolean>>;
 };
+export type FactoryCheckKey = 'product'|'dimensions'|'finish'|'connections'|'quality'|'documentation'|'access'|'transport'|'delivery';
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
 /** Avisos dentro del CRM mientras la pantalla esté abierta; no suponen envío push/email. */
 export type Task = {
