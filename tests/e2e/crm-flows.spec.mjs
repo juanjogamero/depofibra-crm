@@ -534,7 +534,7 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
       searchFont:parseFloat(getComputedStyle(taskSearch).fontSize),
       dayHeight:day.getBoundingClientRect().height,
       pageScroll:getComputedStyle(p).overflowY,
-      workspaceExists:!!p.querySelector('.agenda-pro-workspace')
+      workspaceExists:!!p.querySelector('.agenda-pro-layout')
     };
   });
   expect(v,'La página contiene los tres módulos').not.toBeNull();
@@ -547,8 +547,8 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
   if(v.taskFont!==null) expect(v.taskFont,'No encoger tareas').toBeGreaterThanOrEqual(13.8);
   if(width>=1200){
    expect(v.cal.x).toBeLessThan(v.notes.x);
-   expect(Math.abs(v.notes.x-v.tasks.x),'Notas y tareas en la misma columna').toBeLessThanOrEqual(2);
-   expect(v.tasks.y,'Tareas bajo las notas').toBeGreaterThanOrEqual(v.notes.bottom-2);
+   expect(v.notes.y,'Calendario y notas en la misma fila').toBeGreaterThanOrEqual(v.cal.y-2);
+   expect(v.tasks.y,'Tareas bajo calendario y notas').toBeGreaterThanOrEqual(Math.max(v.notes.bottom,v.cal.bottom)-2);
    expect(v.tasks.bottom,'Los módulos habituales caben en pantalla').toBeLessThanOrEqual(height+2);
   }else{
    expect(v.notes.y,'Las notas se colocan bajo el calendario en móvil/portátil').toBeGreaterThanOrEqual(v.cal.bottom-2);
