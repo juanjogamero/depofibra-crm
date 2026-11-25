@@ -180,7 +180,7 @@ export function Clients(){
      </div>
      <footer className="op-table-footer">
        Mostrando <strong>{list.length}</strong> de <strong>{data.customers.length}</strong> clientes
-       <span className="clients-footer-note">Los documentos de esta demo son nombres anotados, no archivos almacenados.</span>
+       <span className="clients-footer-note">Solo se han anotado nombres de documentos; los archivos no están almacenados.</span>
      </footer>
    </section>
  </div>;
@@ -188,13 +188,13 @@ export function Clients(){
 
 export function ClientDetail(){
  const {id}=useParams();const {data,addDocumentName}=useCrm();const [tab,setTab]=useState('Resumen');
- const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado de demostración."/></div>;
+ const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado del CRM."/></div>;
  const orders=data.orders.filter(o=>o.customerId===c.id);
  return <div className="page page-crm-record"><Back to="/clientes" label="Volver a clientes"/><div className="record-hero"><div className="record-identity"><Initials name={c.name}/><div><div className="eyebrow">{c.id} · Cliente confirmado</div><h1>{c.name}</h1><div className="record-meta"><MapPin size={14}/>{c.destination}<span>·</span><Pill tone="green">Comprador</Pill></div></div></div><Pill>{orders.length} pedidos</Pill></div>
  <div className="detail-tabs">{['Resumen','Pedidos','Documentos'].map(t=><button onClick={()=>setTab(t)} key={t} className={tab===t?'selected':''}>{t}</button>)}</div>
  {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de cliente"><div className="info-grid"><Info label="Cliente" value={c.name}/><Info label="Contacto" value={c.contact}/><Info label="Destino" value={c.destination}/><Info label="Desde" value={dateText(c.createdAt)}/></div><h4 className="minor-title">Observaciones</h4><div className="note-area">{c.notes||'Sin observaciones'}</div></Panel><Panel title="Resumen de compras"><div className="money-summary"><span>Pedidos registrados</span><strong>{orders.length}</strong></div><div className="summary-line"><span>Importe de operaciones</span><strong>{money(orders.reduce((a,o)=>a+o.amount,0))}</strong></div><div className="summary-line"><span>Documentos relacionados</span><strong>{c.documentNames.length}</strong></div></Panel></div>}
  {tab==='Pedidos'&&<Panel title="Historial de pedidos"><div className="simple-list">{orders.map(o=><Link to={'/pedidos/'+o.id} className="simple-item" key={o.id}><Package size={20}/><div><strong>{o.product} · {o.capacity}</strong><small>{o.id} · {dateText(o.createdAt)}</small></div><b>{money(o.amount)}</b><Status value={o.factory}/><ChevronRight size={16}/></Link>)}</div></Panel>}
- {tab==='Documentos'&&<div className="detail-grid"><Panel title="Documentos de la oficina"><div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}><FileText size={20}/><div><strong>{name}</strong><small>Nombre registrado en la demo · no hay fichero almacenado</small></div></div>)}{!c.documentNames.length&&<Empty title="Sin documentos" body="Los PDF se incorporarán a un sistema privado cuando exista el backend."/>}</div></Panel><Panel title="Adjuntos: comportamiento de demostración"><p className="muted">Este entorno público no guarda el contenido de los PDF. Solo registra nombres de prueba. No selecciones facturas reales.</p><Field label="Elegir un PDF ficticio"><input type="file" accept="application/pdf" onChange={e=>{const f=e.target.files?.[0];if(f&&f.type==='application/pdf')addDocumentName(c.id,f.name)}}/></Field><NoteDemo/></Panel></div>}
+ {tab==='Documentos'&&<div className="detail-grid"><Panel title="Documentos de la oficina"><div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}><FileText size={20}/><div><strong>{name}</strong><small>Nombre anotado · fichero no almacenado</small></div></div>)}{!c.documentNames.length&&<Empty title="Sin documentos" body="Los PDF se incorporarán a un sistema privado cuando exista el backend."/>}</div></Panel><Panel title="Adjuntos · almacenamiento pendiente"><p className="muted">Todavía no se guardan los PDF: únicamente se anota su nombre. No selecciones facturas reales.</p><Field label="Anotar nombre de PDF (no se sube)"><input type="file" accept="application/pdf" onChange={e=>{const f=e.target.files?.[0];if(f&&f.type==='application/pdf')addDocumentName(c.id,f.name)}}/></Field><NoteDemo/></Panel></div>}
  </div>;
 }
 
@@ -373,7 +373,7 @@ export function Orders(){
        {!list.length&&<Empty title="No hay pedidos" body="Prueba otra búsqueda o modifica los filtros."/>}
      </div>
      <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.orders.length}</strong> pedidos
-       <span className="orders-footer-note">Pago y fechas: anotaciones del CRM de demostración.</span>
+       <span className="orders-footer-note">Pagos y fechas anotados en este navegador, pendientes de validación documental.</span>
      </footer>
    </section>
  </div>;
@@ -392,7 +392,7 @@ export function OrderDetail(){
  {selected==='Resumen'&&<div className="detail-grid"><Panel title="Información general"><div className="info-grid"><Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity}/><Info label="Fabricación" value={o.factory}/><Info label="Cliente" value={o.buyerName}/><Info label="Entrega" value={dateText(o.deliveryDate)}/></div><h4 className="minor-title">Notas de seguimiento</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
  <div className="right-stack"><Panel title="Estado operativo"><div className="stage-hero"><span className="stage-symbol"><Factory size={25}/></span><div><span>Situación en Fábrica</span><strong>{o.factory}</strong></div></div><div className="summary-line"><span>Formalización</span><Status value={o.paymentMode}/></div><div className="summary-line"><span>Fecha de entrega</span><strong>{dateText(o.deliveryDate)}</strong></div><div className="inline-tip"><Truck size={16}/> Fábrica coordina las conexiones, color, medidas finales y entrega.</div></Panel>
  {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div><div className="summary-line"><span>Ingreso inicial verificado</span><strong>{money(o.advanceReceived)}</strong></div><div className="summary-line"><span>Comisión pendiente</span><strong>{money(balance)}</strong></div></Panel>}</div></div>}
- {selected==='Formalización'&&role==='direccion'&&<div className="detail-grid"><Panel title="Comprobación del ingreso"><p className="muted">El documento oficial lo emite Fábrica. Registra únicamente pagos ya comprobados; aquí son ficticios.</p><div className="form-grid"><Field label="Forma de pago"><select value={payMode||o.paymentMode} onChange={e=>setPayMode(e.target.value)}><option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option></select></Field><Field label="Importe comprobado (€)"><input type="number" min="0" step=".01" value={payment} onChange={e=>setPayment(e.target.value)} placeholder={String(o.advanceReceived)}/></Field></div><Button onClick={()=>{const mode=(payMode||o.paymentMode) as Order['paymentMode'];const amount=Number(payment||o.advanceReceived);if(mode!=='Pendiente'&&amount>0)verifyPayment(o.id,mode,amount)}}><CheckCircle2 size={16}/>Registrar verificación demo</Button><div className="inline-tip"><Check size={16}/> Solo tras verificar el anticipo/pago se crea el cliente comprador.</div></Panel>
+ {selected==='Formalización'&&role==='direccion'&&<div className="detail-grid"><Panel title="Comprobación del ingreso"><p className="muted">El documento oficial lo emite Fábrica. Registra únicamente pagos ya comprobados; no hay verificación bancaria integrada.</p><div className="form-grid"><Field label="Forma de pago"><select value={payMode||o.paymentMode} onChange={e=>setPayMode(e.target.value)}><option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option></select></Field><Field label="Importe comprobado (€)"><input type="number" min="0" step=".01" value={payment} onChange={e=>setPayment(e.target.value)} placeholder={String(o.advanceReceived)}/></Field></div><Button onClick={()=>{const mode=(payMode||o.paymentMode) as Order['paymentMode'];const amount=Number(payment||o.advanceReceived);if(mode!=='Pendiente'&&amount>0)verifyPayment(o.id,mode,amount)}}><CheckCircle2 size={16}/>Anotar verificación</Button><div className="inline-tip"><Check size={16}/> Solo tras verificar el anticipo/pago se crea el cliente comprador.</div></Panel>
  <Panel title="Documentación preparada por oficina"><div className="info-grid"><Info label="Presupuesto" value={o.quoteId||'Operación de ejemplo'}/><Info label="Proforma" value="Oficina del fabricante"/><Info label="Factura" value="Oficina del fabricante"/><Info label="Archivos PDF" value="Pendiente de almacenamiento privado"/></div><NoteDemo/></Panel></div>}
  {selected==='Fabricación'&&<div className="detail-grid"><Panel title="Gestión técnica y producción"><div className="form-stack"><Field label="Etapa actual"><select value={o.factory} onChange={e=>updateOrder(o.id,{factory:e.target.value as FactoryStatus},'Cambio de estado: '+e.target.value)}>{stages.map(s=><option key={s}>{s}</option>)}</select></Field><Field label="Fecha de entrega"><input type="date" value={o.deliveryDate} onChange={e=>updateOrder(o.id,{deliveryDate:e.target.value},'Fecha de entrega actualizada')}/></Field><Field label="Color"><input value={o.color} onChange={e=>updateOrder(o.id,{color:e.target.value})}/></Field><Field label="Conexiones / tomas"><textarea rows={3} value={o.connections} onChange={e=>updateOrder(o.id,{connections:e.target.value})}/></Field></div><div className="hint-row"><Factory size={17}/> La oficina de Fábrica confirma estos detalles con el comprador.</div></Panel>
  <Panel title="Registrar avance o incidencia"><form onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){updateOrder(o.id,{notes:note},note.trim());setNote('')}}} className="form-stack"><Field label="Observación"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)} placeholder="Ej. Confirmadas las bocas; entrega coordinada..."/></Field><Button type="submit"><Plus size={16}/>Guardar nota técnica</Button></form><div className="inline-tip"><CheckCircle2 size={16}/> Los avances se añaden al historial.</div></Panel></div>}
@@ -455,7 +455,7 @@ export function Commissions(){
      <article className="commission-banner is-generated">
        <div className="commission-banner-heading"><span>Comisiones generadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
        <strong className="commission-banner-value">{money(earned)}</strong>
-       <span className="commission-banner-caption">Total acordado en pedidos de la demo</span>
+       <span className="commission-banner-caption">Total acordado en los pedidos registrados</span>
      </article>
      <article className="commission-banner is-collected">
        <div className="commission-banner-heading"><span>Comisiones cobradas</span><span className="commission-banner-icon"><CheckCircle2 size={19}/></span></div>
@@ -549,7 +549,7 @@ export function FactoryHome(){
  const {data}=useCrm();const active=data.orders.filter(o=>o.factory!=='Entregado');
  return <div className="page page-opportunities crm-workspace page-factory">
    <header className="op-screen-heading">
-     <div className="op-heading-copy"><h1>Pedidos asignados</h1><p>Vista de demostración de Fábrica: consulta el estado de preparación y entrega de pedidos.</p></div>
+     <div className="op-heading-copy"><h1>Pedidos asignados</h1><p>Consulta el estado de preparación y entrega de los pedidos.</p></div>
      <div className="op-heading-actions"><Link to="/pedidos" className="op-new-button"><Package size={16}/>Ver pedidos</Link></div>
    </header>
    <div className="kpi-grid three crm-workspace-kpis">
@@ -561,8 +561,8 @@ export function FactoryHome(){
      <div className="simple-list">{active.map(o=><Link className="simple-item" to={'/pedidos/'+o.id} key={o.id}>
        <Package size={19}/><div><strong>{o.buyerName}</strong><small>{o.id} · {o.capacity}</small></div>
        <Status value={o.factory}/><ChevronRight size={16}/>
-     </Link>)}{!active.length&&<Empty title="Sin pedidos en curso" body="No hay operaciones pendientes de preparación en esta vista de demostración."/>}</div>
+     </Link>)}{!active.length&&<Empty title="Sin pedidos en curso" body="No hay operaciones pendientes de preparación en esta vista."/>}</div>
    </Panel>
-   <div className="inline-tip top-gap factory-demo-note"><Shield size={16}/> Los permisos son solo una simulación visual. La autenticación real se desarrollará en el VPS.</div>
+   <div className="inline-tip top-gap factory-demo-note"><Shield size={16}/> El control de acceso por usuario aún no está activado. No compartas información privada en este entorno.</div>
  </div>;
 }
