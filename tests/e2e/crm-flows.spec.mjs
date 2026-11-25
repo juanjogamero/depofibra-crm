@@ -369,3 +369,33 @@ test('Dirección: Google Maps plegado, pedidos, agenda, resultados y perfil de c
  await expect(page.locator('.factory-orders-panel .simple-item .initials').first()).not.toBeEmpty();
  await expect(page.locator('.factory-orders-panel .simple-item').first().locator('svg').first()).toHaveCount(1);
 });
+
+test('Acciones al final de tablas: separación del borde en cinco áreas y papelera',async({page})=>{
+ test.setTimeout(120000);
+ const checkSpacing=async(route,minimumGap)=>{
+  await open(page,route);
+  const panel=page.locator('.op-table-panel').first();
+  await expect(panel).toBeVisible();
+  const action=panel.locator('tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore), tbody td.commission-col-open > .op-row-open').first();
+  await expect(action,route+' debe tener una acción accesible').toBeVisible();
+  const panelBox=await panel.boundingBox();
+  const actionBox=await action.boundingBox();
+  expect(panelBox&&actionBox).toBeTruthy();
+  expect(panelBox.x+panelBox.width-(actionBox.x+actionBox.width),
+   route+' debe dejar margen real a la derecha').toBeGreaterThanOrEqual(minimumGap);
+ };
+ for(const width of [1440,1024,390]){
+  await page.setViewportSize({width,height:900});
+  for(const route of ['/oportunidades','/presupuestos','/clientes','/pedidos','/comisiones']){
+   await checkSpacing(route,width===390?6:9);
+  }
+  await open(page,'/presupuestos');
+  await page.getByRole('button',{name:/Papelera/}).click();
+  const restore=page.getByRole('button',{name:'Recuperar presupuesto PRE-021'});
+  await expect(restore).toBeVisible();
+  const panelBox=await page.locator('.op-table-panel').boundingBox();
+  const actionBox=await restore.boundingBox();
+  expect(panelBox.x+panelBox.width-(actionBox.x+actionBox.width),
+   'El botón de recuperar de la captura debe tener margen lateral').toBeGreaterThanOrEqual(width===390?6:9);
+ }
+});
