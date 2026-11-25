@@ -82,8 +82,8 @@
 }
 .page-agenda.agenda-pro .agenda-pro-day,
 .page-agenda.agenda-pro .agenda-pro-blank {
- min-height:31px;
- height:31px;
+ min-height:29px;
+ height:29px;
  padding:0 2px;
  border-radius:5px;
  font:650 12px/1.3 Inter,sans-serif;
