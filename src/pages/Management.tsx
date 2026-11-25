@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, SlidersHorizontal, Truck, Database, ArrowRight } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, Truck, Database, ArrowRight } from 'lucide-react';
 import { useCrm } from '../store';
 import { CHANNELS, type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { Button, Empty, Field, Modal, Panel } from '../ui';
