@@ -464,3 +464,69 @@
 @media (prefers-reduced-motion:reduce) {
  .page-results-insights.ri-gsc .ri-report-context-nav button {transition:none;}
 }
+
+/* REG-0175: Configuración Maps como módulo independiente bajo la cabecera.
+   Fuera de la tarjeta blanca de cálculo en DOM y presentación. */
+.page-transport .transport-maps-standalone {
+  margin:0 0 14px;
+  padding:0;
+  background:transparent;
+  border:0;
+  min-width:0;
+}
+.page-transport .transport-maps-standalone .transport-fast-bottom {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  padding:2px 3px 3px;
+  border:0;
+  background:transparent;
+}
+.page-transport .transport-maps-standalone .transport-fast-key-trigger {
+  min-height:37px;
+  padding:7px 12px;
+  color:#01488e;
+  border-radius:7px;
+  font:750 12.5px/1.35 Inter,sans-serif;
+}
+.page-transport .transport-maps-standalone .transport-fast-key-trigger:hover,
+.page-transport .transport-maps-standalone .transport-fast-key-trigger:focus-visible {
+  background:#eaf2fb;
+  color:#002d59;
+}
+.page-transport .transport-maps-standalone .transport-fast-key-panel {
+  margin-top:6px;
+  padding:17px 19px 18px;
+  border:1px solid #dce7f0;
+  border-radius:10px;
+  background:#fff;
+}
+.page-transport .transport-maps-standalone .transport-fast-field {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#395b78;
+  font:700 12px/1.35 Inter,sans-serif;
+}
+.page-transport .transport-maps-standalone input[type=password] {
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  min-width:0;
+  height:43px;
+  padding:9px 12px;
+  border:1px solid #d3e1ec;
+  border-radius:8px;
+  background:#fff;
+  color:#173f63;
+  font:600 12.6px/1.4 Inter,Arial,sans-serif;
+}
+.page-transport .transport-maps-standalone input[type=password]:focus-visible {
+  border-color:#01488e;
+  outline:2px solid #9ac4e4;
+  outline-offset:1px;
+}
+@media(max-width:600px) {
+  .page-transport .transport-maps-standalone {margin-bottom:11px;}
+  .page-transport .transport-maps-standalone .transport-fast-key-panel {padding:14px;}
+}
