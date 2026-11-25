@@ -410,3 +410,159 @@
   .page-settings .settings-demo-switch select {max-width:none;}
   .page-settings .settings-disabled-action,.page-settings .settings-pending-label {align-self:flex-start;}
 }
+
+
+/* REG-0153 · Cuenta de usuario en el pie del lateral, sin mensajes de estado.
+   Foto propia editable desde Mi perfil; salida de vista NO revoca sesiones reales. */
+.sidebar.sidebar-reference .sidebar-bottom.sidebar-account-bottom {
+  position:relative;z-index:30;
+  padding:13px 13px 15px;
+  border-top:1px solid #315577;
+}
+.sidebar.sidebar-reference .sidebar-account-row {
+  display:flex;align-items:center;gap:8px;min-width:0;
+}
+.sidebar.sidebar-reference .sidebar-account-trigger {
+  display:flex;flex:1 1 auto;align-items:center;gap:9px;min-width:0;
+  padding:4px 3px;background:transparent;border:0;border-radius:6px;
+  color:#f0f6fc;text-align:left;cursor:pointer;
+}
+.sidebar.sidebar-reference .sidebar-account-trigger:hover,
+.sidebar.sidebar-reference .sidebar-account-trigger:focus-visible,
+.sidebar.sidebar-reference .sidebar-account-trigger[aria-expanded=true] {
+  background:#17426b;outline:none;
+}
+.sidebar.sidebar-reference .sidebar-account-trigger:focus-visible {
+  outline:2px solid #7fb3de;outline-offset:2px;
+}
+.sidebar.sidebar-reference .sidebar-account-avatar {
+  display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;
+  overflow:hidden;border:2px solid #a2bcd3;border-radius:50%;
+  background:#eaf2fb;color:#01488e;
+}
+.sidebar.sidebar-reference .sidebar-account-avatar img {
+  display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+}
+.sidebar.sidebar-reference .sidebar-account-name {
+  display:flex;flex:1 1 auto;flex-direction:column;gap:3px;min-width:0;
+  font-family:Inter,Arial,sans-serif;
+}
+.sidebar.sidebar-reference .sidebar-account-name strong {
+  display:block;color:#f5f9fd;font-size:13px;font-weight:700;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sidebar.sidebar-reference .sidebar-account-name small {
+  color:#bfd2e6;font-size:11px;font-weight:550;line-height:1.3;
+}
+.sidebar.sidebar-reference .sidebar-account-arrow {
+  flex:0 0 16px;color:#d6e6f5;transition:transform .16s ease;
+}
+.sidebar.sidebar-reference .sidebar-account-arrow.is-open {transform:rotate(180deg);}
+.sidebar.sidebar-reference .sidebar-signout {
+  display:grid;place-items:center;flex:0 0 37px;width:37px;height:39px;
+  padding:0;border:1px solid #a9585e;border-radius:7px;
+  background:#5b2530;color:#ffbfc3;cursor:pointer;
+}
+.sidebar.sidebar-reference .sidebar-signout:hover,
+.sidebar.sidebar-reference .sidebar-signout:focus-visible {
+  background:#8e2d3d;color:#fff;border-color:#df717b;
+  outline:2px solid #ffb2b8;outline-offset:2px;
+}
+.sidebar.sidebar-reference .sidebar-account-menu {
+  display:flex;flex-direction:column;gap:2px;position:absolute;
+  left:13px;right:13px;bottom:calc(100% + 8px);
+  padding:7px;border:1px solid #cbd9e6;border-radius:9px;
+  background:#fff;box-shadow:0 8px 27px rgba(0,26,55,.22);
+  z-index:50;
+}
+.sidebar.sidebar-reference .sidebar-account-menu a {
+  display:flex;align-items:center;gap:10px;min-height:40px;
+  padding:9px 10px;border-radius:5px;color:#34546e;
+  background:#fff;text-decoration:none;
+  font:650 13px/1.35 Inter,Arial,sans-serif;
+}
+.sidebar.sidebar-reference .sidebar-account-menu a:is(:hover,:focus-visible,.active) {
+  background:#eaf2fb;color:#01488e;outline:none;
+}
+.sidebar.sidebar-reference.is-collapsed .sidebar-bottom.sidebar-account-bottom {
+  padding:10px 9px 13px;
+}
+.sidebar.sidebar-reference.is-collapsed .sidebar-account-row {
+  flex-direction:column;gap:8px;
+}
+.sidebar.sidebar-reference.is-collapsed .sidebar-account-trigger {
+  flex:0 0 auto;justify-content:center;align-self:stretch;padding:3px;
+}
+.sidebar.sidebar-reference.is-collapsed .sidebar-account-name,
+.sidebar.sidebar-reference.is-collapsed .sidebar-account-arrow {display:none;}
+.sidebar.sidebar-reference.is-collapsed .sidebar-signout {
+  width:43px;height:34px;flex-basis:34px;
+}
+.sidebar.sidebar-reference.is-collapsed .sidebar-account-menu {
+  left:calc(100% + 7px);right:auto;bottom:5px;width:205px;
+}
+.page-settings .settings-avatar-editor {
+  display:flex;align-items:center;gap:18px;min-width:0;
+  margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #e8eef3;
+}
+.page-settings .settings-avatar-preview {
+  display:grid;place-items:center;flex:0 0 76px;width:76px;height:76px;
+  overflow:hidden;border:2px solid #cedfeb;border-radius:50%;
+  background:#eaf2fb;color:#01488e;
+}
+.page-settings .settings-avatar-preview img {
+  display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+}
+.page-settings .settings-avatar-controls {display:flex;flex-direction:column;gap:7px;min-width:0;}
+.page-settings .settings-avatar-controls>strong {color:#29465f;font:750 14px/1.4 Inter,sans-serif;}
+.page-settings .settings-avatar-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.page-settings .settings-avatar-pick {
+  display:inline-flex;align-items:center;justify-content:center;min-height:35px;
+  padding:7px 12px;border:1px solid #a4c1d6;border-radius:6px;
+  background:#fff;color:#01488e;cursor:pointer;
+  font:700 12.5px/1.4 Inter,sans-serif;
+}
+.page-settings .settings-avatar-pick:is(:hover,:focus-within) {
+  background:#eaf2fb;border-color:#5891bc;outline:2px solid transparent;
+}
+.page-settings .settings-avatar-pick input {
+  position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;
+}
+.page-settings .settings-avatar-pick:focus-within {outline:2px solid #6ca6d3;outline-offset:2px;}
+.page-settings .settings-avatar-remove {
+  min-height:35px;padding:6px;border:0;border-radius:5px;
+  background:transparent;color:#9d4251;cursor:pointer;
+  font:700 12px/1.4 Inter,sans-serif;
+}
+.page-settings .settings-avatar-remove:hover {background:#fff3f3;}
+.page-settings .settings-avatar-controls small {
+  color:#71879a;font:500 11.5px/1.45 Inter,sans-serif;
+}
+.crm-exit-screen {
+  display:grid;place-items:center;min-height:100vh;width:100%;
+  padding:24px;background:#f4f7fb;
+}
+.crm-exit-card {
+  display:flex;flex-direction:column;align-items:flex-start;gap:13px;
+  width:min(460px,100%);padding:31px;border:1px solid #dce6ee;
+  border-radius:10px;background:#fff;color:#304b62;
+  font-family:Inter,Arial,sans-serif;
+}
+.crm-exit-brand {
+  display:block;width:min(185px,100%);height:auto;object-fit:contain;
+  filter:none;margin-bottom:14px;
+}
+.crm-exit-card h1 {margin:0;color:#233f56;font-size:23px;}
+.crm-exit-card p {margin:0;color:#678095;font-size:13px;line-height:1.6;}
+.crm-exit-card button {
+  margin-top:12px;padding:11px 17px;border:0;border-radius:7px;
+  background:#01488e;color:#fff;cursor:pointer;font:750 13px Inter,sans-serif;
+}
+.crm-exit-card button:is(:hover,:focus-visible) {background:#002d59;}
+@media(max-width:600px) {
+  .page-settings .settings-avatar-editor {align-items:flex-start;gap:13px;}
+  .page-settings .settings-avatar-preview {flex-basis:61px;width:61px;height:61px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .sidebar.sidebar-reference .sidebar-account-arrow {transition:none;}
+}
