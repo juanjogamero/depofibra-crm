@@ -4,6 +4,7 @@ import { type CrmState, type Opportunity, type Quote, type Order, type Task, typ
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
   data: CrmState;
+  storageError:string;
   role: Role; setRole: (role: Role) => void;
   addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => void;
   updateOpportunity: (id: string, patch: Partial<Opportunity>) => void;
@@ -83,6 +84,12 @@ function normalizeCatalog(source: CrmState): CrmState {
     return {...p,categoryId:id};
   });
   return {...source,products,productCategories:categories,
+    quotes:Array.isArray(source.quotes)?source.quotes:[],
+    customers:Array.isArray(source.customers)?source.customers.map(customer=>({
+      ...customer,documentNames:Array.isArray(customer.documentNames)?customer.documentNames:[]
+    })):[],
+    orders:Array.isArray(source.orders)?source.orders:[],
+    tasks:Array.isArray(source.tasks)?source.tasks:[],
     opportunities:(source.opportunities||[]).map(o=>o.status==='Perdida'&&!o.deletedAt?{...o,deletedAt:today()}:o),
     internalNotes:Array.isArray(source.internalNotes)?source.internalNotes:[],
     orderAlerts:Array.isArray(source.orderAlerts)?source.orderAlerts:[]};
@@ -99,10 +106,28 @@ function initialData(): CrmState {
   return archiveExpiredQuotes(normalizeCatalog(mockData));
 }
 const Ctx = createContext<ContextValue | null>(null);
+const localReadFailure=():string=>{
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return '';
+    const value=JSON.parse(raw);
+    if(Array.isArray(value.opportunities)&&Array.isArray(value.orders)
+        &&Array.isArray(value.products)&&value.transport)return '';
+    return 'El archivo local del CRM no tiene una estructura reconocible. NO se sobrescribirán sus datos.';
+  }catch{
+    return 'No se ha podido leer el almacenamiento local. NO se sobrescribirán los datos existentes.';
+  }
+};
 export function CrmProvider({ children }: { children: ReactNode }) {
+  const [readError,setReadError]=useState(localReadFailure);
+  const [storageError,setStorageError]=useState(readError);
   const [data, setData] = useState<CrmState>(initialData);
   const [role, setRole] = useState<Role>('direccion');
-  useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* private browser */ } }, [data]);
+  useEffect(() => {
+    if(readError)return; // No destruir un archivo anterior que esté corrupto o sea ilegible.
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));setStorageError('');}
+    catch{setStorageError('No se han podido guardar los cambios en este navegador. Exporta lo que puedas y revisa el almacenamiento antes de seguir.');}
+  }, [data,readError]);
   useEffect(()=>{
     const review=()=>setData(old=>archiveExpiredQuotes(old));
     const timer=window.setInterval(review,3600000);
@@ -299,8 +324,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       ...d, customers:d.customers.map(c=>c.id===customerId&&name.trim()&&!c.documentNames.includes(name.trim())
         ?{...c,documentNames:[...c.documentNames,name.trim()]}:c)
     })),
-    resetDemo: () => setData(normalizeCatalog(structuredClone(mockData))),
+    resetDemo: () => {
+      setReadError('');setStorageError('');
+      setData(normalizeCatalog(structuredClone(mockData)));
+    },
   }), []);
-  return <Ctx.Provider value={{ data, role, setRole, ...actions }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ data, storageError, role, setRole, ...actions }}>{children}</Ctx.Provider>;
 }
 export function useCrm(): ContextValue { const value = useContext(Ctx); if (!value) throw new Error('CrmProvider requerido'); return value; }
