@@ -39,6 +39,7 @@ export type Order = {
   paymentVerifiedBy?: 'Dirección'|'Oficina';
   inletCount?: string; outletCount?: string;
   inletDiameterMm?: string; outletDiameterMm?: string;
+  inletHeightMm?: string; outletHeightMm?: string;
   configurationNotes?: string;
   configurationConfirmedAt?: string;
   productionStartedAt?: string;
