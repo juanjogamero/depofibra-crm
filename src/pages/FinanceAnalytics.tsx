@@ -39,7 +39,7 @@ function exportFinance(rows:MonthRow[],orders:Order[],periodLabel:string){
  const records=[
   ['Resumen mensual ('+periodLabel+')'],['Mes','Comisiones generadas (€)','Cobros con fecha (€)','Pedidos','Importe de pedidos (€)'],
   ...rows.map(r=>[r.month,r.generated,r.collected,r.orders,r.volume]),
-  [],['Detalle de pedidos del periodo (datos internos de demostración)'],
+  [],['Detalle de pedidos del periodo (registros locales, sin sincronización)'],
   ['Pedido','Fecha del pedido','Producto','Comisión generada (€)','Cobrado acumulado de este pedido (€)','Pendiente actual (€)','Estado de cobro'],
   ...orders.map(o=>[o.id,o.createdAt,o.product+' · '+o.capacity,o.commission,o.commissionPaid,Math.max(0,o.commission-o.commissionPaid),orderStatus(o)])
  ];
@@ -175,7 +175,7 @@ export default function FinanceAnalytics(){
   <header className="op-screen-heading fin-heading">
    <div className="op-heading-copy"><span className="fin-eyebrow">CONTROL PRIVADO DE DIRECCIÓN</span>
     <h1>Finanzas</h1>
-    <p>Comisiones por periodos, cobros y pendientes. Datos locales de demostración.</p>
+    <p>Comisiones por periodos, cobros y pendientes. Datos guardados en este navegador.</p>
    </div>
    <div className="op-heading-actions"><Link to="/comisiones" className="op-new-button"><Wallet size={16}/>Mis comisiones</Link></div>
   </header>
@@ -246,7 +246,7 @@ export default function FinanceAnalytics(){
     </table>
     {!filteredOrders.length&&<p className="fin-empty">No hay pedidos con estos filtros. Prueba otro periodo o estado de cobro.</p>}
    </div>
-   <footer className="fin-order-foot">{filteredOrders.length} de {selectedOrders.length} pedidos del periodo · Los importes son de demostración y privados.</footer>
+   <footer className="fin-order-foot">{filteredOrders.length} de {selectedOrders.length} pedidos del periodo · Los importes provienen de registros locales y son privados; no equivalen a contabilidad verificada.</footer>
   </section>
   <div className="fin-data-note"><Info size={18}/><p>
    <strong>Cómo interpretar estas cifras:</strong> las comisiones generadas se atribuyen al mes del pedido, no al de su cobro.
