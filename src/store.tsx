@@ -15,7 +15,8 @@ type ContextValue = {
   archiveQuote: (id:string) => void;
   restoreQuote: (id:string) => void;
   acceptQuote: (id: string) => void;
-  verifyPayment: (id: string, mode: Order['paymentMode'], amount: number) => void;
+  verifyPayment: (id: string, mode: Order['paymentMode'], amount: number, by?:'Dirección'|'Oficina') => void;
+  markOrderAlertRead: (id:string) => void;
   updateOrder: (id: string, patch: Partial<Order>, eventText?: string) => void;
   addCommissionPayment: (id: string, amount: number) => void;
   addTask: (title: string, due: string, context: string, schedule?: { atTime?: string; reminderMinutes?: number | null }) => void;
@@ -82,7 +83,9 @@ function normalizeCatalog(source: CrmState): CrmState {
     return {...p,categoryId:id};
   });
   return {...source,products,productCategories:categories,
-    internalNotes:Array.isArray(source.internalNotes)?source.internalNotes:[]};
+    opportunities:(source.opportunities||[]).map(o=>o.status==='Perdida'&&!o.deletedAt?{...o,deletedAt:today()}:o),
+    internalNotes:Array.isArray(source.internalNotes)?source.internalNotes:[],
+    orderAlerts:Array.isArray(source.orderAlerts)?source.orderAlerts:[]};
 }
 function initialData(): CrmState {
   try {
@@ -108,16 +111,25 @@ export function CrmProvider({ children }: { children: ReactNode }) {
   },[]);
   const actions = useMemo(() => ({
     addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => setData(d => ({
-      ...d, opportunities: [{ ...item, id: uid('OP'), createdAt: today(), receivedAt: new Date().toISOString(), activity: [{ at: today(), text: 'Solicitud introducida manualmente (demo)', by: 'Dirección' }] }, ...d.opportunities]
+      ...d, opportunities: [{ ...item, deletedAt:item.status==='Perdida'?today():item.deletedAt, id: uid('OP'), createdAt: today(), receivedAt: new Date().toISOString(), activity: [{ at: today(), text: 'Solicitud introducida manualmente', by: 'Dirección' }] }, ...d.opportunities]
     })),
     updateOpportunity: (id: string, patch: Partial<Opportunity>) => setData(d => ({
-      ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch } : o)
+      ...d, opportunities: d.opportunities.map(o => {
+        if(o.id!==id)return o;
+        const status=patch.status??o.status;
+        if(status==='Perdida'&&!o.deletedAt)
+          return {...o,...patch,deletedAt:today(),nextAction:'Sin acción',
+            activity:[{at:today(),text:'Oportunidad perdida y trasladada a papelera',by:'Dirección'},...o.activity]};
+        return {...o,...patch};
+      })
     })),
     deleteOpportunity: (id:string) => setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{
       ...o,deletedAt:today(),activity:[{at:today(),text:'Oportunidad archivada por Dirección',by:'Dirección'},...o.activity]
     }:o)})),
     restoreOpportunity: (id:string) => setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{
-      ...o,deletedAt:undefined,activity:[{at:today(),text:'Oportunidad recuperada',by:'Dirección'},...o.activity]
+      ...o,deletedAt:undefined,status:o.status==='Perdida'?'Seguimiento':o.status,
+      nextAction:o.status==='Perdida'?'Retomar contacto':o.nextAction,
+      activity:[{at:today(),text:'Oportunidad recuperada para seguimiento',by:'Dirección'},...o.activity]
     }:o)})),
     addActivity: (id: string, text: string) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, activity: [{ at: today(), text, by: 'Dirección' }, ...o.activity] } : o) })),
     addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => setData(d => ({
@@ -157,20 +169,54 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         opportunities: d.opportunities.map(o => o.id === q.opportunityId ? { ...o, status: 'Aceptada', activity: [{ at: today(), by: 'Dirección', text: 'Presupuesto aceptado, pendiente de ingreso.' }, ...o.activity] } : o)
       };
     }),
-    verifyPayment: (id: string, mode: Order['paymentMode'], amount: number) => setData(d => {
-      const order = d.orders.find(o => o.id === id);
-      if (!order || mode === 'Pendiente') return d;
-      const customerId = order.customerId || uid('CLI');
-      const alreadyCustomer = d.customers.some(c => c.id === customerId);
-      const newCustomer = { id: customerId, name: order.buyerName, contact: 'Por completar', destination: d.opportunities.find(o => o.id === d.quotes.find(q => q.id === order.quoteId)?.opportunityId)?.destination ?? 'Pendiente', createdAt: today(), notes: '', documentNames: [] as string[] };
-      return { ...d, customers: alreadyCustomer ? d.customers : [newCustomer, ...d.customers],
-        orders: d.orders.map(o => o.id === id ? { ...o, customerId, paymentMode: mode, advanceReceived: Math.max(0, amount), activity: [{ at: today(), text: mode + ' (registro de demostración)', by: 'Dirección' }, ...o.activity] } : o) };
+    verifyPayment: (id: string, mode: Order['paymentMode'], amount: number, by:'Dirección'|'Oficina'='Dirección') => setData(d => {
+      const order=d.orders.find(o=>o.id===id);
+      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0||amount>order.amount)return d;
+      const date=today(),timestamp=new Date().toISOString();
+      const customerId=order.customerId||uid('CLI');
+      const customerExists=d.customers.some(c=>c.id===customerId);
+      const lead=d.opportunities.find(o=>o.id===d.quotes.find(q=>q.id===order.quoteId)?.opportunityId);
+      const customer={id:customerId,name:order.buyerName,contact:lead?.contact||'Por completar',
+        destination:lead?.destination||'Por confirmar',createdAt:date,notes:'',documentNames:[] as string[]};
+      return {...d,
+        customers:customerExists?d.customers:[customer,...d.customers],
+        orders:d.orders.map(o=>o.id===id?{
+          ...o,customerId,paymentMode:mode,advanceReceived:amount,paymentVerifiedAt:timestamp,paymentVerifiedBy:by,
+          factory:o.factory==='Pendiente'?'Confirmando detalles':o.factory,
+          activity:[{at:date,text:mode+' · '+amount.toFixed(2)+' € anotados tras comprobación manual',by},...o.activity]
+        }:o)};
     }),
-    updateOrder: (id: string, patch: Partial<Order>, eventText?: string) => setData(d => ({ ...d, orders: d.orders.map(o => o.id === id ? { ...o, ...patch, activity: eventText ? [{ at: today(), text: eventText, by: 'Fábrica' }, ...o.activity] : o.activity } : o) })),
+    updateOrder: (id:string,patch:Partial<Order>,eventText?:string) => setData(d=>{
+      const current=d.orders.find(o=>o.id===id);
+      if(!current)return d;
+      const target=patch.factory;
+      const stages:Order['factory'][]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
+      if(target&&target!==current.factory){
+        const from=stages.indexOf(current.factory),to=stages.indexOf(target);
+        if(to!==from+1)return d;
+        if(target==='Confirmando detalles'&&current.paymentMode==='Pendiente')return d;
+        if(target==='En fabricación'&&(!patch.configurationConfirmedAt||current.paymentMode==='Pendiente'))return d;
+        if(target==='En tránsito'&&(!patch.transportConfirmedAt||!patch.transportCompany?.trim()))return d;
+        if(target==='Entregado'&&!patch.deliveredAt)return d;
+      }
+      const kind=target&&target!==current.factory
+        ?target==='En fabricación'?'fabricacion':target==='En tránsito'?'envio':target==='Entregado'?'entrega':null
+        :null;
+      const title=kind==='fabricacion'?'Fabricación iniciada':kind==='envio'?'Transporte confirmado':kind==='entrega'?'Entrega confirmada':'';
+      const description=kind==='fabricacion'?'La oficina ha confirmado con el cliente la configuración y ha iniciado la fabricación.'
+        :kind==='envio'?'Transporte y salida registrados por la oficina.'
+        :kind==='entrega'?'Pedido entregado. La comisión pendiente pasa a ser exigible.':'';
+      return {...d,
+        orders:d.orders.map(o=>o.id===id?{...o,...patch,
+          activity:eventText?[{at:today(),text:eventText,by:'Oficina / Dirección'},...o.activity]:o.activity}:o),
+        orderAlerts:kind?[{id:uid('AVI'),orderId:id,kind,title,description,createdAt:new Date().toISOString()},...(d.orderAlerts||[])]:d.orderAlerts
+      };
+    }),
+    markOrderAlertRead: (id:string) => setData(d=>({...d,orderAlerts:(d.orderAlerts||[]).map(x=>x.id===id?{...x,readAt:x.readAt||new Date().toISOString()}:x)})),
     addCommissionPayment: (id: string, amount: number) => setData(d => {
       const order=d.orders.find(o=>o.id===id);
       const requested=Number.isFinite(amount)?Math.max(0,amount):0;
-      if(!order||requested<=0)return d;
+      if(!order||order.factory!=='Entregado'||requested<=0)return d;
       const previous=Math.max(0,order.commissionPaid);
       const applied=Math.max(0,Math.min(Math.max(0,order.commission),previous+requested)-previous);
       if(applied<=0)return d;
