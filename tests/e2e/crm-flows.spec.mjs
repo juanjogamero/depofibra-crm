@@ -284,7 +284,7 @@ test('Resultados: nueve informes mantienen contenidos y controles en diseño lig
  await page.setViewportSize({width:1366,height:850});
  for(const route of routes){
   await open(page,'/resultados'+(route?'/'+route:''));
-  await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Rendimiento',exact:true})).toBeVisible();
   await expect(page.getByRole('group',{name:'Periodo de análisis'})).toBeVisible();
   await expect(page.getByLabel('Seleccionar subapartado de Resultados')).toHaveValue(route||'overview');
   const length=await page.locator('.ri-active-content').evaluate(x=>x.textContent?.trim().length??0);
@@ -296,7 +296,7 @@ test('Resultados: nueve informes mantienen contenidos y controles en diseño lig
   await page.setViewportSize(viewport);
   for(const route of ['','products','channels','quotes','sources']){
    await open(page,'/resultados'+(route?'/'+route:''));
-   await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
+   await expect(page.getByRole('heading',{name:'Rendimiento',exact:true})).toBeVisible();
    const scroll=await page.evaluate(()=>document.documentElement.scrollWidth);
    expect(scroll,'sin desbordamiento global en '+(route||'overview')+' a '+viewport.width).toBeLessThanOrEqual(viewport.width+4);
   }
