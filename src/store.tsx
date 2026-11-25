@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, mockData, today, uid } from './domain';
+import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, mockData, today, uid } from './domain';
 
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
@@ -14,8 +14,11 @@ type ContextValue = {
   verifyPayment: (id: string, mode: Order['paymentMode'], amount: number) => void;
   updateOrder: (id: string, patch: Partial<Order>, eventText?: string) => void;
   addCommissionPayment: (id: string, amount: number) => void;
-  addTask: (title: string, due: string, context: string) => void;
+  addTask: (title: string, due: string, context: string, schedule?: { atTime?: string; reminderMinutes?: number | null }) => void;
   toggleTask: (id: string) => void;
+  addInternalNote: (item: Pick<InternalNote, 'title'|'body'|'category'>) => void;
+  updateInternalNote: (id:string, patch:Partial<Pick<InternalNote,'title'|'body'|'category'|'pinned'>>) => void;
+  deleteInternalNote: (id:string) => void;
   addProduct: (item: Omit<Product, 'id'>) => void;
   updateProduct: (id: string, patch: Partial<Omit<Product, 'id'>>) => void;
   addProductCategory: (category: ProductCategory) => void;
@@ -53,7 +56,8 @@ function normalizeCatalog(source: CrmState): CrmState {
     }
     return {...p,categoryId:id};
   });
-  return {...source,products,productCategories:categories};
+  return {...source,products,productCategories:categories,
+    internalNotes:Array.isArray(source.internalNotes)?source.internalNotes:[]};
 }
 function initialData(): CrmState {
   try {
@@ -131,8 +135,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         }:o)
       };
     }),
-    addTask: (title: string, due: string, context: string) => setData(d => ({ ...d, tasks: [{ id: uid('TA'), title, due, context, done: false }, ...d.tasks] })),
+    addTask: (title: string, due: string, context: string, schedule?: { atTime?: string; reminderMinutes?: number | null }) => setData(d => ({ ...d, tasks: [{ id: uid('TA'), title, due, context, done: false, ...schedule }, ...d.tasks] })),
     toggleTask: (id: string) => setData(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) })),
+    addInternalNote: (item: Pick<InternalNote,'title'|'body'|'category'>) => setData(d => ({ ...d,
+      internalNotes:[{...item,id:uid('NOT'),pinned:false,updatedAt:new Date().toISOString()},...(d.internalNotes||[])]
+    })),
+    updateInternalNote: (id:string, patch:Partial<Pick<InternalNote,'title'|'body'|'category'|'pinned'>>) => setData(d => ({...d,
+      internalNotes:(d.internalNotes||[]).map(n=>n.id===id?{...n,...patch,updatedAt:new Date().toISOString()}:n)
+    })),
+    deleteInternalNote: (id:string) => setData(d => ({...d,internalNotes:(d.internalNotes||[]).filter(n=>n.id!==id)})),
     addProduct: (item: Omit<Product, 'id'>) => setData(d => ({ ...d,
       products: [{ ...item, id: uid('PR') }, ...d.products] })),
     updateProduct: (id: string, patch: Partial<Omit<Product, 'id'>>) => setData(d => ({
