@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
-  CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Search, Bell,
+  CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Truck, Search, Bell,
   ChevronDown, Menu, X, ArrowRight, Plus, Factory,
   Command, HelpCircle, CheckCheck, BellRing, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
@@ -23,7 +23,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
   const { role, data } = useCrm();
   const location = useLocation();
   const navRef = useRef<HTMLDivElement>(null);
-  const [activePosition, setActivePosition] = useState<{ y: number; height: number } | null>(null);
+  const [activePosition, setActivePosition] = useState<{ y: number; height: number; x: number; width: number; nested: boolean } | null>(null);
   const [resultsExpanded,setResultsExpanded] = useState(location.pathname.startsWith('/resultados'));
   useEffect(()=>{if(location.pathname.startsWith('/resultados'))setResultsExpanded(true)},[location.pathname]);
 
@@ -42,9 +42,12 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
       const next = {
         y: Math.round(linkRect.top - containerRect.top + container.scrollTop),
         height: Math.round(linkRect.height),
+        x: Math.round(linkRect.left - containerRect.left + container.scrollLeft),
+        width: Math.round(linkRect.width),
+        nested: activeLink.classList.contains('ri-sidebar-sublink'),
       };
       setActivePosition(previous =>
-        previous?.y === next.y && previous.height === next.height ? previous : next
+        previous?.y === next.y && previous.height === next.height && previous.x === next.x && previous.width === next.width && previous.nested === next.nested ? previous : next
       );
     };
     update();
@@ -72,7 +75,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
         {label:'Resultados',path:'/resultados',icon:BarChart3},
         {label:'Finanzas',path:'/finanzas',icon:ChartPie},
         {label:'Catálogo',path:'/catalogo',icon:Boxes},
-        {label:'Configuración',path:'/configuracion',icon:Settings2}
+        {label:'Calculadora de transporte',path:'/transporte',icon:Truck}
       ]}
     ];
   return <>
@@ -86,13 +89,15 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
     />
     <aside className={'sidebar sidebar-reference '+(mobileOpen?'is-open ':'')+(collapsed?'is-collapsed':'')}>
       <div className="sidebar-top"><Brand/><button type="button" className="sidebar-toggle" aria-label={collapsed?'Expandir menú lateral':'Contraer menú lateral'} title={collapsed?'Expandir menú':'Contraer menú'} onClick={onToggle}>{collapsed?<ChevronsRight size={17}/>:<ChevronsLeft size={17}/>}</button><button type="button" className="sidebar-close" aria-label="Cerrar menú" onClick={onClose}><X size={19}/></button></div>
-      <div ref={navRef} className={'nav-scroll '+(activePosition?'has-active-indicator':'')}>
+      <div ref={navRef} className={'nav-scroll '+(activePosition?'has-active-indicator':'')+(activePosition?.nested?' has-nested-active':'')}>
         <div
           className="nav-selection-indicator"
           aria-hidden="true"
           style={activePosition?{
             transform:'translate3d(0, '+activePosition.y+'px, 0)',
-            height:activePosition.height
+            height:activePosition.height,
+            left:activePosition.x,
+            width:activePosition.width
           }:undefined}
         />
         {groups.map(g=><div className="nav-group" key={g.caption} role="group" aria-label={g.caption}>
@@ -100,7 +105,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
           {g.links.map(n=>n.path==='/resultados'?<div className="ri-sidebar-results" key={n.path}>
             <div className="ri-sidebar-results-parent">
               <NavLink to="/resultados" end title="Resultados" aria-label="Abrir Resumen y mapa" onClick={()=>{setResultsExpanded(true);onClose()}}
-                className={({isActive})=>'nav-link '+(isActive||(collapsed&&location.pathname.startsWith('/resultados'))?'active':location.pathname.startsWith('/resultados')?'is-section-current':'')}>
+                className={({isActive})=>'nav-link '+((collapsed&&location.pathname.startsWith('/resultados'))?'active':location.pathname.startsWith('/resultados')?'is-section-current':'')}>
                 <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
               </NavLink>
               <button type="button" className="ri-sidebar-toggle" aria-label={resultsExpanded?'Contraer submenú de Resultados':'Expandir submenú de Resultados'}
@@ -124,6 +129,10 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
         </div>)}
       </div>
       <div className="sidebar-bottom">
+        <NavLink to="/configuracion/perfil" title="Cuenta y configuración" aria-label="Cuenta y configuración" onClick={onClose}
+          className={({isActive})=>'nav-link settings-footer-link'+(isActive||location.pathname.startsWith('/configuracion')?' active':'')}>
+          <Settings2 size={18}/><span>Cuenta y configuración</span>
+        </NavLink>
         <div className="sidebar-note"><span className="status-light"/><div><strong>En desarrollo</strong><small>Datos locales · VPS pendiente</small></div></div>
         
       </div>
@@ -132,7 +141,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
 }
 function pageLabel(path: string) {
   if(path==='/') return 'Panel de trabajo';
-  const dictionary: Record<string,string> = {'oportunidades':'Oportunidades','presupuestos':'Presupuestos','clientes':'Clientes','pedidos':'Pedidos','comisiones':'Mis comisiones','agenda':'Agenda y notas','resultados':'Resultados comerciales','finanzas':'Finanzas','catalogo':'Catálogo de productos','configuracion':'Configuración','fabrica':'Área de Fábrica'};
+  const dictionary: Record<string,string> = {'oportunidades':'Oportunidades','presupuestos':'Presupuestos','clientes':'Clientes','pedidos':'Pedidos','comisiones':'Mis comisiones','agenda':'Agenda y notas','resultados':'Resultados comerciales','finanzas':'Finanzas','catalogo':'Catálogo de productos','configuracion':'Cuenta y configuración','transporte':'Calculadora de transporte','fabrica':'Área de Fábrica'};
   return dictionary[path.split('/')[1]]||'Depofibra CRM';
 }
 function Header({ onMenu }: { onMenu: () => void }) {
@@ -216,12 +225,13 @@ export default function App() {
   const onResultsList = location.pathname.startsWith('/resultados');
   const onFinance = location.pathname === '/finanzas';
   const onCatalog = location.pathname === '/catalogo';
-  const onConfiguration = location.pathname === '/configuracion';
+  const onConfiguration = location.pathname.startsWith('/configuracion');
+  const onTransport = location.pathname === '/transporte';
   const onFactory = location.pathname === '/fabrica';
-  const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList || onResultsList || onFinance || onCatalog || onConfiguration || onFactory;
+  const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList || onResultsList || onFinance || onCatalog || onConfiguration || onTransport || onFactory;
   return <div className="app-root">
     <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
-    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onFactory ? ' is-factory' : '')}>
+    <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onTransport ? ' is-transport' : '') + (onFactory ? ' is-factory' : '')}>
       {!onDashboard && !isCompactList && <Header onMenu={()=>setOpen(true)}/>}
       {(onDashboard || isCompactList) && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
       <main className="app-main" id="main-content"><AppRoutes/></main>
