@@ -521,8 +521,8 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
     const notes=p?.querySelector('.agenda-pro-notes');
     const tasks=p?.querySelector('.agenda-pro-tasks');
     const taskTitle=p?.querySelector('.agenda-pro-task-text strong');
-    const notesLabel=p?.querySelector('.agenda-pro-heading h2');
-    const noteDescription=p?.querySelector('.agenda-pro-heading p');
+    const notesLabel=p?.querySelector('.agenda-pro-notes .agenda-pro-heading h2');
+    const noteDescription=p?.querySelector('.agenda-pro-notes .agenda-pro-heading p');
     const taskSearch=p?.querySelector('.agenda-pro-task-search input');
     const day=p?.querySelector('.agenda-pro-day');
     if(!p||!cal||!notes||!tasks||!notesLabel||!noteDescription||!taskSearch||!day)return null;
