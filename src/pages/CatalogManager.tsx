@@ -1,11 +1,11 @@
 import {useEffect,useMemo,useState,type FormEvent} from 'react';
 import {Link} from 'react-router-dom';
-import {Check,ChevronRight,Info,Plus,Search,Settings2,X} from 'lucide-react';
+import {ArrowLeft,Check,ChevronRight,Info,Plus,Search,Settings2,X} from 'lucide-react';
 import {useCrm} from '../store';
 import {decimal,uid,type AttributeAnswerType,type CatalogAttribute,type Product,type ProductCategory} from '../domain';
 import {Modal} from '../ui';
 
-type Mode='products'|'attributes';
+type Mode='categories'|'products'|'attributes';
 type Editor='category'|'attribute'|'product'|null;
 type AttributeEditorType=AttributeAnswerType|'static';
 const families=['Depósitos PRFV','Fosas sépticas','Piscinas','Cubas y cisternas','Otros'];
@@ -66,6 +66,8 @@ export default function CatalogManager(){
    .slice().sort((a,b)=>a.name.localeCompare(b.name,'es'));
  },[categories,data.products,query]);
  const editingProduct=data.products.find(p=>p.id===editingProductId);
+ const openCategory=(id:string)=>{setSelectedId(id);setQuery('');setMode('products');};
+ const openCategories=()=>{setQuery('');setMode('categories');};
  useEffect(()=>{
   if(editor!=='product')return;
   const handle=(event:KeyboardEvent)=>{if(event.key==='Escape')setEditor(null);};
@@ -158,37 +160,56 @@ export default function CatalogManager(){
    <Link to="/presupuestos/nuevo" className="catalog3-link">Preparar presupuesto <ChevronRight size={16}/></Link>
   </header>
   <nav className="catalog3-tabs" aria-label="Secciones del catálogo">
-   <button type="button" aria-pressed={mode==='products'} className={mode==='products'?'is-active':''}
-    onClick={()=>setMode('products')}>Productos</button>
-   <button type="button" aria-pressed={mode==='attributes'} className={mode==='attributes'?'is-active':''}
-    onClick={()=>setMode('attributes')}>Atributos</button>
-   <Link to="/presupuestos">Presupuestos <ChevronRight size={14}/></Link>
+   <button type="button" aria-current={mode==='categories'?'page':undefined} className={mode==='categories'?'is-active':''} onClick={openCategories}>Categorías</button>
+   <button type="button" aria-current={mode==='products'?'page':undefined} className={mode==='products'?'is-active':''} onClick={()=>{setQuery('');setMode('products');}}>Productos</button>
+   <button type="button" aria-current={mode==='attributes'?'page':undefined} className={mode==='attributes'?'is-active':''} onClick={()=>{setQuery('');setMode('attributes');}}>Atributos</button>
   </nav>
-  <div className="catalog3-layout">
-   <aside className="catalog3-sidebar" aria-label="Categorías">
+  <div className={'catalog3-layout'+(mode==='categories'?' is-category-overview':'')}>
+   {mode!=='categories'&&<aside className="catalog3-sidebar" aria-label="Categorías">
     <div className="catalog3-sidebar-title"><span>CATEGORÍAS</span><button type="button" onClick={()=>startCategory()}><Plus size={14}/> Nueva</button></div>
     <div className="catalog3-category-scroll">
      {visibleCategories.map(c=><button type="button" key={c.id}
       className={'catalog3-category'+(selected?.id===c.id?' is-active':'')}
-      aria-pressed={selected?.id===c.id} onClick={()=>{setSelectedId(c.id);setQuery('')}}>
+      aria-pressed={selected?.id===c.id} onClick={()=>openCategory(c.id)}>
       <span>{c.name}</span>
       <small>{data.products.filter(p=>p.categoryId===c.id).length}</small>
      </button>)}
      {!visibleCategories.length&&<p className="catalog3-sidebar-empty">No hay categorías.</p>}
     </div>
-    <div className="catalog3-sidebar-settings">
-     <span>CONFIGURACIÓN</span>
-     <button type="button" className={mode==='attributes'?'is-active':''}
-      onClick={()=>setMode('attributes')}><Settings2 size={16}/> Atributos</button>
-    </div>
-   </aside>
+    </aside>}
    <section className="catalog3-workspace" aria-label="Gestión de catálogo">
-    {!selected?<div className="catalog3-empty">
+    {mode!=='categories'&&selected&&<nav className="catalog3-path" aria-label="Ruta en el catálogo">
+     <button type="button" onClick={openCategories}>Categorías</button>
+     <ChevronRight size={14} aria-hidden="true"/>
+     {mode==='attributes'?<button type="button" onClick={()=>setMode('products')}>{selected.name}</button>:<span>{selected.name}</span>}
+     {mode==='attributes'&&<><ChevronRight size={14} aria-hidden="true"/><span aria-current="page">Atributos</span></>}
+    </nav>}
+    {mode==='categories'?<>
+     <header className="catalog3-panel-heading">
+      <div><h2>Categorías</h2><p className="catalog3-subtitle">Selecciona una categoría para gestionar sus productos y atributos.</p></div>
+      <button type="button" className="catalog3-primary" onClick={()=>startCategory()}><Plus size={16}/> Nueva categoría</button>
+     </header>
+     <div className="catalog3-search-row">
+      <label><Search size={17}/><input type="search" aria-label="Buscar categoría"
+       value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar categoría o familia"/>
+       {query&&<button type="button" onClick={()=>setQuery('')} aria-label="Borrar búsqueda"><X size={15}/></button>}
+      </label>
+     </div>
+     <div className="catalog3-overview-list" aria-label="Listado de categorías">
+      {visibleCategories.map(c=><button type="button" className="catalog3-overview-row" key={c.id}
+       onClick={()=>openCategory(c.id)} aria-label={'Ver productos de '+c.name}>
+       <span className="catalog3-overview-name"><strong>{c.name}</strong><small>{c.family}</small></span>
+       <span className="catalog3-overview-count">{data.products.filter(p=>p.categoryId===c.id).length} productos · {c.attributes.length} atributos</span>
+       <ChevronRight size={17} aria-hidden="true"/>
+      </button>)}
+      {!visibleCategories.length&&<p className="catalog3-no-rows">{categories.length?'No hay categorías que coincidan con la búsqueda.':'Todavía no hay categorías. Crea la primera para organizar los productos.'}</p>}
+     </div>
+    </>:!selected?<div className="catalog3-empty">
      <h2>Sin categorías</h2><p>Crea una categoría para organizar las referencias y sus atributos.</p>
      <button type="button" onClick={()=>startCategory()}><Plus size={16}/> Nueva categoría</button>
     </div>:mode==='products'?<>
      <header className="catalog3-panel-heading">
-      <div><h2>{selected.name}</h2><div className="catalog3-subtitle">
+      <div><span className="catalog3-section-eyebrow">PRODUCTOS DE LA CATEGORÍA</span><h2>{selected.name}</h2><div className="catalog3-subtitle">
        {selectedProducts.length} {selectedProducts.length===1?'producto':'productos'}
        <button type="button" onClick={()=>startCategory(selected)}>Editar categoría</button>
       </div></div>
@@ -231,15 +252,15 @@ export default function CatalogManager(){
        <h2>{selected.name}</h2>
        <p className="catalog3-subtitle">{selected.attributes.length} {selected.attributes.length===1?'atributo':'atributos'} · configurados para sus {selectedProducts.length} productos</p></div>
       <div className="catalog3-heading-actions">
-       <button type="button" className="catalog3-outline" onClick={()=>setMode('products')}>Ver productos</button>
+       <button type="button" className="catalog3-outline catalog3-back-button" onClick={()=>setMode('products')}><ArrowLeft size={15}/> Volver a productos</button>
        <button type="button" className="catalog3-primary" onClick={()=>startAttribute()}><Plus size={16}/> Añadir atributo</button>
       </div>
      </header>
-     <div className="catalog3-attribute-intro">
-       <div><strong>Datos técnicos fijos</strong><span>{selected.attributes.filter(a=>!a.responseType).length} · Información común que debe estar verificada.</span></div>
-       <div><strong>Preguntas para nuevas solicitudes</strong><span>{selected.attributes.filter(a=>Boolean(a.responseType)).length} · Opciones que se pueden rellenar al crear una consulta.</span></div>
+     <div className="catalog3-attribute-summary">
+      <span><strong>{selected.attributes.filter(a=>!a.responseType).length}</strong> datos técnicos fijos</span>
+      <span><strong>{selected.attributes.filter(a=>Boolean(a.responseType)).length}</strong> preguntas para solicitudes</span>
      </div>
-     <div className="catalog3-table-scroll" role="region" aria-label="Atributos de categoría" tabIndex={0}>
+     {selected.attributes.length>0?<div className="catalog3-table-scroll" role="region" aria-label="Atributos de categoría" tabIndex={0}>
       <table className="catalog3-table catalog3-attrs-table">
        <thead><tr><th>ATRIBUTO</th><th>CÓMO RESPONDE</th><th>VALORES</th><th/></tr></thead>
        <tbody>{selected.attributes.map(a=><tr key={a.id}>
@@ -248,8 +269,11 @@ export default function CatalogManager(){
         <td><button type="button" className="catalog3-text-action" onClick={()=>startAttribute(a)}>Editar atributo</button></td>
        </tr>)}</tbody>
       </table>
-      {!selected.attributes.length&&<p className="catalog3-no-rows">No hay atributos. Puedes añadir uno para definir opciones del producto o registrar información técnica común.</p>}
-     </div>
+     </div>:<div className="catalog3-empty-attributes">
+      <strong>Esta categoría todavía no tiene atributos</strong>
+      <p>Añade datos técnicos comunes o preguntas para las solicitudes de clientes.</p>
+      <button type="button" className="catalog3-outline" onClick={()=>startAttribute()}><Plus size={15}/> Crear primer atributo</button>
+     </div>}
      <footer className="catalog3-attribute-foot">
       Los atributos de respuesta se pueden cumplimentar al registrar una solicitud manual en el CRM. El formulario público de la web no está conectado a esta configuración.
      </footer>

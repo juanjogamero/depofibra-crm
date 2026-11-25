@@ -304,3 +304,22 @@ test('Resultados: nueve informes mantienen contenidos y controles en diseño lig
  }
  expect(errors).toEqual([]);
 });
+
+test('Catálogo: regreso intuitivo desde atributos a productos y categorías',async({page})=>{
+ await open(page,'/catalogo');
+ const tabs=page.getByRole('navigation',{name:'Secciones del catálogo'});
+ await tabs.getByRole('button',{name:'Atributos'}).click();
+ await expect(page.getByRole('button',{name:'Volver a productos'})).toBeVisible();
+ await page.getByRole('button',{name:'Volver a productos'}).click();
+ await expect(page.getByRole('button',{name:'Ver y editar atributos'})).toBeVisible();
+ await tabs.getByRole('button',{name:'Categorías'}).click();
+ await expect(page.getByRole('heading',{name:'Categorías',exact:true})).toBeVisible();
+ await page.locator('.catalog3-overview-row').first().click();
+ await tabs.getByRole('button',{name:'Atributos'}).click();
+ await page.getByRole('navigation',{name:'Ruta en el catálogo'}).getByRole('button',{name:'Categorías'}).click();
+ await expect(page.getByRole('heading',{name:'Categorías',exact:true})).toBeVisible();
+ await page.setViewportSize({width:390,height:844});
+ await expect(tabs.getByRole('button',{name:'Categorías'})).toBeVisible();
+ await expect(tabs.getByRole('button',{name:'Productos'})).toBeVisible();
+ await expect(tabs.getByRole('button',{name:'Atributos'})).toBeVisible();
+});
