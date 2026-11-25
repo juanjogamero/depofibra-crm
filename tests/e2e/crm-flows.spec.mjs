@@ -556,3 +556,54 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
   }
  }
 });
+
+test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes',async({page})=>{
+ test.setTimeout(85000);
+ const sections=[
+  ['','Resumen y mapa'],['activity','Evolución'],['products','Productos'],
+  ['channels','Canales'],['zones','Zonas'],['quotes','Presupuestos'],
+  ['orders','Pedidos'],['conversion','Conversión'],['sources','Web y SEO']
+ ];
+ await page.setViewportSize({width:1512,height:900});
+ for(const [slug,label] of sections){
+  await open(page,'/resultados'+(slug?'/'+slug:''));
+  await expect(page.getByRole('heading',{name:'Rendimiento',exact:true})).toBeVisible();
+  await expect(page.locator('.ri-report-context h2')).toHaveText(label);
+  await expect(page.locator('.ri-active-content')).toBeVisible();
+  const nav=page.getByRole('navigation',{name:'Accesos directos a informes',exact:true});
+  await expect(nav).toBeVisible();
+  await expect(nav.getByRole('link')).toHaveCount(9);
+  await expect(nav.getByRole('link',{name:label,exact:true})).toHaveAttribute('aria-current','page');
+  await expect(page.locator('.ri-export-button')).toBeVisible();
+  const typ=await page.locator('.ri-report-context h2').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  expect(typ,'Título del informe legible: '+label).toBeGreaterThanOrEqual(16);
+  const scrollWidth=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+  expect(scrollWidth,'Sin desbordamiento horizontal: '+label).toBeLessThanOrEqual(3);
+ }
+ // Navegación directa y periodo: no perder los filtros originales.
+ await open(page,'/resultados');
+ await page.getByRole('navigation',{name:'Accesos directos a informes',exact:true}).getByRole('link',{name:'Canales'}).click();
+ await expect(page).toHaveURL(/#\/resultados\/channels/);
+ await page.getByRole('button',{name:'12 meses'}).click();
+ await expect(page.getByRole('button',{name:/12 meses/})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Informe siguiente'}).click();
+ await expect(page).toHaveURL(/#\/resultados\/zones/);
+ await expect.poll(async()=>page.locator('.ri-active-content').evaluate(el=>el.scrollTop)).toBe(0);
+ await expect(page.getByRole('heading',{name:'Mapa comercial · España y Portugal'})).toBeVisible();
+ const mapBox=await page.locator('.ri-geo-card').first().boundingBox();
+ expect(mapBox.height,'El mapa no debe colapsar por flex-shrink').toBeGreaterThan(320);
+ await page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'}).click({timeout:6500});
+ await expect(page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'})).toHaveAttribute('aria-pressed','true');
+
+ await page.setViewportSize({width:390,height:750});
+ for(const [slug,label] of sections){
+  await open(page,'/resultados'+(slug?'/'+slug:''));
+  await expect(page.locator('.ri-report-context h2')).toHaveText(label);
+  await expect(page.getByLabel('Seleccionar subapartado de Resultados')).toBeVisible();
+  await expect(page.locator('.ri-active-content')).toBeVisible();
+  const screen=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
+  expect(screen,'Sin corte horizontal del documento móvil: '+label).toBeLessThanOrEqual(3);
+ }
+ await page.getByLabel('Seleccionar subapartado de Resultados').selectOption('products');
+ await expect(page).toHaveURL(/#\/resultados\/products/);
+});

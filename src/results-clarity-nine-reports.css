@@ -1,0 +1,452 @@
+/* Resultados · nueve informes · claridad visual (25/11/2026).
+   Únicamente navegación, jerarquía y presentación. Se conservan datos,
+   cálculos, filtros, mapa interactivo, exportación y todas las tablas. */
+.page-results-insights.ri-gsc {
+ --result-blue:#01488e;
+ --result-ink:#002d59;
+ --result-muted:#58748a;
+ --result-line:#dbe7f0;
+ --result-soft:#eaf2fb;
+ max-width:1600px;
+ color:#173d5a;
+}
+.page-results-insights.ri-gsc .ri-header {
+ min-height:0;
+ padding:5px 1px 9px;
+ margin:0;
+ background:none;
+ border:0;
+}
+.page-results-insights.ri-gsc .ri-header h1 {
+ font:800 clamp(23px,1.8vw,29px)/1.2 "Plus Jakarta Sans",Inter,sans-serif;
+ letter-spacing:-.028em;
+ color:var(--result-ink);
+}
+.page-results-insights.ri-gsc .ri-header p {
+ margin:5px 0 0;
+ font:500 13px/1.5 Inter,sans-serif;
+ color:var(--result-muted);
+}
+.page-results-insights.ri-gsc .ri-toolbar-workspace {
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:10px;
+ padding:8px 0 11px;
+ margin:0;
+ border:0;
+ background:transparent;
+}
+.page-results-insights.ri-gsc .ri-toolbar-actions {gap:13px;}
+.page-results-insights.ri-gsc .ri-period-pills {
+ border:1px solid #cddfeb;
+ border-radius:8px;
+ background:#fff;
+}
+.page-results-insights.ri-gsc .ri-period-pills button {
+ min-height:36px;
+ padding:8px 12px;
+ color:#496984;
+ border-color:#e3edf4;
+ font:700 12.5px/1.3 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-period-pills button.is-active {
+ color:#fff;
+ background:var(--result-blue);
+}
+.page-results-insights.ri-gsc .ri-period-pills button:hover:not(.is-active),
+.page-results-insights.ri-gsc .ri-period-pills button:focus-visible {
+ background:#eaf2fb;
+ color:var(--result-blue);
+}
+.page-results-insights.ri-gsc .ri-period-pills button.is-active:focus-visible {
+ color:#fff;
+ background:#003e7b;
+ outline:2px solid #70a9d8;
+ outline-offset:2px;
+}
+.page-results-insights.ri-gsc .ri-export-button {
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ min-height:36px;
+ padding:8px 12px;
+ background:#fff;
+ border:1px solid #ccdfea;
+ border-radius:8px;
+ color:var(--result-blue);
+ font:750 12.5px/1.3 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-export-button:hover,
+.page-results-insights.ri-gsc .ri-export-button:focus-visible {
+ background:var(--result-soft);
+ border-color:#aacbe5;
+ color:#002d59;
+}
+/* Selector móvil conservado. En escritorio los nueve informes son visibles,
+   accesibles directamente y la página actual no se pierde en un desplegable. */
+.page-results-insights.ri-gsc .ri-toolbar .ri-report-selector {display:none;}
+.page-results-insights.ri-gsc .ri-reports-nav {
+ display:flex;
+ align-items:stretch;
+ gap:3px;
+ overflow-x:auto;
+ scrollbar-width:thin;
+ scrollbar-color:#bccfdd transparent;
+ min-width:0;
+ margin:4px 0 8px;
+ padding:4px 5px;
+ border:1px solid var(--result-line);
+ border-radius:9px;
+ background:rgba(255,255,255,.9);
+}
+.page-results-insights.ri-gsc .ri-reports-nav-item {
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ flex:1 0 auto;
+ min-height:39px;
+ padding:9px 10px;
+ border:1px solid transparent;
+ border-radius:6px;
+ text-align:center;
+ white-space:nowrap;
+ text-decoration:none;
+ color:#507087;
+ font:750 12px/1.3 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-reports-nav-item:hover,
+.page-results-insights.ri-gsc .ri-reports-nav-item:focus-visible {
+ background:var(--result-soft);
+ color:var(--result-blue);
+}
+.page-results-insights.ri-gsc .ri-reports-nav-item.is-active {
+ background:var(--result-soft);
+ color:var(--result-blue);
+ border-color:#d6e5f1;
+ box-shadow:inset 0 -2px 0 var(--result-blue);
+}
+.page-results-insights.ri-gsc .ri-reports-nav-item:focus-visible {
+ outline:2px solid var(--result-blue);
+ outline-offset:-2px;
+}
+/* Estado de datos y cabecera contextual: una sola línea de orientación. */
+.page-results-insights.ri-gsc .ri-data-context {
+ display:flex;
+ gap:7px;
+ align-items:center;
+ margin:0 0 8px;
+ color:#617e92;
+ font:500 12px/1.5 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-report-context {
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ min-height:66px;
+ margin:0 0 13px;
+ padding:11px 15px;
+ border:1px solid var(--result-line);
+ border-radius:9px;
+ background:rgba(255,255,255,.9);
+}
+.page-results-insights.ri-gsc .ri-report-context-copy>span {
+ color:var(--result-blue);
+ font:800 10.8px/1.25 Inter,sans-serif;
+ letter-spacing:.05em;
+}
+.page-results-insights.ri-gsc .ri-report-context-copy h2 {
+ margin:2px 0;
+ color:var(--result-ink);
+ font:800 16.8px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-report-context-copy p {
+ margin:0;
+ color:var(--result-muted);
+ font:500 12.5px/1.5 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-report-context-nav {gap:6px;}
+.page-results-insights.ri-gsc .ri-report-context-nav button {
+ min-height:35px;
+ padding:7px 11px;
+ border:1px solid #d7e5ee;
+ border-radius:7px;
+ color:var(--result-blue);
+ font:700 12px/1.3 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-report-context-nav button:disabled {
+ opacity:.45;
+ color:#678097;
+}
+/* Estética compartida por TODOS los informes, sin mosaico de tarjetas flotantes. */
+.page-results-insights.ri-gsc .ri-active-content {min-width:0;gap:0;}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-overview,.ri-geo-card,.ri-study-section,.ri-trend-report,
+ .ri-integration-panel,.ri-panel,.ri-product-card,.ri-distribution-card,
+ .ri-activity-board,.ri-digital-report,.ri-digital-source-panel
+) {
+ background:#fff;
+ border:1px solid var(--result-line);
+ border-radius:10px;
+ box-shadow:none!important;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-overview,.ri-geo-card,.ri-study-section,.ri-trend-report,
+ .ri-integration-panel,.ri-panel,.ri-product-card,.ri-distribution-card,
+ .ri-activity-board,.ri-digital-report
+) {margin-bottom:12px;}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-head,.ri-panel-head,.ri-study-head,.ri-rich-head,
+ .ri-activity-head,.ri-trend-head
+) {
+ border-bottom-color:#e5eef5;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-head h2,.ri-panel-head h2,.ri-study-head h2,
+ .ri-rich-head h3,.ri-activity-head h2,.ri-view-section-label h2,
+ .ri-geo-pro .ri-geo-title h2
+) {
+ font-family:"Plus Jakarta Sans",Inter,sans-serif;
+ font-size:15.5px;
+ line-height:1.35;
+ font-weight:800;
+ color:var(--result-ink);
+}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-head p,.ri-panel-head p,.ri-study-head p,
+ .ri-rich-head p,.ri-activity-head p,.ri-view-section-label p,
+ .ri-geo-pro .ri-geo-title p
+) {
+ font-size:12.5px;
+ line-height:1.5;
+ color:var(--result-muted);
+}
+.page-results-insights.ri-gsc .ri-view-section-label {
+ margin:3px 0 10px;
+ padding:4px 1px;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-grid-two,.ri-product-card-grid,.ri-product-secondary,
+ .ri-acquisition-grid,.ri-gsc-location-grid,.ri-grid-three
+) {
+ gap:12px;
+}
+.page-results-insights.ri-gsc .ri-focus-stat {
+ min-width:0;
+ padding:14px 16px;
+ gap:6px;
+}
+.page-results-insights.ri-gsc .ri-focus-stat>span {
+ color:#54748d;
+ font-size:12px;
+ line-height:1.4;
+}
+.page-results-insights.ri-gsc .ri-focus-stat strong {
+ color:var(--result-blue);
+ font:800 clamp(25px,2.3vw,30px)/1.15 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-focus-stat:nth-child(n) strong {color:var(--result-blue);}
+.page-results-insights.ri-gsc .ri-focus-stat small {
+ color:#5e798f;
+ font-size:11.8px;
+ line-height:1.4;
+}
+.page-results-insights.ri-gsc .ri-focus-signal {padding:10px 15px;}
+.page-results-insights.ri-gsc .ri-overview-signals {
+ display:flex;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:8px 18px;
+ padding:11px 14px;
+ margin:0 0 12px;
+ background:#fff;
+ border:1px solid var(--result-line);
+ border-radius:8px;
+ font-size:12.5px;
+ line-height:1.5;
+ color:#4d6980;
+}
+.page-results-insights.ri-gsc .ri-overview-signals strong {color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-overview-signals a {color:var(--result-blue);}
+/* Territorio: equilibrio mapa / lectura, manteniendo el mapa y sus controles. */
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {
+ padding:14px 17px;
+ gap:12px;
+ align-items:center;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-title h2 {font-size:16px;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {
+ display:grid;
+ grid-template-columns:minmax(0,1.08fr) minmax(305px,.92fr);
+ gap:0;
+ padding:0;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-maparea {
+ min-width:0;
+ background:#f8fbfe;
+ align-self:stretch;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-svg {
+ display:block;
+ width:100%;
+ height:auto;
+ max-width:none;
+ max-height:350px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro-strip>div {padding:10px 14px;}
+.page-results-insights.ri-gsc .ri-geo-pro-strip span {
+ font-size:11.9px;
+ color:#57748c;
+}
+.page-results-insights.ri-gsc .ri-geo-pro-strip strong {font-size:22px;color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {background:#fff;}
+.page-results-insights.ri-gsc .ri-map-selection {
+ background:#fafdff;
+ padding:13px 15px;
+}
+.page-results-insights.ri-gsc .ri-map-selection-label {font-size:11px;color:#648097;}
+.page-results-insights.ri-gsc .ri-map-selection>strong {font-size:17px;color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-map-selection p {font-size:12.5px;color:#527188;}
+.page-results-insights.ri-gsc .ri-map-selection small {font-size:11.5px;color:#648197;line-height:1.45;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-zones {padding:12px 14px 8px;}
+.page-results-insights.ri-gsc .ri-map-list-head h3 {font-size:13.5px;color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-map-list-head span {font-size:11.5px;color:#678297;}
+.page-results-insights.ri-gsc .ri-map-zones-table {max-height:225px;}
+.page-results-insights.ri-gsc .ri-map-zones-table>button {
+ min-height:35px;
+ padding:7px 9px;
+ border-radius:5px;
+ color:#446680;
+ font-size:12.5px;
+}
+.page-results-insights.ri-gsc .ri-map-zones-table>button:hover,
+.page-results-insights.ri-gsc .ri-map-zones-table>button.is-active {
+ background:var(--result-soft);
+ color:var(--result-blue);
+}
+.page-results-insights.ri-gsc .ri-map-zones-table>button strong {font-size:12.5px;color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-map-zones-table>button small {font-size:11.7px;color:#678399;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-link {font-size:12.5px;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-foot {font-size:11.7px;line-height:1.5;}
+.page-results-insights.ri-gsc .ri-geo-switch button {
+ min-height:34px;
+ font-size:12.5px;
+}
+.page-results-insights.ri-gsc .ri-geo-switch button.is-active {
+ background:var(--result-blue);
+ color:#fff;
+}
+/* Tablas, filtros y controles: mismo tamaño de lectura en cada vista. */
+.page-results-insights.ri-gsc .ri-study-table :is(th,td) {
+ padding:11px 12px;
+ font-size:12.5px;
+ line-height:1.5;
+}
+.page-results-insights.ri-gsc .ri-study-table thead th {
+ background:#f4f8fc;
+ font-size:11.7px;
+ color:#476982;
+}
+.page-results-insights.ri-gsc .ri-study-table tbody tr:hover:not(.ri-study-total) {background:#f1f7fb;}
+.page-results-insights.ri-gsc :is(
+ .ri-study-search input,.ri-study-sort select,.ri-map-filter input
+) {
+ min-height:36px;
+ font-size:12.5px;
+ color:#173d5a;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-study-strip span,.ri-study-strip small,.ri-study-footnote,
+ .ri-study-inline-facts,.ri-inline-note,.ri-digital-integration p
+) {
+ font-size:12px;
+ line-height:1.5;
+ color:#627d90;
+}
+.page-results-insights.ri-gsc .ri-study-strip strong {font-size:23px;color:var(--result-ink);}
+.page-results-insights.ri-gsc .ri-trend-metric strong {color:var(--result-blue);}
+.page-results-insights.ri-gsc .ri-trend-metric span {font-size:12.5px;}
+.page-results-insights.ri-gsc .ri-panel-link,
+.page-results-insights.ri-gsc .ri-study-link {color:var(--result-blue);}
+.page-results-insights.ri-gsc :is(
+ .ri-map-showall,.ri-digital-dimensions button,
+ .ri-digital-source-nav button,.ri-donut-choice
+) {
+ font-size:12.5px;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-digital-dimensions button.is-active,.ri-digital-source-nav button.is-active
+) {color:var(--result-blue);border-bottom-color:var(--result-blue);}
+.page-results-insights.ri-gsc .ri-workspace-footer {
+ font-size:11.6px;
+ line-height:1.55;
+ color:#60798e;
+}
+/* Portátil: mantener navegación accesible sin comprimir nueve botones. */
+@container crm-content (max-width:1010px) {
+ .page-results-insights.ri-gsc .ri-reports-nav {display:none;}
+ .page-results-insights.ri-gsc .ri-toolbar .ri-report-selector {
+  display:inline-flex;
+  min-width:190px;
+  font-size:12.5px;
+ }
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {grid-template-columns:minmax(0,1fr);}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {
+  border-left:0;
+  border-top:1px solid var(--result-line);
+ }
+}
+@media(max-width:840px) {
+ .page-results-insights.ri-gsc .ri-toolbar-workspace {align-items:stretch;}
+ .page-results-insights.ri-gsc .ri-report-context {flex-direction:column;align-items:stretch;}
+ .page-results-insights.ri-gsc .ri-report-context-nav {width:100%;}
+ .page-results-insights.ri-gsc .ri-report-context-nav button {flex:1;}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {grid-template-columns:minmax(0,1fr);}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {border-left:0;border-top:1px solid var(--result-line);}
+}
+@media(max-width:500px) {
+ .page-results-insights.ri-gsc .ri-header h1 {font-size:23px;}
+ .page-results-insights.ri-gsc .ri-toolbar .ri-report-selector {width:100%;max-width:none;justify-content:space-between;}
+ .page-results-insights.ri-gsc .ri-toolbar .ri-report-selector select {flex:1;min-width:0;}
+ .page-results-insights.ri-gsc .ri-toolbar-workspace {gap:9px;}
+ .page-results-insights.ri-gsc .ri-period-pills button {padding-inline:7px;font-size:12px;}
+ .page-results-insights.ri-gsc .ri-report-context {padding:10px 12px;}
+ .page-results-insights.ri-gsc .ri-focus-stat {padding:11px 12px;}
+ .page-results-insights.ri-gsc .ri-overview-signals {padding:10px 12px;}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {padding:12px;}
+ .page-results-insights.ri-gsc .ri-geo-pro-strip {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .page-results-insights.ri-gsc .ri-geo-pro-strip>div {padding:8px 11px;}
+ .page-results-insights.ri-gsc .ri-map-selection {padding:12px;}
+ .page-results-insights.ri-gsc .ri-map-zones-table {max-height:250px;}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-zones {padding:10px 12px 6px;}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-foot {font-size:11.2px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .page-results-insights.ri-gsc .ri-reports-nav-item {transition:none;}
+}
+
+/* Garantizar controles del mapa clicables al navegar entre informes:
+   cabecera y selector encima de la propia cartografía, sin superposiciones. */
+.page-results-insights.ri-gsc .ri-active-content {
+ /* No encoger los informes dentro del área con scroll: el mapa debe
+    conservar su altura real y los bloques siguientes no pueden taparlo. */
+ display:block;
+ position:relative;
+ z-index:1;
+ min-height:0;
+}
+.page-results-insights.ri-gsc .ri-geo-pro {
+ position:relative;
+ isolation:isolate;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {
+ position:relative;
+ z-index:3;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-switch {
+ position:relative;
+ z-index:4;
+}
+.page-results-insights.ri-gsc .ri-report-context {position:relative;z-index:0;}
