@@ -211,9 +211,19 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         if(target==='En fabricación'){
           const qtyOk=(value?:string)=>value!==undefined&&value.trim()!==''&&Number.isInteger(Number(value))&&Number(value)>=0;
           const diamOk=(qty?:string,diam?:string)=>Number(qty)===0||(Boolean(diam&&Number(diam)>0));
-          if(current.paymentMode==='Pendiente'||!patch.configurationConfirmedAt||!patch.color?.trim()
-              ||!patch.deliveryDate||!qtyOk(patch.inletCount)||!qtyOk(patch.outletCount)
-              ||!diamOk(patch.inletCount,patch.inletDiameterMm)||!diamOk(patch.outletCount,patch.outletDiameterMm))return d;
+          const products=current.items?.filter(line=>line.kind==='product')||[];
+          const specsValid=products.length>0?
+            products.every(line=>{
+              const spec=patch.itemConfigurations?.[line.id];
+              const heightOk=(qty?:string,height?:string)=>Number(qty)===0||
+                (Boolean(height?.trim())&&Number.isFinite(Number(height))&&Number(height)>=0);
+              return Boolean(spec?.color.trim())&&qtyOk(spec?.inletCount)&&qtyOk(spec?.outletCount)
+                &&diamOk(spec?.inletCount,spec?.inletDiameterMm)&&diamOk(spec?.outletCount,spec?.outletDiameterMm)
+                &&heightOk(spec?.inletCount,spec?.inletHeightMm)&&heightOk(spec?.outletCount,spec?.outletHeightMm);
+            })
+            :Boolean(patch.color?.trim()&&qtyOk(patch.inletCount)&&qtyOk(patch.outletCount)
+              &&diamOk(patch.inletCount,patch.inletDiameterMm)&&diamOk(patch.outletCount,patch.outletDiameterMm));
+          if(current.paymentMode==='Pendiente'||!patch.configurationConfirmedAt||!patch.deliveryDate||!specsValid)return d;
         }
         if(target==='En tránsito'&&(!patch.transportConfirmedAt||!patch.transportCompany?.trim()||!patch.departureDate))return d;
         if(target==='Entregado'&&(!patch.deliveredAt||patch.deliveredAt.slice(0,10)>today()))return d;
