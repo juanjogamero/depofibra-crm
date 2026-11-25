@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, ExternalLink, X, Pencil, Trash2, RotateCcw, Archive, ClipboardCheck } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
-import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
+import QuoteLineItems from '../QuoteLineItems';
+import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, type QuoteItemKind, type QuoteLineItem, quoteItemsSubtotal, quoteItemTotal, roundEuros, uid, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
 const statuses: OpportunityStatus[]=['Nueva','Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento','Aceptada','Perdida'];
@@ -98,7 +99,7 @@ export function Opportunities(){
    </div>
    {showDeleted&&<div className="crm-trash-notice"><Archive size={16}/> Oportunidades apartadas: puedes recuperarlas sin afectar sus presupuestos.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar oportunidades por estado">
-     {groups.map(g=><button type="button" key={g.id}
+     {groups.filter(g=>showDeleted||g.id!=='Perdida').map(g=><button type="button" key={g.id}
        className={'op-phase-tab op-phase-'+g.tone+(quick===g.id?' is-active':'')}
        aria-pressed={quick===g.id}
        onClick={()=>{setQuick(g.id);setStatus('Todos los estados')}}>
@@ -185,7 +186,7 @@ export function Opportunities(){
        {!list.length&&<Empty title="No hay solicitudes" body="Prueba otra búsqueda o cambia los filtros."/>}
      </div>
      <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted).length}</strong> solicitudes
-      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters()}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
+      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters();setQuick('Todas')}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Se guarda en este navegador; no introduzcas información sensible" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
    <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Empresa o referencia de consulta"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
@@ -255,15 +256,17 @@ export function OpportunityDetail(){
  const [draft,setDraft]=useState({
    name:'',contact:'',alias:'',channel:'Web' as Channel,originChannel:'' as Channel|'',
    destination:'',product:'',capacity:'',conversation:'',message:'',status:'Nueva' as OpportunityStatus,
-   nextAction:'',nextDate:''
+   nextAction:'',nextDate:'',lostReason:''
  });
  const beginEdit=()=>{if(!o)return;setDraft({
    name:o.name,contact:o.contact||'',alias:o.alias||'',channel:o.channel,originChannel:o.originChannel||'',
    destination:o.destination||'',product:o.product,capacity:o.capacity||'',conversation:o.conversation||'',
-   message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||''
+   message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||'',lostReason:o.lostReason||''
  });setEditing(true)};
  const saveEdit=(event:FormEvent)=>{event.preventDefault();if(!o||!draft.name.trim()||!draft.product.trim())return;
-   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});addActivity(o.id,'Datos de oportunidad actualizados');setEditing(false);
+   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});
+   addActivity(o.id,draft.status==='Perdida'?'Oportunidad perdida · motivo: '+(draft.lostReason||'No indicado'):'Datos de oportunidad actualizados');
+   setEditing(false);if(draft.status==='Perdida')nav('/oportunidades');
  };
  if(!o)return <Missing to="/oportunidades"/>;
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
@@ -283,7 +286,16 @@ export function OpportunityDetail(){
   <div className="info-grid">{o.attributeAnswers.map(a=><Info key={a.attributeId} label={a.label} value={a.value}/>)}</div>
  </>}
  <h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
- <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
+ <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select disabled={Boolean(o.deletedAt)} value={o.status} onChange={e=>{
+     const next=e.target.value as OpportunityStatus;
+     if(next==='Perdida'){
+       if(!window.confirm('¿Marcar esta oportunidad como perdida y enviarla directamente a la papelera recuperable?'))return;
+       const reason=window.prompt('Motivo de pérdida (opcional):',o.lostReason||'');
+       if(reason===null)return;
+       updateOpportunity(o.id,{status:'Perdida',lostReason:reason.trim()||'No indicado'});
+       nav('/oportunidades');
+     }else updateOpportunity(o.id,{status:next});
+    }}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
  {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer presupuesto para esta consulta."/>}</div></Panel>}
  {tab==='Actividad'&&<div className="detail-grid"><Panel title="Historial de interacciones"><Timeline items={o.activity}/></Panel><Panel title="Registrar seguimiento"><form onSubmit={e=>{e.preventDefault();if(note.trim()){addActivity(o.id,note.trim());setNote('')}}} className="form-stack"><Field label="Nota de la conversación"><textarea value={note} onChange={e=>setNote(e.target.value)} rows={5} placeholder="Llamada, respuesta, comentario..."/></Field><Button type="submit"><Plus size={16}/>Añadir nota</Button></form></Panel></div>}
  {editing&&<Modal title="Editar oportunidad" subtitle={'Ficha '+o.id} onClose={()=>setEditing(false)}>
@@ -298,6 +310,8 @@ export function OpportunityDetail(){
    <Field label="Capacidad"><input value={draft.capacity} onChange={e=>setDraft({...draft,capacity:e.target.value})}/></Field>
    <Field label="Localidad"><input value={draft.destination} onChange={e=>setDraft({...draft,destination:e.target.value})}/></Field>
    <Field label="Estado"><select value={draft.status} onChange={e=>setDraft({...draft,status:e.target.value as OpportunityStatus})}>{statuses.map(st=><option key={st}>{st}</option>)}</select></Field>
+   {draft.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={draft.lostReason} onChange={e=>setDraft({...draft,lostReason:e.target.value})}>
+    <option value="">Sin indicar</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(x=><option key={x} value={x}>{x}</option>)}</select></Field>}
    <Field label="Seguimiento"><input type="date" value={draft.nextDate} onChange={e=>setDraft({...draft,nextDate:e.target.value})}/></Field>
   </div>
   <Field label="Próxima acción"><input value={draft.nextAction} onChange={e=>setDraft({...draft,nextAction:e.target.value})}/></Field>
@@ -478,100 +492,159 @@ export function Quotes(){
  </div>;
 }
 
+type QuoteDraftItem={id:string;kind:QuoteItemKind;description:string;quantity:string;unitPrice:string;productId:string};
+const quoteKindLabel:Record<QuoteItemKind,string>={product:'Producto',shipping:'Transporte',service:'Servicio',other:'Otro'};
+const newQuoteDraft=(kind:QuoteItemKind='product',description=''):QuoteDraftItem=>({
+ id:uid('LIN'),kind,description:description||(kind==='shipping'?'Transporte':''),
+ quantity:'1',unitPrice:'',productId:''
+});
+
 export function QuoteNew(){
- const {data,addQuote}=useCrm();const nav=useNavigate();const [params]=useSearchParams();
+ const {data,addQuote}=useCrm();
+ const nav=useNavigate();
+ const [params]=useSearchParams();
  const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!o.deletedAt&&!['Aceptada','Perdida'].includes(o.status))?.id||'');
  const lead=data.opportunities.find(o=>o.id===opId);
- const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
- const [product,setProduct]=useState(leadProduct(lead));
- const [catalogId,setCatalogId]=useState('');
- const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[sent,setSent]=useState(false);
- const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')||a.name.localeCompare(b.name,'es')||
-  (Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
- const categories=(data.productCategories||[]).filter(c=>available.some(p=>p.categoryId===c.id));
- const catalogProduct=data.products.find(p=>p.id===catalogId);
- const selectedCategory=(data.productCategories||[]).find(c=>c.id===catalogProduct?.categoryId);
- const attributes=selectedCategory?.attributes.filter(a=>a.value.trim())||[];
- const chooseCatalog=(id:string)=>{
-  if(id==='manual'){
-   setCatalogId('');setAmount('');
-   return;
-  }
-  const p=data.products.find(x=>x.id===id&&x.active);
-  if(!p)return;
-  setCatalogId(p.id);
-  setProduct(p.name+' · '+p.capacity);
-  setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
-  
+ const leadProduct=(o:typeof lead)=>o?o.product+(o.capacity?' · '+o.capacity:''):'';
+ const [lines,setLines]=useState<QuoteDraftItem[]>(()=>[newQuoteDraft('product',leadProduct(lead))]);
+ const [transport,setTransport]=useState('0');
+ const [commission,setCommission]=useState('0');
+ const [details,setDetails]=useState('');
+ const [sent,setSent]=useState(false);
+ const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')
+  ||a.name.localeCompare(b.name,'es')
+  ||(Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
+ const categories=(data.productCategories||[]).filter(cat=>available.some(p=>p.categoryId===cat.id));
+ const setLine=(id:string,patch:Partial<QuoteDraftItem>)=>
+   setLines(previous=>previous.map(line=>line.id===id?{...line,...patch}:line));
+ const addLine=(kind:QuoteItemKind)=>setLines(previous=>[...previous,newQuoteDraft(kind)]);
+ const chooseCatalog=(id:string,productId:string)=>{
+   if(!productId){setLine(id,{productId:''});return;}
+   const product=available.find(p=>p.id===productId);
+   if(!product)return;
+   setLine(id,{productId:product.id,description:product.name+' · '+product.capacity,
+     unitPrice:product.salePriceConfigured&&product.price>=0?String(product.price):''});
  };
-
- const save=(e:FormEvent)=>{
-  e.preventDefault();
-  const value=Number(amount);
-  if(!opId||!product.trim()||!Number.isFinite(value)||value<=0)return;
-  addQuote({
-   opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
-   productId:catalogId||undefined,amount:value,
-   commission:Number(commission)||0,transport:Number(transport)||0,details:details.trim(),
-   status:sent?'Enviado':'Borrador',message:''
-  });
-  nav('/presupuestos');
+ const parsed:QuoteLineItem[]=lines.map(line=>({
+   id:line.id,kind:line.kind,description:line.description.trim(),
+   quantity:Number(line.quantity),unitPrice:roundEuros(Number(line.unitPrice)),
+   productId:line.productId||undefined
+ }));
+ const validLines=lines.length>0&&lines.every(line=>line.description.trim().length>0
+  &&line.quantity.trim()!==''&&Number.isFinite(Number(line.quantity))&&Number(line.quantity)>0
+  &&line.unitPrice.trim()!==''&&Number.isFinite(Number(line.unitPrice))&&Number(line.unitPrice)>=0);
+ const subtotal=validLines?quoteItemsSubtotal(parsed):0;
+ const validPrivate=commission.trim()!==''&&Number.isFinite(Number(commission))&&Number(commission)>=0
+  &&Number.isFinite(Number(transport))&&Number(transport)>=0;
+ const canSave=Boolean(lead&&!lead.deletedAt&&validLines&&subtotal>0&&validPrivate
+  &&lines.some(x=>x.kind==='product'));
+ const save=(event:FormEvent)=>{
+   event.preventDefault();
+   if(!canSave||!lead)return;
+   const products=parsed.filter(line=>line.kind==='product');
+   const productSummary=products.map(line=>(line.quantity!==1?line.quantity+' × ':'')+line.description).join(' + ');
+   addQuote({opportunityId:opId,name:lead.name,product:productSummary,
+     productId:products.length===1?products[0].productId:undefined,
+     items:parsed,amount:subtotal,transport:roundEuros(Number(transport)),
+     commission:roundEuros(Number(commission)),details:details.trim(),
+     status:sent?'Enviado':'Borrador',message:''});
+   nav('/presupuestos');
  };
- return <div className="page page-crm-form page-quote-catalog"><Back to="/presupuestos" label="Volver a presupuestos"/>
-  <PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto" subtitle="Selecciona una referencia del catálogo para cargar su precio o introduce la oferta manualmente."/>
- <form onSubmit={save} className="quote-builder">
-  <div className="builder-main">
-   <Panel title="Información de la oferta">
-    <div className="form-grid">
-     <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
-       setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
-       setProduct(leadProduct(o));setCatalogId('');setAmount('');
-     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
-     <Field label="Producto del catálogo o manual">
-      <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
-       <option value="manual">Escribir producto manualmente</option>
-       {categories.map(c=><optgroup key={c.id} label={c.name}>
-        {available.filter(p=>p.categoryId===c.id).map(p=><option key={p.id} value={p.id}>
-          {p.name} · {p.capacity} · {p.salePriceConfigured&&p.price>0?decimal(p.price):'Precio por verificar'}
-        </option>)}
-       </optgroup>)}
-       {available.filter(p=>!categories.some(c=>c.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
-      </select>
-     </Field>
-     <Field label="Producto y capacidad"><input required value={product} onChange={e=>{
-       setProduct(e.target.value);if(catalogId){setCatalogId('');setAmount('');}
-     }} placeholder="Ej. Depósito vertical base plana · 10.000 L"/></Field>
-     <Field label="Precio comunicado (€)"><input type="number" required min=".01" step=".01"
-      value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0,00"/></Field>
-     <Field label="Transporte interno estimado (€)"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
-    </div>
-    {catalogProduct&&<div className={'quote-catalog-feedback'+(catalogProduct.salePriceConfigured&&catalogProduct.price>0?' is-priced':' is-unpriced')}>
-     <div><Package size={17}/><strong>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Precio de catálogo precargado':'Referencia sin precio de venta'}</strong></div>
-     <p>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Puedes ajustar el importe de esta oferta sin modificar el precio guardado en el catálogo.':
-      'Introduce el precio manualmente antes de guardar la oferta; el catálogo no contiene un importe configurado para esta capacidad.'}</p>
-     {attributes.length>0&&<div className="quote-catalog-attributes">
-      <span>Atributos comunes de categoría (verifica su aplicación antes de ofertar):</span>
-      {attributes.map(a=><span key={a.id}>{a.label}: <b>{a.value}</b></span>)}
-     </div>}
-    </div>}
-    <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
-    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/transporte">Calculadora de transporte</Link> antes de comunicar condiciones.</div>
-   </Panel>
-
-  </div>
-  <div className="builder-side">
-   <Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{decimal(Number(amount)||0)}</strong></div>
-    <div className="summary-line"><span>Porte orientativo</span><strong>{decimal(Number(transport)||0)}</strong></div>
-    <div className="summary-line"><span>Comisión acordada</span><strong>{decimal(Number(commission)||0)}</strong></div>
-    <Field label="Comisión interna (€)"><input type="number" min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
-    <div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div>
-   </Panel>
-   <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
-     <span><strong>Marcar como enviada</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
-    <Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/>
-   </Panel>
-  </div>
- </form></div>;
+ return <div className="page page-crm-form page-quote-catalog crm-quote-multi">
+  <Back to="/presupuestos" label="Volver a presupuestos"/>
+  <PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto"
+    subtitle="Añade todos los productos y servicios. Los precios se guardan por partida y el total se calcula sin IVA."/>
+  <form onSubmit={save} className="quote-builder">
+   <div className="builder-main">
+    <Panel title="Datos de la oferta">
+     <Field label="Solicitud asociada"><select required value={opId} onChange={e=>{
+       setOpId(e.target.value);
+       const selected=data.opportunities.find(o=>o.id===e.target.value);
+       setLines([newQuoteDraft('product',leadProduct(selected))]);
+     }}><option value="">Elegir solicitud</option>
+       {data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}
+     </select></Field>
+    </Panel>
+    <Panel title="Desglose del presupuesto" className="crm-quote-items-panel">
+      <p className="crm-quote-help">Cada producto, transporte o servicio tiene su propio precio de venta. Los importes están expresados <strong>sin IVA</strong>.</p>
+      <div className="crm-quote-lines">
+       {lines.map((line,index)=>{
+         const selectedProduct=available.find(p=>p.id===line.productId);
+         const category=(data.productCategories||[]).find(cat=>cat.id===selectedProduct?.categoryId);
+         const commonAttrs=category?.attributes.filter(attr=>attr.value.trim()&&!attr.hidden)||[];
+         const lineValid=line.quantity.trim()!==''&&line.unitPrice.trim()!==''&&Number(line.quantity)>0&&Number(line.unitPrice)>=0;
+         return <article key={line.id} className="crm-quote-line">
+          <div className="crm-quote-line-header">
+           <strong>{index+1}. {quoteKindLabel[line.kind]}</strong>
+           <button type="button" onClick={()=>setLines(prev=>prev.filter(x=>x.id!==line.id))}
+              disabled={lines.length===1} aria-label={'Eliminar partida '+(index+1)}><Trash2 size={15}/>Quitar</button>
+          </div>
+          <div className="crm-quote-line-fields">
+           <Field label="Concepto"><select aria-label={'Tipo partida '+(index+1)} value={line.kind} onChange={e=>{
+             const kind=e.target.value as QuoteItemKind;
+             setLine(line.id,{kind,productId:kind==='product'?line.productId:'',description:kind==='shipping'&&!line.description?'Transporte':line.description});
+           }}>
+             <option value="product">Producto</option><option value="shipping">Transporte</option>
+             <option value="service">Servicio</option><option value="other">Otro concepto</option>
+           </select></Field>
+           {line.kind==='product'&&<Field label="Elegir referencia del catálogo">
+             <select value={line.productId} onChange={e=>chooseCatalog(line.id,e.target.value)}>
+              <option value="">Producto introducido manualmente</option>
+              {categories.map(cat=><optgroup key={cat.id} label={cat.name}>
+                {available.filter(p=>p.categoryId===cat.id).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}{p.salePriceConfigured?' · '+decimal(p.price):' · Precio sin verificar'}</option>)}
+              </optgroup>)}
+              {available.filter(p=>!categories.some(cat=>cat.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
+             </select></Field>}
+           <div className="crm-quote-line-description"><Field label="Descripción">
+             <input required value={line.description} onChange={e=>setLine(line.id,{description:e.target.value,productId:''})} placeholder={line.kind==='product'?'Depósito vertical 10.000 L':line.kind==='service'?'Revestimiento alimentario':'Concepto cobrado al cliente'}/>
+           </Field></div>
+           <Field label="Cantidad"><input type="number" required min=".01" step=".01" value={line.quantity} onChange={e=>setLine(line.id,{quantity:e.target.value})}/></Field>
+           <Field label="Precio unitario (€)"><input type="number" required min="0" step=".01" value={line.unitPrice} onChange={e=>setLine(line.id,{unitPrice:e.target.value})} placeholder="Sin IVA"/></Field>
+           <div className="crm-quote-line-total"><span>Importe</span><strong>{lineValid?decimal(quoteItemTotal(parsed[index])):'—'}</strong></div>
+          </div>
+          {line.productId&&selectedProduct&&!selectedProduct.salePriceConfigured&&<p className="crm-quote-line-caution">Esta referencia no tiene precio de venta verificado. Introduce manualmente el importe antes de guardar.</p>}
+          {commonAttrs.length>0&&<p className="crm-quote-line-attrs"><strong>Atributos de categoría:</strong> {commonAttrs.map(a=>a.label+': '+a.value).join(' · ')}. Comprueba que aplican a esta referencia.</p>}
+         </article>;
+       })}
+      </div>
+      <div className="crm-quote-add-row">
+       <button type="button" onClick={()=>addLine('product')}><Plus size={16}/>Añadir producto</button>
+       <button type="button" onClick={()=>addLine('shipping')}><Plus size={16}/>Añadir transporte</button>
+       <button type="button" onClick={()=>addLine('service')}><Plus size={16}/>Añadir servicio</button>
+       <button type="button" onClick={()=>addLine('other')}><Plus size={16}/>Otro concepto</button>
+      </div>
+      <div className="crm-quote-subtotal"><span>TOTAL SIN IVA</span><strong>{decimal(subtotal)}</strong></div>
+    </Panel>
+    <Panel title="Condiciones técnicas y de entrega">
+      <Field label="Observaciones verificadas"><textarea rows={4} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Condiciones confirmadas y especificaciones de los productos. No incluir acuerdos no contrastados."/></Field>
+      <p className="crm-quote-help">Los portes deben figurar como una partida de «Transporte» para sumarse al cliente. La descarga se verifica aparte con el transportista.</p>
+      <div className="inline-tip"><Truck size={17}/>Puedes calcular una estimación interna en la <Link to="/transporte">Calculadora de transporte</Link> antes de ofertar.</div>
+    </Panel>
+   </div>
+   <div className="builder-side">
+    <Panel title="Resumen económico">
+      <div className="crm-quote-private-summary">
+       <div><span>Productos</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='product')):0)}</strong></div>
+       <div><span>Envío facturado</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='shipping')):0)}</strong></div>
+       <div><span>Servicios y otros</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='service'||x.kind==='other')):0)}</strong></div>
+       <div className="is-total"><span>Total sin IVA</span><strong>{decimal(subtotal)}</strong></div>
+      </div>
+      <div className="crm-quote-private-fields">
+       <Field label="Comisión acordada (€) · solo uso interno"><input type="number" required min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
+       <Field label="Porte orientativo de coste interno (€) · no suma al total"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
+      </div>
+      <p className="crm-quote-private-notice"><Shield size={15}/> La comisión y la estimación interna de transporte no se suman al precio del cliente.</p>
+    </Panel>
+    <Panel title="Guardar presupuesto">
+      <label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
+       <span><strong>Marcar como enviado</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
+      <Button type="submit" className="full-width" disabled={!canSave}><Check size={16}/>Guardar presupuesto</Button>
+      {!canSave&&<p className="crm-quote-help">Añade al menos un producto, comprueba las cantidades y precios y confirma un total superior a cero.</p>}
+      <NoteDemo/>
+    </Panel>
+   </div>
+  </form>
+ </div>;
 }
 
 export function QuoteDetail(){
@@ -612,20 +685,22 @@ export function QuoteDetail(){
    <div className="detail-grid crm-quote-detail-grid">
      <Panel title="Resumen del presupuesto">
        <div className="crm-quote-summary">
-         <div><span>Importe ofertado</span><strong>{decimal(q.amount)}</strong></div>
+         <div><span>{q.items?.length?'Total sin IVA':'Importe ofertado registrado'}</span><strong>{decimal(q.amount)}</strong></div>
          <div><span>Producto</span><strong>{q.product}</strong></div>
          <div><span>Cliente</span><strong>{q.name}</strong></div>
          <div><span>Registrado</span><strong>{dateText(q.createdAt)}</strong></div>
        </div>
        {q.opportunityId&&<Link className="crm-text-link" to={'/oportunidades/'+q.opportunityId}>Abrir solicitud relacionada <ArrowRight size={16}/></Link>}
        {q.details&&<div className="crm-quote-details"><strong>Características y condiciones anotadas</strong><p>{q.details}</p></div>}
+       <div className="crm-quote-detail-heading"><h3>Productos y conceptos incluidos</h3><p>Precios de venta por concepto{q.items?.length?' · todos sin IVA':' · el desglose no consta en este presupuesto anterior'}.</p></div>
+       <QuoteLineItems items={q.items} total={q.amount} legacyProduct={q.product}/>
        <p className="crm-inline-help">Los mensajes comerciales se redactan fuera del CRM. Aquí se conserva exclusivamente el control del presupuesto.</p>
      </Panel>
      <div className="right-stack">
        <Panel title="Estado y formalización">
-         <div className="summary-line"><span>Importe</span><strong>{money(q.amount)}</strong></div>
-         <div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div>
-         <div className="summary-line"><span>Transporte orientativo</span><strong>{money(q.transport)}</strong></div>
+         <div className="summary-line"><span>{q.items?.length?'Total sin IVA':'Importe global'}</span><strong>{decimal(q.amount)}</strong></div>
+         <div className="summary-line"><span>Comisión interna (aparte)</span><strong>{decimal(q.commission)}</strong></div>
+         <div className="summary-line"><span>Porte interno orientativo (no suma)</span><strong>{decimal(q.transport)}</strong></div>
          <div className="crm-quote-status-control">
            <Field label="Estado del presupuesto">
              <select value={currentStatus} disabled={Boolean(q.archivedAt||linked)} onChange={e=>setPendingStatus(e.target.value as QuoteStatus)}>

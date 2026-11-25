@@ -98,8 +98,9 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobi
     return () => observer.disconnect();
   }, [location.pathname, collapsed, role, resultsExpanded]);
   const pending = data.opportunities.filter(o => !o.deletedAt&&!['Aceptada','Perdida'].includes(o.status)).length;
+  const unreadOfficeAlerts=(data.orderAlerts||[]).filter(alert=>!alert.readAt).length;
   const groups: Group[] = role === 'fabrica'
-    ? [{ caption:'ÁREA DEL FABRICANTE', links:[{label:'Mis pedidos',path:'/fabrica',icon:Factory},{label:'Pedidos',path:'/pedidos',icon:PackageCheck}] }]
+    ? [{ caption:'ÁREA DEL FABRICANTE', links:[{label:'Mis pedidos',path:'/fabrica',icon:Factory},{label:'Pedidos',path:'/pedidos',icon:PackageCheck,badge:unreadOfficeAlerts}] }]
     : [
       { caption:'ESPACIO DE TRABAJO', links:[
         {label:'Inicio',path:'/',icon:LayoutDashboard},
@@ -108,7 +109,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobi
       ]},
       { caption:'VENTAS CONFIRMADAS', links:[
         {label:'Clientes',path:'/clientes',icon:UsersRound},
-        {label:'Pedidos',path:'/pedidos',icon:PackageCheck},
+        {label:'Pedidos',path:'/pedidos',icon:PackageCheck,badge:unreadOfficeAlerts},
         {label:'Mis comisiones',path:'/comisiones',icon:Wallet}
       ]},
       { caption:'ORGANIZACIÓN', links:[
@@ -163,7 +164,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobi
                 <span>{label}</span>
               </NavLink>)}
             </nav>}
-          </div>:<NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
+          </div>:<NavLink key={n.path} to={n.path} end={n.path==='/'} onClick={onClose} title={n.path==='/pedidos'&&unreadOfficeAlerts?unreadOfficeAlerts+' avisos de Fábrica pendientes':n.label} aria-label={n.label} className={({isActive})=>'nav-link '+(isActive?'active':'')}>
             <n.icon size={18} strokeWidth={1.9}/><span>{n.label}</span>
             {n.badge !== undefined && n.badge>0 && <span className="nav-count">{n.badge}</span>}
           </NavLink>)}

@@ -15,11 +15,23 @@ export type Opportunity = {
   deletedAt?: string;
 };
 export const sourceChannel = (o:Opportunity):Channel => o.originChannel || o.channel;
+export type QuoteItemKind = 'product'|'shipping'|'service'|'other';
+/** Partida comercial del presupuesto, siempre en EUR sin IVA. Nunca representa coste privado de compra. */
+export type QuoteLineItem = {
+ id:string; kind:QuoteItemKind; description:string; quantity:number;
+ unitPrice:number; productId?:string;
+};
+export const roundEuros = (value:number):number => Math.round((value+Number.EPSILON)*100)/100;
+export const quoteItemTotal = (item:QuoteLineItem):number => roundEuros(item.quantity*item.unitPrice);
+export const quoteItemsSubtotal = (items:QuoteLineItem[]):number =>
+ roundEuros(items.reduce((sum,item)=>sum+quoteItemTotal(item),0));
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
   /** Optional reference to chosen catalog variant; quoted amount and name stay as historical snapshot. */
   productId?: string;
+  /** Desglose comercial sin IVA. Omitido en presupuestos históricos sin desglose. */
+  items?: QuoteLineItem[];
   /** Condiciones técnicas de la oferta redactadas por Dirección, no un mensaje generado. */
   details?: string;
   /** Archivo recuperable. Nunca afecta a ofertas aceptadas ni vinculadas a pedidos. */
@@ -28,17 +40,45 @@ export type Quote = {
   retainedUntil?: string;
 };
 export type Customer = { id: string; name: string; contact: string; destination: string; createdAt: string; notes: string; documentNames: string[] };
+export type ProductConfiguration = {
+ color:string; inletCount:string; outletCount:string;
+ inletDiameterMm:string; outletDiameterMm:string;
+ inletHeightMm:string; outletHeightMm:string;
+ notes:string;
+};
 export type Order = {
   id: string; quoteId: string; customerId?: string; buyerName: string; product: string; capacity: string;
   amount: number; commission: number; commissionPaid: number; advanceReceived: number;
   paymentMode: 'Pendiente' | 'Anticipo verificado' | 'Pago completo verificado';
   factory: FactoryStatus; createdAt: string; deliveryDate: string; notes: string;
   color: string; connections: string; activity: TimelineItem[];
-  /** Verificaciones del flujo de coordinación con Fábrica; no equivalen a certificados. */
+  /** Fotografía de partidas del presupuesto aceptado; pedidos anteriores pueden carecer de ella. */
+  items?: QuoteLineItem[];
+  /** Configuración particular de cada partida de producto, no común a todo el pedido. */
+  itemConfigurations?: Record<string,ProductConfiguration>;
+  /** Campos opcionales: compatibles con pedidos históricos y sin alterar sus importes. */
+  paymentVerifiedAt?: string;
+  paymentVerifiedBy?: 'Dirección'|'Oficina';
+  inletCount?: string; outletCount?: string;
+  inletDiameterMm?: string; outletDiameterMm?: string;
+  inletHeightMm?: string; outletHeightMm?: string;
+  configurationNotes?: string;
+  configurationConfirmedAt?: string;
+  productionStartedAt?: string;
+  transportCompany?: string; transportContact?: string;
+  departureDate?: string; transportNotes?: string;
+  transportConfirmedAt?: string;
+  deliveredAt?: string;
+  /** Verificaciones heredadas (no se utilizan en el nuevo proceso). */
   factoryChecklist?: Partial<Record<FactoryCheckKey,boolean>>;
 };
 export type FactoryCheckKey = 'product'|'dimensions'|'finish'|'connections'|'quality'|'documentation'|'access'|'transport'|'delivery';
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
+/** Avisos registrados en esta instalación local. No representan correo o WhatsApp entregados. */
+export type OrderAlert = {
+ id:string; orderId:string; kind:'fabricacion'|'envio'|'entrega';
+ title:string; description:string; createdAt:string; readAt?:string;
+};
 /** Avisos dentro del CRM mientras la pantalla esté abierta; no suponen envío push/email. */
 export type Task = {
  id: string; title: string; due: string; context: string; done: boolean;
@@ -77,6 +117,7 @@ export type CrmState = {
   productCategories?: ProductCategory[];
   /** Fechas verificadas para nuevas liquidaciones. Opcional para datos locales anteriores. */
   commissionPayments?: CommissionPayment[];
+  orderAlerts?: OrderAlert[];
   /** Anotaciones internas del navegador actual; aún no existe control de acceso por servidor. */
   internalNotes?: InternalNote[];
 };

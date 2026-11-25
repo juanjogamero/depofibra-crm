@@ -1,0 +1,180 @@
+/* DEPOFIBRA CRM · Flujo de Oficina y Fábrica, 25/11/2026.
+   Mantiene los estilos de la plataforma: blanco, #01488e, contornos finos.
+   Los avisos son locales; no representa entregas de correo ni WhatsApp. */
+.page-crm-record.crm-order-office .record-hero .record-meta {display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+.page-crm-record .crm-order-payment-chip {display:inline-flex;align-items:center;gap:5px;font:700 11.5px/1.4 Inter,sans-serif;color:#94703c;}
+.page-crm-record .crm-order-payment-chip.is-paid {color:#227554;}
+.page-crm-record.crm-order-office .detail-tabs {margin-bottom:14px;}
+.page-crm-record.crm-order-office .crm-order-factory-grid {
+ display:grid;grid-template-columns:minmax(0,1.65fr) minmax(265px,.68fr);gap:14px;
+}
+.page-crm-record.crm-order-office .crm-order-factory-grid>.panel {min-width:0;}
+.page-crm-record.crm-order-office .crm-order-factory-grid>.panel:first-child {padding:0;overflow:hidden;}
+.page-crm-record.crm-order-office .crm-order-factory-grid>.panel:first-child>.panel-head {margin:0;padding:16px 18px;border-bottom:1px solid #e5edf3;}
+.page-crm-record.crm-order-office .crm-office-flow {font:500 12.5px/1.5 Inter,sans-serif;color:#486982;}
+.page-crm-record.crm-order-office .crm-office-top {
+ display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:13px;
+ padding:19px 19px 15px;
+}
+.page-crm-record.crm-order-office .crm-office-top>div {min-width:0;flex:1 1 230px;}
+.page-crm-record.crm-order-office .crm-office-top span:first-child,
+.page-crm-record.crm-order-office .crm-office-section-heading>div>span {display:block;color:#829caf;font:750 10px/1.4 Inter,sans-serif;letter-spacing:.065em;}
+.page-crm-record.crm-order-office .crm-office-top h3 {margin:4px 0 5px;font:800 20px/1.3 "Plus Jakarta Sans",Inter,sans-serif;color:#002d59;}
+.page-crm-record.crm-order-office .crm-office-top p {margin:0;color:#68849a;font:500 12px/1.55 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-pay-status {
+ display:inline-flex;align-items:center;gap:6px;padding:7px 9px;
+ border:1px solid #ebdfc8;border-radius:6px;background:#fffaf2;color:#956c37;
+ font:750 11px/1.4 Inter,sans-serif;white-space:normal;
+}
+.page-crm-record.crm-order-office .crm-office-pay-status.is-paid {color:#267352;border-color:#cae4d5;background:#f1faf4;}
+.page-crm-record.crm-order-office .crm-office-timeline {
+ display:flex;overflow-x:auto;gap:0;padding:12px 12px 13px;border-top:1px solid #edf2f5;border-bottom:1px solid #e8eef3;
+ scrollbar-width:thin;background:#fbfcfd;
+}
+.page-crm-record.crm-order-office .crm-office-step {
+ flex:1 0 110px;display:flex;align-items:center;gap:7px;padding:3px 9px;color:#95a5b3;font:650 11px/1.4 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-step+.crm-office-step {border-left:1px solid #e6edf2;}
+.page-crm-record.crm-order-office .crm-office-step>span {
+ display:grid;place-items:center;flex:0 0 22px;height:22px;border:1px solid #d9e5ed;border-radius:50%;
+ background:#fff;color:#718c9e;font:800 10.5px Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-step.is-current {color:#01488e;}
+.page-crm-record.crm-order-office .crm-office-step.is-current>span {color:#fff;background:#01488e;border-color:#01488e;}
+.page-crm-record.crm-order-office .crm-office-step.is-complete {color:#527f6a;}
+.page-crm-record.crm-order-office .crm-office-step.is-complete>span {color:#267352;background:#edf7f0;border-color:#c7e3d1;}
+.page-crm-record.crm-order-office .crm-office-step small {font:inherit;}
+.page-crm-record.crm-order-office :is(.crm-office-gate,.crm-office-config,.crm-office-transport,.crm-office-delivery) {padding:18px 20px;border-bottom:1px solid #e8eef3;}
+.page-crm-record.crm-order-office .crm-office-gate {background:#fcfdfd;}
+.page-crm-record.crm-order-office .crm-office-gate strong {color:#204a6c;font:750 14px/1.4 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-gate p {color:#728ba0;font:500 12.5px/1.55 Inter,sans-serif;margin:7px 0 12px;}
+.page-crm-record.crm-order-office :is(.crm-office-gate button,.crm-office-link) {
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 13px;min-height:38px;
+ border:1px solid #d1e0ea;border-radius:6px;background:#fff;color:#01488e;cursor:pointer;
+ font:750 12.5px/1.4 Inter,sans-serif;text-decoration:none;
+}
+.page-crm-record.crm-order-office :is(.crm-office-gate button,.crm-office-link):hover {background:#eaf2fb;}
+.page-crm-record.crm-order-office .crm-office-section-heading {
+ display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;
+}
+.page-crm-record.crm-order-office .crm-office-section-heading h4 {margin:4px 0 3px;color:#254f70;font:800 15px/1.3 "Plus Jakarta Sans",Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-section-heading p {margin:0;font:500 12px/1.5 Inter,sans-serif;color:#7b92a4;}
+.page-crm-record.crm-order-office .crm-office-verified {
+ display:inline-flex;align-items:center;gap:5px;color:#24734e!important;
+ padding:6px 9px;border:1px solid #cee6d8;border-radius:6px;background:#f2faf5;
+ font:700 11px Inter,sans-serif!important;letter-spacing:0!important;
+}
+.page-crm-record.crm-order-office .crm-office-fields {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 15px;min-width:0;
+}
+.page-crm-record.crm-order-office .crm-office-field-wide {grid-column:1/-1;min-width:0;}
+.page-crm-record.crm-order-office .crm-office-fields .form-field {min-width:0;margin:0;}
+.page-crm-record.crm-order-office .crm-office-fields .form-field .field-label {
+ color:#4b6c84;font:700 11.6px/1.35 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-fields .form-field :is(input,textarea) {
+ width:100%;min-width:0;box-sizing:border-box;border:1px solid #d6e3ec;border-radius:6px;
+ padding:10px 11px;background:#fff;color:#1c4261;font:550 12.5px/1.4 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-fields .form-field input {height:42px;}
+.page-crm-record.crm-order-office .crm-office-fields textarea {resize:vertical;}
+.page-crm-record.crm-order-office .crm-office-fields input:focus-visible,
+.page-crm-record.crm-order-office .crm-office-fields textarea:focus-visible {outline:2px solid #7db0d2;outline-offset:1px;}
+.page-crm-record.crm-order-office .crm-office-actions {display:flex;flex-direction:column;gap:13px;padding-top:16px;margin-top:16px;border-top:1px solid #e9eff3;}
+.page-crm-record.crm-order-office .crm-office-actions>div {display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;}
+.page-crm-record.crm-order-office .crm-office-confirm {
+ display:flex;align-items:flex-start;gap:9px;color:#315a77;font:650 12.5px/1.5 Inter,sans-serif;cursor:pointer;
+}
+.page-crm-record.crm-order-office .crm-office-confirm input {width:17px;height:17px;flex:0 0 17px;margin:1px 0 0;accent-color:#01488e;}
+.page-crm-record.crm-order-office .crm-office-primary,
+.page-crm-record.crm-order-office .crm-office-secondary {
+ display:inline-flex;justify-content:center;align-items:center;gap:7px;padding:9px 13px;
+ min-height:40px;box-sizing:border-box;border-radius:6px;cursor:pointer;font:750 12.4px/1.35 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-primary {border:1px solid #01488e;background:#01488e;color:#fff;}
+.page-crm-record.crm-order-office .crm-office-primary:hover:not(:disabled) {background:#002d59;}
+.page-crm-record.crm-order-office .crm-office-primary:disabled {border-color:#d5e1eb;background:#edf2f6;color:#8da2b1;cursor:not-allowed;}
+.page-crm-record.crm-order-office .crm-office-secondary {background:#fff;border:1px solid #d0dfeb;color:#01488e;}
+.page-crm-record.crm-order-office .crm-office-secondary:hover {background:#eaf2fb;}
+.page-crm-record.crm-order-office .crm-office-summary {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 15px;line-height:1.5;
+}
+.page-crm-record.crm-order-office .crm-office-summary span {padding:8px 0;border-bottom:1px solid #edf2f5;overflow-wrap:anywhere;font-size:12.4px;}
+.page-crm-record.crm-order-office .crm-office-summary b {color:#325672;}
+.page-crm-record.crm-order-office .crm-office-summary p {grid-column:1/-1;white-space:pre-wrap;margin:8px 0 0;color:#668198;}
+.page-crm-record.crm-order-office .crm-office-delivery .form-field {max-width:250px;}
+.page-crm-record.crm-order-office .crm-office-delivered {
+ display:flex;align-items:flex-start;gap:10px;margin:16px 20px;
+ border:1px solid #cce5d7;border-radius:7px;padding:13px;background:#f1faf5;color:#287b54;
+}
+.page-crm-record.crm-order-office .crm-office-delivered svg {flex:0 0 19px;}
+.page-crm-record.crm-order-office .crm-office-delivered strong {font:750 13px/1.35 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-delivered p {margin:5px 0 0;font:500 12px/1.5 Inter,sans-serif;color:#4c8066;}
+.page-crm-record.crm-order-office .crm-office-notice {
+ display:flex;align-items:center;gap:8px;margin:10px 20px;
+ padding:10px 12px;border:1px solid #d2e7db;border-radius:6px;background:#f7fcf9;color:#277953;
+ font:650 12px/1.4 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-disclaimer {margin:0;padding:12px 20px;color:#7b91a1;font:500 11px/1.5 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-lastnotes {border-top:1px solid #e9eff3;padding-top:12px;margin-top:18px;}
+.page-crm-record.crm-order-office .crm-office-lastnotes strong {font:750 12px Inter,sans-serif;color:#496b84;}
+.page-crm-record.crm-order-office .crm-office-lastnotes p {white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#6d899c;}
+.page-crm-record.crm-order-office .crm-order-factory-grid>.panel:last-child .crm-office-disclaimer {padding:13px 0;margin-top:12px;border-top:1px solid #e8eef4;}
+.page-crm-record.crm-order-office .crm-office-summary-status {display:flex;gap:11px;align-items:flex-start;margin:0 0 14px;}
+.page-crm-record.crm-order-office .crm-office-summary-status>span {display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:6px;background:#fff6e8;color:#996c31;}
+.page-crm-record.crm-order-office .crm-office-summary-status>span.is-paid {background:#edf7f0;color:#277853;}
+.page-crm-record.crm-order-office .crm-office-summary-status strong {font:750 13px/1.4 Inter,sans-serif;color:#294f6a;}
+.page-crm-record.crm-order-office .crm-office-summary-status p {margin:5px 0;color:#748ea1;font:500 12px/1.55 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-payment-success {
+ display:flex;gap:13px;align-items:flex-start;padding:18px;
+ border:1px solid #cbe5d5;border-radius:8px;background:#f1faf5;color:#287853;
+}
+.page-crm-record.crm-order-office .crm-payment-success>svg {flex:0 0 24px;}
+.page-crm-record.crm-order-office .crm-payment-success strong {font:800 15px/1.4 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-payment-success p {margin:8px 0 4px;color:#426f57;font:550 12.8px/1.5 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-payment-success small {color:#5b826c;font:500 11.4px/1.5 Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-payment-form {display:flex;flex-direction:column;gap:14px;}
+.page-crm-record.crm-order-office .crm-payment-form .form-grid {gap:14px;}
+.page-crm-record.crm-order-office .crm-payment-assertion {display:flex;align-items:flex-start;gap:9px;margin-top:2px;color:#3d617b;font:600 12.5px/1.5 Inter,sans-serif;cursor:pointer;}
+.page-crm-record.crm-order-office .crm-payment-assertion input {flex:0 0 17px;width:17px;height:17px;margin:1px 0 0;accent-color:#01488e;}
+.page-crm-record.crm-order-office .crm-payment-form>.crm-office-primary {align-self:flex-start;}
+.page-crm-record.crm-order-office .crm-office-error {color:#ad4750;font:650 12px Inter,sans-serif;}
+.page-crm-record.crm-order-office .crm-office-gate>p {margin:8px 0;font-size:12px;color:#7791a3;}
+/* Inbox local: no parecer un mensaje externo entregado. */
+.page-orders .crm-order-alerts {margin-bottom:14px;border:1px solid #dbe6ee;border-radius:8px;background:#fff;overflow:hidden;}
+.page-orders .crm-order-alerts-heading {display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:#f9fbfd;border-bottom:1px solid #e9eef3;}
+.page-orders .crm-order-alerts-heading>svg {flex-shrink:0;color:#01488e;margin-top:2px;}
+.page-orders .crm-order-alerts-heading strong {color:#315875;font:750 13px Inter,sans-serif;}
+.page-orders .crm-order-alerts-heading p {margin:4px 0 0;color:#8197a9;font:500 11.5px/1.5 Inter,sans-serif;}
+.page-orders .crm-order-alerts-list {display:flex;flex-direction:column;}
+.page-orders .crm-order-alert {display:flex;align-items:center;justify-content:space-between;gap:11px;padding:9px 16px;border-bottom:1px solid #edf2f5;}
+.page-orders .crm-order-alert:last-child {border-bottom:0;}
+.page-orders .crm-order-alert a {display:flex;flex-direction:column;gap:3px;min-width:0;text-decoration:none;}
+.page-orders .crm-order-alert a strong {color:#01488e;font:750 12.4px/1.4 Inter,sans-serif;}
+.page-orders .crm-order-alert a small {color:#7792a5;font:500 11.5px/1.45 Inter,sans-serif;}
+.page-orders .crm-order-alert button {
+ display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;gap:5px;
+ min-height:34px;padding:6px 11px;border:1px solid #d3e2eb;border-radius:6px;background:#fff;
+ color:#3b698c;cursor:pointer;font:700 11.5px Inter,sans-serif;
+}
+.page-orders .crm-order-alert button:hover {background:#eaf2fb;}
+/* Comisiones: una fila por fase financiera, nunca ofrecer cobro previo a entrega. */
+.page-commissions .commission-tabs {overflow-x:auto;scrollbar-width:thin;}
+.page-commissions .commission-tabs>.op-phase-tab {flex:0 0 auto;white-space:nowrap;}
+@container crm-content (max-width:1080px) {
+ .page-crm-record.crm-order-office .crm-order-factory-grid {grid-template-columns:minmax(0,1fr);}
+}
+@media(max-width:900px) {
+ .page-crm-record.crm-order-office .crm-office-fields {grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+ .page-crm-record.crm-order-office .crm-office-summary {grid-template-columns:1fr;}
+}
+@media(max-width:600px) {
+ .page-crm-record.crm-order-office .crm-office-top {padding:15px;}
+ .page-crm-record.crm-order-office :is(.crm-office-config,.crm-office-transport,.crm-office-delivery,.crm-office-gate) {padding:15px;}
+ .page-crm-record.crm-order-office .crm-office-fields {grid-template-columns:1fr;}
+ .page-crm-record.crm-order-office .crm-office-field-wide {grid-column:auto;}
+ .page-crm-record.crm-order-office .crm-office-actions>div {align-items:stretch;flex-direction:column;}
+ .page-crm-record.crm-order-office .crm-office-actions button {width:100%;}
+ .page-crm-record.crm-order-office .crm-office-step {flex-basis:116px;}
+ .page-orders .crm-order-alert {align-items:flex-start;flex-direction:column;}
+}

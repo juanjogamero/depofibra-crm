@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, CalendarPlus, Check, CheckCircle2, ClipboardCheck, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
+import { Bell, CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type FactoryStatus, type FactoryCheckKey, type Order, dateText, money, today } from '../domain';
+import QuoteLineItems from '../QuoteLineItems';
+import { type FactoryStatus, type ProductConfiguration, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
@@ -241,7 +242,7 @@ const orderGroupMatches=(order:Order,group:OrderListGroup)=>
  ||group==='Entregados'&&order.factory==='Entregado';
 
 export function Orders(){
- const {data}=useCrm();
+ const {data,role,markOrderAlertRead}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [group,setGroup]=useState<OrderListGroup>('Todos');
@@ -266,7 +267,7 @@ export function Orders(){
    &&(payment==='Todos los pagos'||o.paymentMode===payment)
    &&(!dateFrom||o.createdAt.slice(0,10)>=dateFrom)
    &&(!dateTo||o.createdAt.slice(0,10)<=dateTo)
-   &&[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.factory,o.paymentMode]
+   &&[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.factory,o.paymentMode,...(o.items||[]).map(i=>i.description)]
        .join(' ').toLocaleLowerCase('es-ES').includes(query)
  ).sort((a,b)=>{
    if(sort==='Entrega más próxima')return (a.deliveryDate||'9999-12-31').localeCompare(b.deliveryDate||'9999-12-31')
@@ -309,6 +310,15 @@ export function Orders(){
        <Link to="/presupuestos" className="op-new-button"><FileText size={17}/>Ver presupuestos</Link>
      </div>
    </div>
+   {role==='direccion'&&(data.orderAlerts||[]).some(x=>!x.readAt)&&<section className="crm-order-alerts" aria-label="Avisos de Fábrica para Dirección">
+     <div className="crm-order-alerts-heading"><Bell size={17}/><div><strong>Actualizaciones de Fábrica</strong><p>Registradas dentro de este navegador. El envío por WhatsApp o correo sigue pendiente de conexión.</p></div></div>
+     <div className="crm-order-alerts-list">
+       {(data.orderAlerts||[]).filter(x=>!x.readAt).slice(0,5).map(alert=><div key={alert.id} className="crm-order-alert">
+         <Link to={'/pedidos/'+alert.orderId+'?tab=Actividad'}><strong>{alert.title} · {alert.orderId}</strong><small>{alert.description}</small></Link>
+         <button type="button" onClick={()=>markOrderAlertRead(alert.id)} aria-label={'Marcar leído: '+alert.title+' '+alert.orderId}>Marcar leído</button>
+       </div>)}
+     </div>
+   </section>}
    <nav className="op-phase-tabs" aria-label="Filtrar pedidos por fase de preparación">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab'+(group===g.id?' is-active':'')}
@@ -393,7 +403,8 @@ export function Orders(){
                  <span className="op-client-sub">Presupuesto {o.quoteId}</span>
                </div>
              </div></td>
-             <td className="op-col-product"><span className="op-product" title={o.product}>{o.product}</span><span className="op-product-sub">{o.capacity||'Por concretar'}</span></td>
+             <td className="op-col-product"><span className="op-product" title={o.product}>{o.items?.filter(i=>i.kind==='product').length&&o.items.filter(i=>i.kind==='product').length>1
+  ?o.items.filter(i=>i.kind==='product').length+' productos':o.product}</span><span className="op-product-sub">{o.items?.length?o.items.length+' conceptos · '+o.capacity:o.capacity||'Por concretar'}</span></td>
              <td className="orders-col-payment"><span className={'orders-status is-'+paymentTone}>{o.paymentMode}</span></td>
              <td className="orders-col-factory"><span className={'orders-status is-'+factoryTone}>{o.factory}</span>
                <span className="orders-delivery">{o.deliveryDate?'Entrega indicada: '+dateText(o.deliveryDate):'Entrega por confirmar'}</span></td>
@@ -413,86 +424,333 @@ export function Orders(){
 }
 
 
-const factoryChecks:{key:FactoryCheckKey;label:string;hint:string}[]=[
- {key:'product',label:'Producto, capacidad y uso confirmados',hint:'Contrastar modelo y destino con el presupuesto.'},
- {key:'dimensions',label:'Medidas y características verificadas',hint:'Comprobar dimensiones, accesos y limitaciones.'},
- {key:'finish',label:'Color y acabado definidos',hint:'Confirmar opción acordada con la oficina.'},
- {key:'connections',label:'Bocas y conexiones verificadas',hint:'Ubicación y diámetro de tomas, tapas y accesorios.'},
- {key:'quality',label:'Revisión final de fabricación confirmada',hint:'Comprobación comunicada por la oficina de Fábrica.'},
- {key:'documentation',label:'Documentación necesaria comprobada',hint:'Verificar documentos aplicables al producto y uso.'},
- {key:'access',label:'Destino, acceso y descarga coordinados',hint:'Transporte externo sin descarga estándar; confirmar medios.'},
- {key:'transport',label:'Porte y fecha de salida confirmados',hint:'Validar dimensiones, coste y disponibilidad con transportista.'},
- {key:'delivery',label:'Entrega confirmada',hint:'Marcar solo tras confirmación del cliente o transportista.'}
-];
-const factoryRequirements:Partial<Record<FactoryStatus,FactoryCheckKey[]>>={
- 'En fabricación':['product','dimensions','finish','connections'],
- 'Preparado':['quality','documentation'],
- 'En tránsito':['access','transport'],
- 'Entregado':['delivery']
-};
-function FactoryWorkflow({order,updateOrder}:{order:Order;updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void}){
- const index=stages.indexOf(order.factory);
- const next=stages[index+1];
- const req=next?(factoryRequirements[next]||[]):[];
- const checks=order.factoryChecklist||{};
- const missing=req.filter(key=>!checks[key]);
- const checked=factoryChecks.filter(item=>checks[item.key]).length;
- const setCheck=(key:FactoryCheckKey,value:boolean)=>updateOrder(order.id,{
-  factoryChecklist:{...checks,[key]:value}
- },(value?'Comprobación registrada: ':'Comprobación pendiente de nuevo: ')+factoryChecks.find(x=>x.key===key)?.label);
- const progress=(index+1)+' de '+stages.length;
- return <section className="crm-factory-workflow" aria-label="Protocolo de preparación del pedido">
-  <header className="crm-factory-workflow-head">
-   <div><span className="crm-factory-eyebrow">COORDINACIÓN CON FÁBRICA · PASO {progress}</span>
-    <h3>{order.factory}</h3><p>Marca cada comprobación solo cuando esté confirmada. Avanza en orden para no olvidar detalles.</p></div>
-   <span className="crm-factory-check-count">{checked}/{factoryChecks.length} verificaciones</span>
-  </header>
-  <ol className="crm-factory-step-nav">{stages.map((stage,i)=><li key={stage} className={i===index?'is-current':i<index?'is-complete':''}>
-   <span>{i<index?<Check size={14}/>:i+1}</span><small>{stage}</small>
-  </li>)}</ol>
-  <div className="crm-factory-checks">
-    <h4>Lista de comprobación</h4>
-    {factoryChecks.map(x=><label key={x.key} className={'crm-factory-check'+(checks[x.key]?' is-checked':'')}>
-      <input type="checkbox" checked={Boolean(checks[x.key])} onChange={e=>setCheck(x.key,e.target.checked)}/>
-      <span><strong>{x.label}</strong><small>{x.hint}</small></span>
-    </label>)}
+/** Flujo de oficina: sin checklists genéricas ni mensajes externos simulados. */
+function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
+ updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void;onPayment:()=>void;}){
+ const paid=order.paymentMode!=='Pendiente'&&order.advanceReceived>0;
+ const productLines=(order.items||[]).filter(line=>line.kind==='product');
+ const products=productLines.length?productLines:[{id:'legacy',description:order.product,quantity:1}];
+ const defaultSpec=(key:string):ProductConfiguration=>{
+   const found=order.itemConfigurations?.[key];
+   if(found)return {...found};
+   const prior=products.length===1;
+   return {color:prior&&order.color!=='Por confirmar'?order.color:'',
+     inletCount:prior?order.inletCount||'':'',outletCount:prior?order.outletCount||'':'',
+     inletDiameterMm:prior?order.inletDiameterMm||'':'',outletDiameterMm:prior?order.outletDiameterMm||'':'',
+     inletHeightMm:prior?order.inletHeightMm||'':'',outletHeightMm:prior?order.outletHeightMm||'':'',
+     notes:prior?order.configurationNotes||'':''};
+ };
+ const [configs,setConfigs]=useState<Record<string,ProductConfiguration>>(()=>
+   Object.fromEntries(products.map(line=>[line.id,defaultSpec(line.id)])));
+ const [estimatedDate,setEstimatedDate]=useState(order.deliveryDate||'');
+ const updateSpec=(id:string,patch:Partial<ProductConfiguration>)=>
+   setConfigs(prev=>({...prev,[id]:{...prev[id],...patch}}));
+ const [spoken,setSpoken]=useState(false);
+ const [transport,setTransport]=useState(()=>({
+   transportCompany:order.transportCompany||'',transportContact:order.transportContact||'',
+   departureDate:order.departureDate||'',transportNotes:order.transportNotes||''
+ }));
+ const [carrierConfirmed,setCarrierConfirmed]=useState(false);
+ const [deliveredDate,setDeliveredDate]=useState(order.deliveredAt?.slice(0,10)||today());
+ const [deliveryConfirmed,setDeliveryConfirmed]=useState(false);
+ const [notice,setNotice]=useState('');
+ const numberOk=(s:string)=>s.trim()!==''&&Number.isInteger(Number(s))&&Number(s)>=0;
+ const mmOk=(s:string,zeroAllowed=false)=>s.trim()!==''&&Number.isFinite(Number(s))&&(zeroAllowed?Number(s)>=0:Number(s)>0);
+ const validSpec=(s:ProductConfiguration)=>Boolean(s?.color.trim())&&numberOk(s.inletCount)&&numberOk(s.outletCount)
+   &&(Number(s.inletCount)===0||(mmOk(s.inletDiameterMm)&&mmOk(s.inletHeightMm,true)))
+   &&(Number(s.outletCount)===0||(mmOk(s.outletDiameterMm)&&mmOk(s.outletHeightMm,true)));
+ const configOk=paid&&products.every(line=>validSpec(configs[line.id]))&&Boolean(estimatedDate)&&spoken;
+ const transportOk=Boolean(transport.transportCompany.trim()&&transport.departureDate&&carrierConfirmed);
+ const patchConfig=()=>{
+   const first=configs[products[0].id];
+   const connections=products.length===1?
+     'Entradas: '+first.inletCount+' · Ø '+(first.inletDiameterMm||'—')+' mm · altura '+(first.inletHeightMm||'—')+
+       ' mm. Salidas: '+first.outletCount+' · Ø '+(first.outletDiameterMm||'—')+' mm · altura '+(first.outletHeightMm||'—')+' mm.':
+     'Varias referencias. Consultar las configuraciones técnicas individuales de cada partida.';
+   return {itemConfigurations:configs,deliveryDate:estimatedDate,
+     color:products.length===1?first.color:'Varios productos',
+     inletCount:products.length===1?first.inletCount:undefined,
+     outletCount:products.length===1?first.outletCount:undefined,
+     inletDiameterMm:products.length===1?first.inletDiameterMm:undefined,
+     outletDiameterMm:products.length===1?first.outletDiameterMm:undefined,
+     inletHeightMm:products.length===1?first.inletHeightMm:undefined,
+     outletHeightMm:products.length===1?first.outletHeightMm:undefined,
+     connections,configurationNotes:products.length===1?first.notes:'Consultar anotaciones por producto'};
+ };
+ const saveConfig=()=>{
+   updateOrder(order.id,patchConfig(),'Ficha técnica por producto guardada por la oficina');
+   setNotice('Datos técnicos guardados. Comprueba sus medidas antes de fabricar.');
+ };
+ const startProduction=()=>{
+   if(!configOk||order.factory!=='Confirmando detalles')return;
+   if(!window.confirm('¿Has hablado con el cliente y confirmado las características de CADA producto, sus medidas y la fecha estimada de entrega?'))return;
+   updateOrder(order.id,{...patchConfig(),configurationConfirmedAt:new Date().toISOString(),
+     productionStartedAt:new Date().toISOString(),factory:'En fabricación'},
+   'Configuración de '+products.length+' partida(s) de producto confirmada. Fabricación iniciada; aviso local a Dirección.');
+   setNotice('Fabricación iniciada. Aviso registrado en este CRM; correo y WhatsApp pendientes de conexión.');
+ };
+ const finishProduction=()=>{
+   if(!window.confirm('¿Fábrica ha confirmado que la fabricación ha terminado y el producto está preparado?'))return;
+   updateOrder(order.id,{factory:'Preparado'},'Fabricación terminada. Pedido preparado para coordinar transporte.');
+   setNotice('Pedido preparado. Ahora corresponde confirmar transporte y descarga.');
+ };
+ const startShipping=()=>{
+   if(!transportOk||order.factory!=='Preparado')return;
+   if(!window.confirm('¿Transportista, salida y condiciones de entrega están confirmados?'))return;
+   updateOrder(order.id,{...transport,transportConfirmedAt:new Date().toISOString(),factory:'En tránsito'},
+     'Transporte confirmado: '+transport.transportCompany+'. Salida prevista '+transport.departureDate+'. Aviso local para Dirección.');
+   setNotice('Transporte registrado. Aviso local a Dirección; correo/WhatsApp pendientes de activación.');
+ };
+ const confirmDelivered=()=>{
+   if(!deliveryConfirmed||!deliveredDate||order.factory!=='En tránsito')return;
+   if(!window.confirm('¿Está confirmada la entrega real del pedido? La comisión acordada pasará a pendiente de cobro.'))return;
+   updateOrder(order.id,{deliveredAt:deliveredDate+'T12:00:00',factory:'Entregado'},
+     'Entrega confirmada el '+deliveredDate+'. Comisión pendiente de liquidación al estar entregado.');
+   setNotice('Entrega registrada. La comisión pendiente ya figura como exigible para Dirección.');
+ };
+ const phase=order.factory;
+ return <div className="crm-office-flow">
+  <div className="crm-office-top">
+   <div><span>PROCESO DE OFICINA Y FÁBRICA</span><h3>{phase}</h3>
+    <p>Primero confirma el ingreso; después recoge los detalles con el cliente y registra cada avance.</p></div>
+   <span className={'crm-office-pay-status'+(paid?' is-paid':'')}>{paid?<><CheckCircle2 size={15}/>Primer pago verificado</>:<><Clock3 size={15}/>Primer pago pendiente</>}</span>
   </div>
-  <div className="crm-factory-next">
-    {next?<><div><strong>Próxima etapa: {next}</strong>
-     <p>{missing.length?'Antes de avanzar, faltan '+missing.length+' verificaciones necesarias para este paso.':'Puedes pasar a la siguiente etapa cuando se haya confirmado el avance con Fábrica.'}</p></div>
-     <button type="button" disabled={missing.length>0} onClick={()=>{
-       if(!window.confirm('¿Confirmas que el pedido pasa a «'+next+'»? Esta acción se anotará en su historial.'))return;
-       updateOrder(order.id,{factory:next},'Avance del protocolo de Fábrica: '+next);
-     }}>Marcar siguiente etapa <ChevronRight size={16}/></button></>
-    :<div><strong>Pedido en estado «Entregado»</strong><p>Conserva las comprobaciones para futuras consultas y posventa.</p></div>}
+  <div className="crm-office-timeline" aria-label="Fases de trabajo">
+    {stages.map((step,index)=><div key={step} className={'crm-office-step'+(index===stages.indexOf(phase)?' is-current':index<stages.indexOf(phase)?' is-complete':'')}>
+      <span>{index<stages.indexOf(phase)?<Check size={13}/>:index+1}</span><small>{step}</small>
+    </div>)}
   </div>
-  <p className="crm-inline-help">Esta lista registra verificaciones manuales; no sustituye certificados, documentación legal ni confirmación del fabricante o transportista.</p>
- </section>;
+  {!paid&&<div className="crm-office-gate">
+    <strong>1. Comprobar el primer pago</strong>
+    <p>El pedido está aceptado. La oficina o Dirección debe comprobar el ingreso antes de confirmar los detalles de fabricación.</p>
+    <button type="button" onClick={onPayment}>Ir a Formalización <ChevronRight size={16}/></button>
+  </div>}
+  {paid&&phase==='Pendiente'&&<div className="crm-office-gate">
+    <strong>Pago verificado. Continuar con los detalles</strong>
+    <p>El registro es anterior al nuevo flujo. Puedes abrir la preparación sin alterar el pago ya anotado.</p>
+    <button type="button" onClick={()=>updateOrder(order.id,{factory:'Confirmando detalles'},'Inicio de coordinación técnica tras comprobar ingreso')}>Continuar con el cliente <ChevronRight size={16}/></button>
+  </div>}
+  {paid&&phase!=='Pendiente'&&<div className="crm-office-config">
+    <div className="crm-office-section-heading"><div><span>PASO DE CONFIGURACIÓN</span>
+      <h4>Detalles de cada producto</h4>
+      <p>Se guardan por separado. Si dos unidades necesitan medidas diferentes, crea partidas distintas en el presupuesto.</p></div>
+      {order.configurationConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
+    </div>
+    {phase==='Confirmando detalles'&&<div className="crm-office-common-date">
+      <Field label="Entrega estimada del pedido"><input type="date" value={estimatedDate} onChange={e=>setEstimatedDate(e.target.value)}/></Field>
+    </div>}
+    <div className="crm-office-products">
+      {products.map((item,index)=>{
+        const spec=configs[item.id]||defaultSpec(item.id);
+        const editable=phase==='Confirmando detalles';
+        return <section key={item.id} className="crm-office-product">
+          <div className="crm-office-product-head">
+            <span>PRODUCTO {index+1}</span><strong>{item.description}</strong><small>Cantidad: {item.quantity}</small>
+          </div>
+          {editable?<div className="crm-office-fields">
+            <Field label="Color / acabado"><input value={spec.color} placeholder="Ej. Blanco · No aplica" onChange={e=>updateSpec(item.id,{color:e.target.value})}/></Field>
+            <Field label="Número de entradas"><input type="number" min="0" step="1" value={spec.inletCount} placeholder="0 si no hay" onChange={e=>updateSpec(item.id,{inletCount:e.target.value})}/></Field>
+            {Number(spec.inletCount)>0&&<>
+              <Field label="Diámetro entradas (mm)"><input type="number" min="0" step="1" value={spec.inletDiameterMm} placeholder="Ej. 63" onChange={e=>updateSpec(item.id,{inletDiameterMm:e.target.value})}/></Field>
+              <Field label="Altura entradas desde base (mm)"><input type="number" min="0" step="1" value={spec.inletHeightMm} placeholder="Ej. 250" onChange={e=>updateSpec(item.id,{inletHeightMm:e.target.value})}/></Field>
+            </>}
+            <Field label="Número de salidas"><input type="number" min="0" step="1" value={spec.outletCount} placeholder="0 si no hay" onChange={e=>updateSpec(item.id,{outletCount:e.target.value})}/></Field>
+            {Number(spec.outletCount)>0&&<>
+              <Field label="Diámetro salidas (mm)"><input type="number" min="0" step="1" value={spec.outletDiameterMm} placeholder="Ej. 50" onChange={e=>updateSpec(item.id,{outletDiameterMm:e.target.value})}/></Field>
+              <Field label="Altura salidas desde base (mm)"><input type="number" min="0" step="1" value={spec.outletHeightMm} placeholder="Ej. 150" onChange={e=>updateSpec(item.id,{outletHeightMm:e.target.value})}/></Field>
+            </>}
+            <div className="crm-office-field-wide"><Field label="Otras tomas, revestimientos y anotaciones del cliente"><textarea rows={3} value={spec.notes} onChange={e=>updateSpec(item.id,{notes:e.target.value})} placeholder="Posición, accesorios y observaciones concretas de este producto..."/></Field></div>
+          </div>:<div className="crm-office-summary">
+            <span><b>Color/acabado:</b> {spec.color||'Pendiente'}</span>
+            <span><b>Entradas:</b> {spec.inletCount||'0'} · Ø {spec.inletDiameterMm||'—'} mm · altura {spec.inletHeightMm||'—'} mm</span>
+            <span><b>Salidas:</b> {spec.outletCount||'0'} · Ø {spec.outletDiameterMm||'—'} mm · altura {spec.outletHeightMm||'—'} mm</span>
+            {spec.notes&&<p>{spec.notes}</p>}
+          </div>}
+        </section>;
+      })}
+    </div>
+    {phase!=='Confirmando detalles'&&<div className="crm-office-date-locked"><b>Entrega estimada:</b> {dateText(order.deliveryDate)}</div>}
+    {phase==='Confirmando detalles'&&<div className="crm-office-actions">
+      <label className="crm-office-confirm"><input type="checkbox" checked={spoken} onChange={e=>setSpoken(e.target.checked)}/>He hablado con el cliente y confirmado la configuración de todos los productos.</label>
+      <div><button type="button" className="crm-office-secondary" onClick={saveConfig}>Guardar anotaciones</button>
+      <button type="button" className="crm-office-primary" disabled={!configOk} onClick={startProduction}><Factory size={16}/>Confirmar e iniciar fabricación</button></div>
+    </div>}
+    {phase==='En fabricación'&&<div className="crm-office-actions">
+      <p className="crm-office-locked-note">Configuración confirmada y bloqueada durante la fabricación. Para incidencias utiliza «Anotaciones de oficina».</p>
+      <div><button type="button" className="crm-office-primary" onClick={finishProduction}>Fabricación terminada <ChevronRight size={16}/></button></div>
+    </div>}
+  </div>}
+  {paid&&['Preparado','En tránsito','Entregado'].includes(phase)&&<div className="crm-office-transport">
+   <div className="crm-office-section-heading"><div><span>PASO DE TRANSPORTE</span><h4>Transportista y salida</h4>
+    <p>Comprobar previamente acceso, medios de descarga y condiciones del porte externo.</p></div>
+    {order.transportConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
+   </div>
+   {phase==='Preparado'?<>
+     <div className="crm-office-fields">
+      <Field label="Transportista confirmado"><input value={transport.transportCompany} placeholder="Nombre o referencia" onChange={e=>setTransport(v=>({...v,transportCompany:e.target.value}))}/></Field>
+      <Field label="Teléfono o contacto transportista"><input value={transport.transportContact} onChange={e=>setTransport(v=>({...v,transportContact:e.target.value}))}/></Field>
+      <Field label="Fecha prevista de salida"><input type="date" value={transport.departureDate} onChange={e=>setTransport(v=>({...v,departureDate:e.target.value}))}/></Field>
+      <div className="crm-office-field-wide"><Field label="Acceso, descarga y observaciones de transporte"><textarea rows={3} value={transport.transportNotes} placeholder="¿Quién descarga? ¿Grúa/pluma? ¿Acceso apto?" onChange={e=>setTransport(v=>({...v,transportNotes:e.target.value}))}/></Field></div>
+     </div>
+     <div className="crm-office-actions"><label className="crm-office-confirm"><input type="checkbox" checked={carrierConfirmed} onChange={e=>setCarrierConfirmed(e.target.checked)}/>He hablado con el transportista y está confirmado</label>
+      <div><button type="button" className="crm-office-primary" disabled={!transportOk} onClick={startShipping}><Truck size={16}/>Confirmar transporte y marcar enviado</button></div>
+     </div>
+   </>:<div className="crm-office-summary">
+     <span><b>Transportista:</b> {order.transportCompany||'Sin especificar'}</span>
+     <span><b>Salida:</b> {dateText(order.departureDate)}</span>
+     {order.transportContact&&<span><b>Contacto:</b> {order.transportContact}</span>}
+     {order.transportNotes&&<p>{order.transportNotes}</p>}
+   </div>}
+  </div>}
+  {paid&&phase==='En tránsito'&&<div className="crm-office-delivery">
+    <div className="crm-office-section-heading"><div><span>PASO DE ENTREGA</span><h4>Confirmar entrega al cliente</h4>
+     <p>Al confirmar la entrega, la comisión pendiente quedará disponible para su cobro.</p></div></div>
+    <Field label="Fecha real de entrega"><input type="date" value={deliveredDate} max={today()} onChange={e=>setDeliveredDate(e.target.value)}/></Field>
+    <div className="crm-office-actions"><label className="crm-office-confirm"><input type="checkbox" checked={deliveryConfirmed} onChange={e=>setDeliveryConfirmed(e.target.checked)}/>Entrega confirmada por cliente o transportista</label>
+      <div><button type="button" className="crm-office-primary" disabled={!deliveredDate||deliveredDate>today()||!deliveryConfirmed} onClick={confirmDelivered}><CheckCircle2 size={16}/>Marcar entregado</button></div></div>
+  </div>}
+  {phase==='Entregado'&&<div className="crm-office-delivered" role="status"><CheckCircle2 size={19}/>
+   <div><strong>Pedido entregado{order.deliveredAt?' · '+dateText(order.deliveredAt.slice(0,10)):''}</strong>
+   <p>El saldo de comisión, si existe, está pendiente de liquidación. El cobro no se registra automáticamente.</p></div>
+  </div>}
+  {notice&&<div role="status" className="crm-office-notice"><CheckCircle2 size={16}/>{notice}</div>}
+  <p className="crm-office-disclaimer">Los avisos a Dirección quedan anotados en este navegador. No se envían WhatsApp o correos hasta que exista backend, usuarios autenticados y proveedor configurado.</p>
+ </div>;
 }
 
 export function OrderDetail(){
- const {id}=useParams();const [params]=useSearchParams();const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
- const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
+ const {id}=useParams();
+ const [params]=useSearchParams();
+ const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
+ const o=data.orders.find(x=>x.id===id);
+ const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));
+ const [payment,setPayment]=useState('');
+ const [payMode,setPayMode]=useState<Order['paymentMode']>('Anticipo verificado');
+ const [paymentChecked,setPaymentChecked]=useState(false);
+ const [commission,setCommission]=useState('');
+ const [note,setNote]=useState('');
+ const [paymentError,setPaymentError]=useState('');
  if(!o)return <div className="page"><Back to="/pedidos" label="Volver a pedidos"/><Empty title="Pedido no encontrado" body="Consulta el listado de pedidos."/></div>;
+ const paid=o.paymentMode!=='Pendiente'&&o.advanceReceived>0;
  const balance=Math.max(0,o.commission-o.commissionPaid);
- const tabs=role==='fabrica'?['Resumen','Fabricación','Actividad','Comisión (consulta)']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
+ const payable=o.factory==='Entregado';
+ const paymentAmount=Number(payment);
+ const canVerify=!paid&&paymentChecked&&payment.trim()!==''&&Number.isFinite(paymentAmount)
+   &&paymentAmount>0;
+ const tabs=role==='fabrica'?['Resumen','Formalización','Fabricación','Actividad']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
  const selected=tabs.includes(tab)?tab:'Resumen';
- return <div className="page page-crm-record"><Back to="/pedidos" label="Volver a pedidos"/><div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div><h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p><div className="record-meta"><Status value={o.factory}/><span>·</span><Status value={o.paymentMode}/></div></div><Pill>{role==='fabrica'?'Gestión técnica':'Ficha de pedido'}</Pill></div>
- <div className="order-progress">{stages.slice(1).map((s,i)=><div key={s} className={'progress-step '+(stages.indexOf(o.factory)>=i+1?'is-done':'')}><span>{i+1}</span><small>{s}</small></div>)}</div>
- <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} onClick={()=>setTab(t)}>{t}</button>)}</div>
- {selected==='Resumen'&&<div className="detail-grid"><Panel title="Información general"><div className="info-grid"><Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity}/><Info label="Fabricación" value={o.factory}/><Info label="Cliente" value={o.buyerName}/><Info label="Entrega" value={dateText(o.deliveryDate)}/></div><h4 className="minor-title">Notas de seguimiento</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
- <div className="right-stack"><Panel title="Estado operativo"><div className="stage-hero"><span className="stage-symbol"><Factory size={25}/></span><div><span>Situación en Fábrica</span><strong>{o.factory}</strong></div></div><div className="summary-line"><span>Formalización</span><Status value={o.paymentMode}/></div><div className="summary-line"><span>Fecha de entrega</span><strong>{dateText(o.deliveryDate)}</strong></div><div className="inline-tip"><Truck size={16}/> Fábrica coordina las conexiones, color, medidas finales y entrega.</div></Panel>
- {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div><div className="summary-line"><span>Ingreso inicial verificado</span><strong>{money(o.advanceReceived)}</strong></div><div className="summary-line"><span>Comisión pendiente</span><strong>{money(balance)}</strong></div></Panel>}</div></div>}
- {selected==='Formalización'&&role==='direccion'&&<div className="detail-grid"><Panel title="Comprobación del ingreso"><p className="muted">El documento oficial lo emite Fábrica. Registra únicamente pagos ya comprobados; no hay verificación bancaria integrada.</p><div className="form-grid"><Field label="Forma de pago"><select value={payMode||o.paymentMode} onChange={e=>setPayMode(e.target.value)}><option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option></select></Field><Field label="Importe comprobado (€)"><input type="number" min="0" step=".01" value={payment} onChange={e=>setPayment(e.target.value)} placeholder={String(o.advanceReceived)}/></Field></div><Button onClick={()=>{const mode=(payMode||o.paymentMode) as Order['paymentMode'];const amount=Number(payment||o.advanceReceived);if(mode!=='Pendiente'&&amount>0)verifyPayment(o.id,mode,amount)}}><CheckCircle2 size={16}/>Anotar verificación</Button><div className="inline-tip"><Check size={16}/> Solo tras verificar el anticipo/pago se crea el cliente comprador.</div></Panel>
- <Panel title="Documentación preparada por oficina"><div className="info-grid"><Info label="Presupuesto" value={o.quoteId||'Operación de ejemplo'}/><Info label="Proforma" value="Oficina del fabricante"/><Info label="Factura" value="Oficina del fabricante"/><Info label="Archivos PDF" value="Pendiente de almacenamiento privado"/></div><NoteDemo/></Panel></div>}
- {selected==='Fabricación'&&<div className="detail-grid"><Panel title="Gestión técnica y producción"><div className="form-stack"><FactoryWorkflow order={o} updateOrder={updateOrder}/>
- <div className="crm-factory-edit-heading">Datos técnicos y de entrega</div><Field label="Fecha de entrega"><input type="date" value={o.deliveryDate} onChange={e=>updateOrder(o.id,{deliveryDate:e.target.value},'Fecha de entrega actualizada')}/></Field><Field label="Color"><input value={o.color} onChange={e=>updateOrder(o.id,{color:e.target.value})}/></Field><Field label="Conexiones / tomas"><textarea rows={3} value={o.connections} onChange={e=>updateOrder(o.id,{connections:e.target.value})}/></Field></div><div className="hint-row"><Factory size={17}/> La oficina de Fábrica confirma estos detalles con el comprador.</div></Panel>
- <Panel title="Registrar avance o incidencia"><form onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){updateOrder(o.id,{notes:note},note.trim());setNote('')}}} className="form-stack"><Field label="Observación"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)} placeholder="Ej. Confirmadas las bocas; entrega coordinada..."/></Field><Button type="submit"><Plus size={16}/>Guardar nota técnica</Button></form><div className="inline-tip"><CheckCircle2 size={16}/> Los avances se añaden al historial.</div></Panel></div>}
- {(selected==='Comisiones'||selected==='Comisión (consulta)')&&<div className="detail-grid"><Panel title="Liquidación comercial"><div className="big-balance">{money(balance)}<span>pendiente de abonar</span></div><div className="summary-line"><span>Comisión acordada</span><strong>{money(o.commission)}</strong></div><div className="summary-line"><span>Comisión abonada</span><strong>{money(o.commissionPaid)}</strong></div><div className="commission-meter"><span style={{width:(o.commission?100*o.commissionPaid/o.commission:0)+'%'}}/></div><Pill tone={balance?'amber':'green'}>{balance?'Pendiente / parcial':'Pagada'}</Pill></Panel>
- <Panel title={role==='direccion'?'Registrar cobro parcial o total':'Acceso de consulta'}>{role==='direccion'?<div className="form-stack"><p className="muted">Cada ingreso actualiza el saldo sin modificar el importe total acordado.</p><Field label="Importe recibido (€)"><input type="number" min=".01" step=".01" max={balance} value={commission} onChange={e=>setCommission(e.target.value)}/></Field><Button disabled={!(Number(commission)>0&&Number(commission)<=balance)} onClick={()=>{addCommissionPayment(o.id,Number(commission));setCommission('')}}><CreditCard size={16}/>Registrar cobro</Button></div>:<div className="inline-tip"><Shield size={18}/> Fábrica ve esta liquidación, pero no puede editarla ni marcarla como pagada.</div>}</Panel></div>}
- {selected==='Actividad'&&<div className="detail-grid"><Panel title="Cronología del pedido"><Timeline items={o.activity}/></Panel><Panel title="Seguimiento posventa"><div className="note-area">Después de la entrega seguiremos teniendo el historial y podremos planificar una llamada posventa.</div><Link to="/agenda" className="btn btn-outline"><CalendarPlus size={16}/>Abrir agenda</Link></Panel></div>}
+ const confirmPayment=()=>{
+   if(!canVerify)return;
+   if(!window.confirm('¿Has comprobado realmente el ingreso de '+money(paymentAmount)+' y quieres dejar constancia?'))return;
+   verifyPayment(o.id,payMode,paymentAmount,role==='fabrica'?'Oficina':'Dirección');
+   setPaymentError('');setPaymentChecked(false);setPayment('');
+ };
+ return <div className="page page-crm-record crm-order-office">
+  <Back to="/pedidos" label="Volver a pedidos"/>
+  <div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div>
+   <h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p>
+   <div className="record-meta"><Status value={o.factory}/><span>·</span>
+     <span className={'crm-order-payment-chip'+(paid?' is-paid':'')}>{paid?<CheckCircle2 size={14}/>:<Clock3 size={14}/>} {paid?'Primer pago verificado':'Primer pago pendiente'}</span>
+   </div></div><Pill>{role==='fabrica'?'Gestión de oficina':'Ficha de pedido'}</Pill>
+  </div>
+  <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} type="button" onClick={()=>setTab(t)}>{t}</button>)}</div>
+  {selected==='Resumen'&&<div className="crm-order-itemized-panel"><Panel title="Productos y conceptos incluidos · presupuesto aceptado">
+    <QuoteLineItems items={o.items} total={o.amount} legacyProduct={o.product}/>
+    <p className="crm-quote-private-notice">La comisión de Dirección se gestiona aparte y nunca forma parte del total comercial sin IVA.</p>
+  </Panel></div>}
+  {selected==='Resumen'&&<div className="detail-grid">
+   <Panel title="Información general"><div className="info-grid">
+    <Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/>
+    <Info label="Capacidad" value={o.capacity}/><Info label="Fase" value={o.factory}/>
+    <Info label="Cliente" value={o.buyerName}/><Info label="Entrega prevista" value={dateText(o.deliveryDate)}/>
+    <Info label="Primer pago" value={paid?'Verificado':'Pendiente'}/><Info label="Entrega efectiva" value={o.factory==='Entregado'?(o.deliveredAt?dateText(o.deliveredAt.slice(0,10)):'Fecha no registrada'):'Pendiente'}/>
+   </div><h4 className="minor-title">Anotaciones</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
+   <div className="right-stack"><Panel title="Siguiente paso">
+     <div className="crm-office-summary-status"><span className={paid?'is-paid':'is-pending'}>{paid?<CheckCircle2 size={18}/>:<Clock3 size={18}/>}</span>
+      <div><strong>{paid?'Primer pago comprobado':'Pendiente de comprobar pago'}</strong>
+       <p>{!paid?'La oficina o Dirección debe confirmar el ingreso antes de definir el depósito.'
+         :o.factory==='Entregado'?'Entrega completada. Revisar comisión pendiente.'
+         :o.factory==='En tránsito'?'Confirmar la entrega con el cliente o transportista.'
+         :o.factory==='Preparado'?'Coordinar y confirmar el transportista.'
+         :o.factory==='En fabricación'?'Esperar confirmación de fabricación terminada.'
+         :'Hablar con el cliente y fijar características y fecha estimada.'}</p></div></div>
+     <button type="button" className="crm-office-link" onClick={()=>setTab(!paid?'Formalización':'Fabricación')}>Abrir siguiente paso <ChevronRight size={16}/></button>
+   </Panel>
+   {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div>
+    <div className="summary-line"><span>Ingreso inicial comprobado</span><strong>{money(o.advanceReceived)}</strong></div>
+    <div className="summary-line"><span>Comisión</span><strong>{payable?money(balance)+' · pendiente de cobro':'No exigible hasta la entrega'}</strong></div>
+   </Panel>}</div>
+  </div>}
+  {selected==='Formalización'&&<div className="detail-grid">
+   <Panel title="Comprobación del primer pago">
+    {paid?<div className="crm-payment-success" role="status">
+      <CheckCircle2 size={24}/><div><strong>Primer pago verificado</strong>
+      <p>Ingreso anotado: <b>{money(o.advanceReceived)}</b> · {o.paymentMode}</p>
+      <small>{o.paymentVerifiedAt?'Registrado el '+dateText(o.paymentVerifiedAt.slice(0,10)):'Verificación histórica sin fecha exacta registrada'}{o.paymentVerifiedBy?' · '+o.paymentVerifiedBy:''}</small>
+      </div></div>:
+     <div className="crm-payment-form">
+      <p className="muted">Confirma únicamente un ingreso comprobado. El presupuesto muestra el total sin IVA: verifica el importe real contra la documentación de pago, sin asumir un tipo impositivo.</p>
+      <div className="form-grid">
+       <Field label="Tipo de pago"><select value={payMode} onChange={e=>{setPayMode(e.target.value as Order['paymentMode']);setPaymentError('')}}>
+         <option value="Anticipo verificado">Anticipo verificado</option><option value="Pago completo verificado">Pago completo verificado</option>
+       </select></Field>
+       <Field label="Importe realmente comprobado (€)"><input type="number" required inputMode="decimal" min=".01" step=".01" value={payment}
+        onChange={e=>{setPayment(e.target.value);setPaymentError('')}} placeholder="Introduce el importe confirmado"/></Field>
+      </div>
+      <label className="crm-payment-assertion"><input type="checkbox" checked={paymentChecked} onChange={e=>setPaymentChecked(e.target.checked)}/>
+       He comprobado el ingreso con el medio de pago correspondiente.</label>
+      {paymentError&&<p role="alert" className="crm-office-error">{paymentError}</p>}
+      <button type="button" className="crm-office-primary" disabled={!canVerify} onClick={confirmPayment}><CheckCircle2 size={16}/>Confirmar primer pago</button>
+      <p className="crm-inline-help">Al guardar se desbloquea la configuración de los productos. Este primer pago no podrá volver a registrarse ni modificarse desde aquí.</p>
+     </div>}
+   </Panel>
+   <Panel title="Documentación gestionada por oficina"><div className="info-grid">
+     <Info label="Presupuesto" value={o.quoteId||'Sin presupuesto vinculado'}/>
+     <Info label="Proforma" value="Oficina del fabricante"/>
+     <Info label="Factura" value="Oficina del fabricante"/>
+     <Info label="PDF" value="Almacenamiento privado pendiente"/>
+   </div><p className="crm-inline-help">Los documentos oficiales son externos al CRM y sus archivos aún no están almacenados aquí.</p>
+   </Panel>
+  </div>}
+  {selected==='Fabricación'&&<div className="detail-grid crm-order-factory-grid">
+   <Panel title="Seguimiento de fabricación y entrega">
+     <FactoryWorkflow key={o.id} order={o} updateOrder={updateOrder} onPayment={()=>setTab('Formalización')}/>
+   </Panel>
+   <Panel title="Anotaciones e incidencias de oficina">
+     <form className="form-stack" onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){
+       updateOrder(o.id,{notes:note.trim()},'Nueva anotación de oficina: '+note.trim());setNote('');
+     }}}>
+      <Field label="Comentario de seguimiento"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)}
+        placeholder="Incidencias, detalles acordados o cambios comunicados por fábrica..."/></Field>
+      <Button type="submit" disabled={!note.trim()}><Plus size={16}/>Guardar anotación</Button>
+     </form>
+     <div className="crm-office-lastnotes"><strong>Última anotación</strong><p>{o.notes||'No hay anotaciones.'}</p></div>
+     <div className="crm-office-disclaimer">El histórico identifica cambios hechos en la interfaz, pero no constituye auditoría de usuarios autenticados.</div>
+   </Panel>
+  </div>}
+  {selected==='Comisiones'&&role==='direccion'&&<div className="detail-grid">
+   <Panel title="Liquidación comercial"><div className="big-balance">{money(balance)}
+     <span>{payable?'pendiente de liquidar tras la entrega':'no exigible hasta la entrega'}</span></div>
+     <div className="summary-line"><span>Comisión acordada</span><strong>{money(o.commission)}</strong></div>
+     <div className="summary-line"><span>Comisión registrada como cobrada</span><strong>{money(o.commissionPaid)}</strong></div>
+     <div className="commission-meter"><span style={{width:(o.commission?100*o.commissionPaid/o.commission:0)+'%'}}/></div>
+     <Pill tone={balance<=0?'green':payable?'amber':'neutral'}>{balance<=0?'Pagada':payable?'Pendiente de cobro':'Esperando entrega'}</Pill>
+   </Panel>
+   <Panel title="Registrar cobro de comisión">
+    {payable?<div className="form-stack"><p className="muted">Registra únicamente comisiones cobradas después de confirmar la entrega.</p>
+      <Field label="Importe recibido (€)"><input type="number" min=".01" step=".01" max={balance} value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
+      <Button disabled={!(Number(commission)>0&&Number(commission)<=balance)} onClick={()=>{addCommissionPayment(o.id,Number(commission));setCommission('')}}><CreditCard size={16}/>Registrar cobro</Button>
+    </div>:<div className="crm-office-gate"><Clock3 size={20}/><p>La comisión se cobrará cuando el pedido figure como entregado. Hasta entonces no se puede anotar un nuevo cobro.</p></div>}
+   </Panel>
+  </div>}
+  {selected==='Actividad'&&<div className="detail-grid">
+   <Panel title="Cronología del pedido"><Timeline items={o.activity}/></Panel>
+   <Panel title="Seguimiento posventa"><div className="note-area">Después de la entrega se conserva el historial para coordinar el cobro de la comisión y la atención posventa.</div>
+     <Link to="/agenda" className="btn btn-outline"><CalendarPlus size={16}/>Abrir agenda</Link></Panel>
+  </div>}
  </div>;
 }
+
 export function Commissions(){
  const {data,addCommissionPayment,updateOrder}=useCrm();
  const navigate=useNavigate();
@@ -504,7 +762,7 @@ export function Commissions(){
  const [quickAmount,setQuickAmount]=useState('');
  const [quickError,setQuickError]=useState('');
  const openQuick=()=>{
-   const first=data.orders.find(o=>o.commission>o.commissionPaid);
+   const first=data.orders.find(o=>o.factory==='Entregado'&&o.commission>o.commissionPaid);
    setQuickMode(first?'payment':'agreed');setSelectedOrder(first?.id||data.orders[0]?.id||'');
    setQuickAmount('');setQuickError('');setQuickModal(true);
  };
@@ -512,7 +770,7 @@ export function Commissions(){
  const quickBalance=quickOrder?Math.max(0,quickOrder.commission-quickOrder.commissionPaid):0;
  const quickValue=Number(quickAmount);
  const quickValid=Boolean(quickOrder&&quickAmount.trim()!==''&&Number.isFinite(quickValue)&&quickValue>=0&&
-   (quickMode==='payment'?(quickValue>0&&quickValue<=quickBalance):(quickValue>=quickOrder.commissionPaid)));
+   (quickMode==='payment'?(quickOrder.factory==='Entregado'&&quickValue>0&&quickValue<=quickBalance):(quickValue>=quickOrder.commissionPaid)));
  const saveQuick=(event:FormEvent)=>{
    event.preventDefault();setQuickError('');
    if(!quickOrder||!quickValid){setQuickError('Comprueba el pedido y el importe indicado.');return;}
@@ -523,15 +781,18 @@ export function Commissions(){
  // Mantener exactamente la clasificación y los cálculos existentes del store.
  const matchesStatus=(o:Order,status:string)=>
    status==='Todas'
-   ||(status==='Pendientes'&&o.commissionPaid===0)
-   ||(status==='Parciales'&&o.commissionPaid>0&&o.commissionPaid<o.commission)
-   ||(status==='Pagadas'&&o.commissionPaid>=o.commission);
- const tabs=['Pendientes','Parciales','Pagadas','Todas'];
+   ||(status==='Pendientes'&&o.factory==='Entregado'&&o.commissionPaid===0&&o.commission>0)
+   ||(status==='Parciales'&&o.factory==='Entregado'&&o.commissionPaid>0&&o.commissionPaid<o.commission)
+   ||(status==='Pagadas'&&o.commissionPaid>=o.commission)
+   ||(status==='Por entregar'&&o.factory!=='Entregado'&&o.commission>o.commissionPaid);
+ const tabs=['Pendientes','Parciales','Pagadas','Por entregar','Todas'];
  const term=search.trim().toLocaleLowerCase('es-ES');
  const list=data.orders.filter(o=>matchesStatus(o,filter)
    &&[o.buyerName,o.id,o.product,o.capacity].join(' ').toLocaleLowerCase('es-ES').includes(term));
  const earned=data.orders.reduce((a,o)=>a+o.commission,0);
  const paid=data.orders.reduce((a,o)=>a+o.commissionPaid,0);
+ const dueNow=data.orders.filter(o=>o.factory==='Entregado').reduce((a,o)=>a+Math.max(0,o.commission-o.commissionPaid),0);
+ const notYetDue=data.orders.filter(o=>o.factory!=='Entregado').reduce((a,o)=>a+Math.max(0,o.commission-o.commissionPaid),0);
  return <div className="page page-opportunities page-commissions">
    <div className="op-screen-heading">
      <div className="op-heading-copy">
@@ -545,9 +806,9 @@ export function Commissions(){
    </div>
    <section className="commission-banners" aria-label="Resumen de comisiones">
      <article className="commission-banner is-generated">
-       <div className="commission-banner-heading"><span>Comisiones generadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
+       <div className="commission-banner-heading"><span>Comisiones acordadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
        <strong className="commission-banner-value">{money(earned)}</strong>
-       <span className="commission-banner-caption">Total acordado en los pedidos registrados</span>
+       <span className="commission-banner-caption">Total acordado (incluye pedidos aún no entregados)</span>
      </article>
      <article className="commission-banner is-collected">
        <div className="commission-banner-heading"><span>Comisiones cobradas</span><span className="commission-banner-icon"><CheckCircle2 size={19}/></span></div>
@@ -556,8 +817,8 @@ export function Commissions(){
      </article>
      <article className="commission-banner is-outstanding">
        <div className="commission-banner-heading"><span>Pendiente de cobro</span><span className="commission-banner-icon"><Clock3 size={19}/></span></div>
-       <strong className="commission-banner-value">{money(earned-paid)}</strong>
-       <span className="commission-banner-caption">Saldo de comisión · No equivale a beneficio neto</span>
+       <strong className="commission-banner-value">{money(dueNow)}</strong>
+       <span className="commission-banner-caption">Pedidos entregados · {money(notYetDue)} aún no exigibles</span>
      </article>
    </section>
    <nav className="op-phase-tabs commission-tabs" aria-label="Filtrar por estado de comisión">
@@ -589,8 +850,8 @@ export function Commissions(){
          </tr></thead>
          <tbody>{list.map(o=>{
            const balance=o.commission-o.commissionPaid;
-           const state=o.commissionPaid===0?'Pendiente':o.commissionPaid<o.commission?'Parcialmente cobrada':'Pagada';
-           const tone=state==='Pendiente'?'is-due':state==='Pagada'?'is-paid':'is-partial';
+           const state=o.commissionPaid>=o.commission?'Pagada':o.factory!=='Entregado'?'No exigible':o.commissionPaid===0?'Pendiente de cobro':'Cobro parcial';
+           const tone=state==='Pendiente de cobro'?'is-due':state==='Pagada'?'is-paid':'is-partial';
            const orderUrl='/pedidos/'+o.id+'?tab=Comisiones';
            const customerUrl='/clientes/'+o.customerId;
            return <tr key={o.id} className="op-clickable-row" onClick={()=>navigate(orderUrl)}>
@@ -630,7 +891,7 @@ export function Commissions(){
        </div>
        {quickOrder&&<div className="commission-quick-facts"><div><span>Acordada</span><strong>{money(quickOrder.commission)}</strong></div><div><span>Registrada como cobrada</span><strong>{money(quickOrder.commissionPaid)}</strong></div><div><span>Pendiente</span><strong>{money(quickBalance)}</strong></div></div>}
        <Field label={quickMode==='payment'?'Cobro recibido (€)':'Importe acordado total (€)'}><input type="number" required min={quickMode==='payment'?'0.01':String(quickOrder?.commissionPaid||0)} max={quickMode==='payment'?String(quickBalance):undefined} step="0.01" value={quickAmount} onChange={e=>setQuickAmount(e.target.value)} placeholder="0,00"/></Field>
-       <p className="commission-quick-hint">{quickMode==='payment'?'Registra únicamente importes realmente recibidos; el saldo se actualiza sin superar la comisión acordada.':'Edita la comisión pactada para este pedido. No se modifican cobros anteriores; el total no puede ser inferior a lo ya cobrado.'}</p>
+       <p className="commission-quick-hint">{quickMode==='payment'?(quickOrder&&quickOrder.factory!=='Entregado'?'No se pueden registrar nuevas comisiones cobradas hasta que el pedido esté entregado.':'Registra únicamente importes recibidos tras la entrega, sin superar la comisión acordada.'):'Edita la comisión pactada. No se modifican cobros anteriores; el total no puede ser inferior a lo ya cobrado.'}</p>
        {quickError&&<p className="commission-quick-error" role="alert">{quickError}</p>}
        <div className="modal-actions"><Button variant="outline" onClick={()=>setQuickModal(false)}>Cancelar</Button><Button type="submit" disabled={!quickValid}><Check size={16}/>Guardar</Button></div>
      </form>
