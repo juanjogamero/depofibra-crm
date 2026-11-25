@@ -558,7 +558,7 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
 });
 
 test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes',async({page})=>{
- test.setTimeout(145000);
+ test.setTimeout(85000);
  const sections=[
   ['','Resumen y mapa'],['activity','Evolución'],['products','Productos'],
   ['channels','Canales'],['zones','Zonas'],['quotes','Presupuestos'],
@@ -588,8 +588,9 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
  await expect(page.getByRole('button',{name:/12 meses/})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'Informe siguiente'}).click();
  await expect(page).toHaveURL(/#\/resultados\/zones/);
+ await expect.poll(async()=>page.locator('.ri-active-content').evaluate(el=>el.scrollTop)).toBe(0);
  await expect(page.getByRole('heading',{name:'Mapa comercial · España y Portugal'})).toBeVisible();
- await page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'}).click();
+ await page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'}).click({timeout:6500});
  await expect(page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'})).toHaveAttribute('aria-pressed','true');
 
  await page.setViewportSize({width:390,height:750});
