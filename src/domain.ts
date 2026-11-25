@@ -20,6 +20,8 @@ export type Quote = {
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
   /** Optional reference to chosen catalog variant; quoted amount and name stay as historical snapshot. */
   productId?: string;
+  /** Condiciones técnicas de la oferta redactadas por Dirección, no un mensaje generado. */
+  details?: string;
   /** Archivo recuperable. Nunca afecta a ofertas aceptadas ni vinculadas a pedidos. */
   archivedAt?: string;
   /** Tras restaurar, ampliar el periodo de visibilidad otros 20 días. */
