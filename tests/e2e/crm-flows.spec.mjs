@@ -567,7 +567,7 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
  await page.setViewportSize({width:1512,height:900});
  for(const [slug,label] of sections){
   await open(page,'/resultados'+(slug?'/'+slug:''));
-  await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Rendimiento',exact:true})).toBeVisible();
   await expect(page.locator('.ri-report-context h2')).toHaveText(label);
   await expect(page.locator('.ri-active-content')).toBeVisible();
   const nav=page.getByRole('navigation',{name:'Accesos directos a informes',exact:true});
