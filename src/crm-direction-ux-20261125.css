@@ -530,3 +530,47 @@
   .page-transport .transport-maps-standalone {margin-bottom:11px;}
   .page-transport .transport-maps-standalone .transport-fast-key-panel {padding:14px;}
 }
+
+/* REG-0176 · Espaciado uniforme de acciones en el borde derecho de los listados.
+   Afecta a Consultas, Presupuestos (activos/papelera), Clientes, Pedidos
+   y Comisiones. El botón nunca queda pegado al borde ni exige scroll lateral.
+   Desplazamiento visual, sin alterar el reparto de columnas ni los datos. */
+.page-opportunities .op-data-table tbody td.op-col-open > .op-row-open,
+.page-opportunities .op-data-table tbody td.op-col-open > .crm-trash-restore,
+.page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
+  position:relative;
+  left:-15px;
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  min-height:34px;
+  border-radius:7px;
+  color:#01488e;
+  vertical-align:middle;
+}
+.page-opportunities .op-data-table tbody td.op-col-open > .op-row-open:hover,
+.page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open:hover {
+  background:#eaf2fb;
+  color:#002d59;
+}
+.page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore):focus-visible,
+.page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open:focus-visible {
+  outline:2px solid #01488e;
+  outline-offset:2px;
+}
+@container crm-content (max-width:790px) {
+  .page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore),
+  .page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
+    left:-9px;
+  }
+}
+@container crm-content (max-width:480px) {
+  .page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore),
+  .page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
+    left:-7px;
+    min-width:30px;
+    min-height:32px;
+  }
+}
