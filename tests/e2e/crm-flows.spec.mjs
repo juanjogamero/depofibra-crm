@@ -289,8 +289,9 @@ test('Resultados: nueve informes mantienen contenidos y controles en diseño lig
   await expect(page.getByLabel('Seleccionar subapartado de Resultados')).toHaveValue(route||'overview');
   const length=await page.locator('.ri-active-content').evaluate(x=>x.textContent?.trim().length??0);
   expect(length,'el informe '+(route||'overview')+' conserva su información').toBeGreaterThan(40);
-  const shadow=await page.locator('.ri-active-content :is(.ri-study-section,.ri-panel,.ri-geo-card,.ri-trend-report)').first().evaluate(el=>getComputedStyle(el).boxShadow).catch(()=>null);
-  if(shadow!==null)expect(shadow).toBe('none');
+  const card=page.locator('.ri-active-content :is(.ri-study-section,.ri-panel,.ri-geo-card,.ri-trend-report,.ri-integration-panel,.ri-focus-overview,.ri-digital-source-panel,.ri-product-card,.ri-activity-board)').first();
+  // No esperar indefinidamente a una tarjeta inexistente: algunos informes usan otros contenedores.
+  if(await card.count())expect(await card.evaluate(el=>getComputedStyle(el).boxShadow)).toBe('none');
  }
  for(const viewport of [{width:390,height:844},{width:768,height:850}]){
   await page.setViewportSize(viewport);
