@@ -512,7 +512,7 @@ export function QuoteNew(){
   addQuote({
    opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
    productId:catalogId||undefined,amount:value,
-   commission:Number(commission)||0,transport:Number(transport)||0,
+   commission:Number(commission)||0,transport:Number(transport)||0,details:details.trim(),
    status:sent?'Enviado':'Borrador',message:''
   });
   nav('/presupuestos');
@@ -617,6 +617,7 @@ export function QuoteDetail(){
          <div><span>Registrado</span><strong>{dateText(q.createdAt)}</strong></div>
        </div>
        {q.opportunityId&&<Link className="crm-text-link" to={'/oportunidades/'+q.opportunityId}>Abrir solicitud relacionada <ArrowRight size={16}/></Link>}
+       {q.details&&<div className="crm-quote-details"><strong>Características y condiciones anotadas</strong><p>{q.details}</p></div>}
        <p className="crm-inline-help">Los mensajes comerciales se redactan fuera del CRM. Aquí se conserva exclusivamente el control del presupuesto.</p>
      </Panel>
      <div className="right-stack">
