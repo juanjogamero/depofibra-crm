@@ -284,7 +284,7 @@ export function OpportunityDetail(){
  </>}
  <h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
  <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
- {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer mensaje comercial de esta consulta."/>}</div></Panel>}
+ {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer presupuesto para esta consulta."/>}</div></Panel>}
  {tab==='Actividad'&&<div className="detail-grid"><Panel title="Historial de interacciones"><Timeline items={o.activity}/></Panel><Panel title="Registrar seguimiento"><form onSubmit={e=>{e.preventDefault();if(note.trim()){addActivity(o.id,note.trim());setNote('')}}} className="form-stack"><Field label="Nota de la conversación"><textarea value={note} onChange={e=>setNote(e.target.value)} rows={5} placeholder="Llamada, respuesta, comentario..."/></Field><Button type="submit"><Plus size={16}/>Añadir nota</Button></form></Panel></div>}
  {editing&&<Modal title="Editar oportunidad" subtitle={'Ficha '+o.id} onClose={()=>setEditing(false)}>
  <form className="modal-form crm-edit-opportunity" onSubmit={saveEdit}>
@@ -575,13 +575,74 @@ export function QuoteNew(){
 }
 
 export function QuoteDetail(){
- const {id}=useParams();const {data,updateQuote,acceptQuote}=useCrm();const q=data.quotes.find(x=>x.id===id);
- const [text,setText]=useState(q?.message||'');const nav=useNavigate();if(!q)return <Missing to="/presupuestos"/>;
+ const {id}=useParams();
+ const {data,updateQuote,acceptQuote,archiveQuote,restoreQuote}=useCrm();
+ const nav=useNavigate();
+ const q=data.quotes.find(x=>x.id===id);
+ const [pendingStatus,setPendingStatus]=useState<QuoteStatus|''>('');
+ if(!q)return <Missing to="/presupuestos"/>;
  const linked=data.orders.find(o=>o.quoteId===q.id);
- return <div className="page page-crm-record"><Back to="/presupuestos" label="Volver a presupuestos"/><div className="record-hero"><div><div className="eyebrow">{q.id} · {dateText(q.createdAt)}</div><h1>{q.name}</h1><p>{q.product}</p></div><Status value={q.status}/></div>
- <div className="detail-grid"><Panel title="Mensaje comercial"><textarea className="message-editor message-card" value={text} onChange={e=>setText(e.target.value)} rows={14}/><div className="action-line"><CopyButton text={text}/><Button variant="outline" onClick={()=>updateQuote(q.id,{message:text})}><Check size={16}/>Guardar texto</Button></div><div className="hint-row">Copiar no equivale a enviar. Cambia el estado únicamente cuando proceda.</div></Panel>
- <div className="right-stack"><Panel title="Control de presupuesto"><div className="money-summary"><span>Importe ofertado</span><strong>{money(q.amount)}</strong></div><div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div><div className="summary-line"><span>Transporte interno</span><strong>{money(q.transport)}</strong></div><Field label="Estado"><select value={q.status} onChange={e=>updateQuote(q.id,{status:e.target.value as QuoteStatus})}>{quoteStatuses.map(s=><option key={s}>{s}</option>)}</select></Field>{!linked&&q.status!=='Rechazado'&&<Button onClick={()=>{if(window.confirm('¿Crear pedido pendiente de formalización en este CRM?')){acceptQuote(q.id);nav('/pedidos')}}}><CheckCircle2 size={17}/>Aceptado: crear pedido</Button>}{linked&&<Link className="btn btn-outline" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id}<ArrowRight size={16}/></Link>}</Panel>
- <Panel title="Documentación de oficina"><div className="inline-tip"><CircleAlert size={17}/> La proforma y la factura las emite la oficina del fabricante, no el CRM.</div></Panel></div></div></div>;
+ const currentStatus=pendingStatus||q.status;
+ const changed=currentStatus!==q.status;
+ const saveStatus=()=>{
+   if(!changed)return;
+   if(currentStatus==='Aceptado'){
+     if(linked)return;
+     if(!window.confirm('¿Confirmar que el cliente ha aceptado este presupuesto? Se creará su ficha y un pedido pendiente de formalización, sin registrar ningún cobro.'))return;
+     acceptQuote(q.id);
+     nav('/clientes');
+     return;
+   }
+   if(linked){window.alert('El presupuesto tiene un pedido vinculado. No se puede revertir su aceptación desde esta pantalla.');return;}
+   updateQuote(q.id,{status:currentStatus});setPendingStatus('');
+ };
+ return <div className="page page-crm-record crm-quote-detail">
+   <Back to="/presupuestos" label="Volver a presupuestos"/>
+   <div className="record-hero">
+     <div><div className="eyebrow">{q.id} · {dateText(q.createdAt)}</div><h1>{q.name}</h1><p>{q.product}</p></div>
+     <div className="crm-record-actions"><Status value={q.status}/>
+       {!q.archivedAt&&!linked&&q.status!=='Aceptado'&&<button type="button" className="crm-record-secondary" onClick={()=>{
+         if(window.confirm('¿Mover este presupuesto a la papelera recuperable?')){archiveQuote(q.id);nav('/presupuestos');}
+       }}><Archive size={16}/>Archivar</button>}
+       {q.archivedAt&&<button type="button" className="crm-record-secondary" onClick={()=>restoreQuote(q.id)}><RotateCcw size={16}/>Recuperar</button>}
+     </div>
+   </div>
+   {q.archivedAt&&<div className="crm-trash-notice"><Archive size={17}/> Presupuesto en papelera desde {dateText(q.archivedAt)}. Recupéralo para continuar gestionándolo.</div>}
+   <div className="detail-grid crm-quote-detail-grid">
+     <Panel title="Resumen del presupuesto">
+       <div className="crm-quote-summary">
+         <div><span>Importe ofertado</span><strong>{decimal(q.amount)}</strong></div>
+         <div><span>Producto</span><strong>{q.product}</strong></div>
+         <div><span>Cliente</span><strong>{q.name}</strong></div>
+         <div><span>Registrado</span><strong>{dateText(q.createdAt)}</strong></div>
+       </div>
+       {q.opportunityId&&<Link className="crm-text-link" to={'/oportunidades/'+q.opportunityId}>Abrir solicitud relacionada <ArrowRight size={16}/></Link>}
+       <p className="crm-inline-help">Los mensajes comerciales se redactan fuera del CRM. Aquí se conserva exclusivamente el control del presupuesto.</p>
+     </Panel>
+     <div className="right-stack">
+       <Panel title="Estado y formalización">
+         <div className="summary-line"><span>Importe</span><strong>{money(q.amount)}</strong></div>
+         <div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div>
+         <div className="summary-line"><span>Transporte orientativo</span><strong>{money(q.transport)}</strong></div>
+         <div className="crm-quote-status-control">
+           <Field label="Estado del presupuesto">
+             <select value={currentStatus} disabled={Boolean(q.archivedAt||linked)} onChange={e=>setPendingStatus(e.target.value as QuoteStatus)}>
+               {quoteStatuses.map(s=><option key={s} value={s}>{s}</option>)}
+             </select>
+           </Field>
+           {changed&&!q.archivedAt&&!linked&&<div className="crm-quote-save-row">
+             <Button onClick={saveStatus}><Check size={16}/>{currentStatus==='Aceptado'?'Guardar aceptación':'Guardar estado'}</Button>
+             <button type="button" className="crm-record-secondary" onClick={()=>setPendingStatus('')}>Cancelar</button>
+           </div>}
+           {currentStatus==='Aceptado'&&!linked&&!q.archivedAt&&<p className="crm-inline-help">Al guardar se creará el cliente y su pedido. El pago quedará pendiente de verificación.</p>}
+           {!changed&&!linked&&<p className="crm-inline-help">Elige otro estado y pulsa «Guardar» para confirmar el cambio.</p>}
+           {linked&&<Link className="crm-record-secondary crm-quote-order-link" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id} <ArrowRight size={16}/></Link>}
+         </div>
+       </Panel>
+       <Panel title="Documentación oficial"><p className="crm-inline-help"><CircleAlert size={16}/> Proformas y facturas se gestionan con la oficina del fabricante. No se generan automáticamente desde el CRM.</p></Panel>
+     </div>
+   </div>
+ </div>;
 }
 
 function Missing({to}:{to:string}){return <div className="page"><Back to={to} label="Volver al listado"/><Empty title="Registro no encontrado" body="Puede que los datos de este navegador se hayan reiniciado."/></div>}
