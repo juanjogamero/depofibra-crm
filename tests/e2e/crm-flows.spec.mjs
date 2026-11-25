@@ -570,7 +570,7 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
   await expect(page.getByRole('heading',{name:'Rendimiento'})).toBeVisible();
   await expect(page.locator('.ri-report-context h2')).toHaveText(label);
   await expect(page.locator('.ri-active-content')).toBeVisible();
-  const nav=page.getByRole('navigation',{name:'Informes de resultados'});
+  const nav=page.getByRole('navigation',{name:'Accesos directos a informes',exact:true});
   await expect(nav).toBeVisible();
   await expect(nav.getByRole('link')).toHaveCount(9);
   await expect(nav.getByRole('link',{name:label,exact:true})).toHaveAttribute('aria-current','page');
@@ -582,7 +582,7 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
  }
  // Navegación directa y periodo: no perder los filtros originales.
  await open(page,'/resultados');
- await page.getByRole('navigation',{name:'Informes de resultados'}).getByRole('link',{name:'Canales'}).click();
+ await page.getByRole('navigation',{name:'Accesos directos a informes',exact:true}).getByRole('link',{name:'Canales'}).click();
  await expect(page).toHaveURL(/#\/resultados\/channels/);
  await page.getByRole('button',{name:'12 meses'}).click();
  await expect(page.getByRole('button',{name:/12 meses/})).toHaveAttribute('aria-pressed','true');
