@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Bell, CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
+import QuoteLineItems from '../QuoteLineItems';
 import { type FactoryStatus, type ProductConfiguration, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
@@ -266,7 +267,7 @@ export function Orders(){
    &&(payment==='Todos los pagos'||o.paymentMode===payment)
    &&(!dateFrom||o.createdAt.slice(0,10)>=dateFrom)
    &&(!dateTo||o.createdAt.slice(0,10)<=dateTo)
-   &&[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.factory,o.paymentMode]
+   &&[o.id,o.quoteId,o.buyerName,o.product,o.capacity,o.factory,o.paymentMode,...(o.items||[]).map(i=>i.description)]
        .join(' ').toLocaleLowerCase('es-ES').includes(query)
  ).sort((a,b)=>{
    if(sort==='Entrega más próxima')return (a.deliveryDate||'9999-12-31').localeCompare(b.deliveryDate||'9999-12-31')
@@ -402,7 +403,8 @@ export function Orders(){
                  <span className="op-client-sub">Presupuesto {o.quoteId}</span>
                </div>
              </div></td>
-             <td className="op-col-product"><span className="op-product" title={o.product}>{o.product}</span><span className="op-product-sub">{o.capacity||'Por concretar'}</span></td>
+             <td className="op-col-product"><span className="op-product" title={o.product}>{o.items?.filter(i=>i.kind==='product').length&&o.items.filter(i=>i.kind==='product').length>1
+  ?o.items.filter(i=>i.kind==='product').length+' productos':o.product}</span><span className="op-product-sub">{o.items?.length?o.items.length+' conceptos · '+o.capacity:o.capacity||'Por concretar'}</span></td>
              <td className="orders-col-payment"><span className={'orders-status is-'+paymentTone}>{o.paymentMode}</span></td>
              <td className="orders-col-factory"><span className={'orders-status is-'+factoryTone}>{o.factory}</span>
                <span className="orders-delivery">{o.deliveryDate?'Entrega indicada: '+dateText(o.deliveryDate):'Entrega por confirmar'}</span></td>
@@ -653,6 +655,10 @@ export function OrderDetail(){
    </div></div><Pill>{role==='fabrica'?'Gestión de oficina':'Ficha de pedido'}</Pill>
   </div>
   <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} type="button" onClick={()=>setTab(t)}>{t}</button>)}</div>
+  {selected==='Resumen'&&<div className="crm-order-itemized-panel"><Panel title="Productos y conceptos incluidos · presupuesto aceptado">
+    <QuoteLineItems items={o.items} total={o.amount} legacyProduct={o.product}/>
+    <p className="crm-quote-private-notice">La comisión de Dirección se gestiona aparte y nunca forma parte del total comercial sin IVA.</p>
+  </Panel></div>}
   {selected==='Resumen'&&<div className="detail-grid">
    <Panel title="Información general"><div className="info-grid">
     <Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/>
