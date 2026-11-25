@@ -28,7 +28,15 @@ export type Order = {
   color: string; connections: string; activity: TimelineItem[];
 };
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
-export type Task = { id: string; title: string; due: string; context: string; done: boolean };
+/** Avisos dentro del CRM mientras la pantalla esté abierta; no suponen envío push/email. */
+export type Task = {
+ id: string; title: string; due: string; context: string; done: boolean;
+ atTime?: string; reminderMinutes?: number | null;
+};
+export type InternalNote = {
+ id: string; title: string; body: string; category: string; pinned: boolean;
+ updatedAt: string;
+};
 export type AttributeAnswerType = 'single'|'multiple'|'boolean'|'centimetres'|'text';
 /** Existing category technical specs (no responseType) remain static. New typed attributes are request questions. */
 export type CatalogAttribute = {
@@ -58,6 +66,8 @@ export type CrmState = {
   productCategories?: ProductCategory[];
   /** Fechas verificadas para nuevas liquidaciones. Opcional para datos locales anteriores. */
   commissionPayments?: CommissionPayment[];
+  /** Anotaciones internas del navegador actual; aún no existe control de acceso por servidor. */
+  internalNotes?: InternalNote[];
 };
 
 export const dt = (days = 0): string => {
