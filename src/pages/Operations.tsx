@@ -806,7 +806,7 @@ export function Commissions(){
    </div>
    <section className="commission-banners" aria-label="Resumen de comisiones">
      <article className="commission-banner is-generated">
-       <div className="commission-banner-heading"><span>Comisiones generadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
+       <div className="commission-banner-heading"><span>Comisiones acordadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
        <strong className="commission-banner-value">{money(earned)}</strong>
        <span className="commission-banner-caption">Total acordado (incluye pedidos aún no entregados)</span>
      </article>
@@ -818,7 +818,7 @@ export function Commissions(){
      <article className="commission-banner is-outstanding">
        <div className="commission-banner-heading"><span>Pendiente de cobro</span><span className="commission-banner-icon"><Clock3 size={19}/></span></div>
        <strong className="commission-banner-value">{money(dueNow)}</strong>
-       <span className="commission-banner-caption">Exigible tras entrega · {money(notYetDue)} todavía no exigibles</span>
+       <span className="commission-banner-caption">Pedidos entregados · {money(notYetDue)} aún no exigibles</span>
      </article>
    </section>
    <nav className="op-phase-tabs commission-tabs" aria-label="Filtrar por estado de comisión">
