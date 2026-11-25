@@ -654,17 +654,17 @@ export function OrderDetail(){
    </div></div><Pill>{role==='fabrica'?'Gestión de oficina':'Ficha de pedido'}</Pill>
   </div>
   <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} type="button" onClick={()=>setTab(t)}>{t}</button>)}</div>
-  {selected==='Resumen'&&<div className="crm-order-itemized-panel"><Panel title="Productos y conceptos incluidos · presupuesto aceptado">
+  {selected==='Resumen'&&<div className="crm-order-overview-grid"><div className="crm-order-overview-primary"><div className="crm-order-itemized-panel"><Panel title="Productos y conceptos incluidos · presupuesto aceptado">
     <QuoteLineItems items={o.items} total={o.amount} legacyProduct={o.product}/>
     <p className="crm-quote-private-notice">La comisión de Dirección se gestiona aparte y nunca forma parte del total comercial sin IVA.</p>
-  </Panel></div>}
-  {selected==='Resumen'&&<div className="detail-grid">
+  </Panel></div>
+   
    <Panel title="Información general"><div className="info-grid">
     <Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/>
     <Info label="Capacidad" value={o.capacity}/><Info label="Fase" value={o.factory}/>
     <Info label="Cliente" value={o.buyerName}/><Info label="Entrega prevista" value={dateText(o.deliveryDate)}/>
     <Info label="Primer pago" value={paid?'Verificado':'Pendiente'}/><Info label="Entrega efectiva" value={o.factory==='Entregado'?(o.deliveredAt?dateText(o.deliveredAt.slice(0,10)):'Fecha no registrada'):'Pendiente'}/>
-   </div><h4 className="minor-title">Anotaciones</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
+   </div><h4 className="minor-title">Anotaciones</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel></div>
    <div className="right-stack"><Panel title="Siguiente paso">
      <div className="crm-office-summary-status"><span className={paid?'is-paid':'is-pending'}>{paid?<CheckCircle2 size={18}/>:<Clock3 size={18}/>}</span>
       <div><strong>{paid?'Primer pago comprobado':'Pendiente de comprobar pago'}</strong>
@@ -912,7 +912,7 @@ export function FactoryHome(){
    </div>
    <Panel title="Operaciones a cargo" className="factory-orders-panel" extra={<ActionLink to="/pedidos">Ver listado</ActionLink>}>
      <div className="simple-list">{active.map(o=><Link className="simple-item" to={'/pedidos/'+o.id} key={o.id}>
-       <Package size={19}/><div><strong>{o.buyerName}</strong><small>{o.id} · {o.capacity}</small></div>
+       <Initials name={o.buyerName}/><div><strong>{o.buyerName}</strong><small>{o.id} · {o.capacity}</small></div>
        <Status value={o.factory}/><ChevronRight size={16}/>
      </Link>)}{!active.length&&<Empty title="Sin pedidos en curso" body="No hay operaciones pendientes de preparación en esta vista."/>}</div>
    </Panel>
