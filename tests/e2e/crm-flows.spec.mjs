@@ -323,3 +323,38 @@ test('Catálogo: regreso intuitivo desde atributos a productos y categorías',as
  await expect(tabs.getByRole('button',{name:'Productos'})).toBeVisible();
  await expect(tabs.getByRole('button',{name:'Atributos'})).toBeVisible();
 });
+
+test('Dirección: Google Maps plegado, pedidos, agenda, resultados y perfil de comprador',async({page})=>{
+ test.setTimeout(100000);
+ await page.setViewportSize({width:1366,height:900});
+ await open(page,'/transporte');
+ const mapsToggle=page.getByRole('button',{name:'Configurar Google Maps'});
+ await expect(mapsToggle).toHaveAttribute('aria-expanded','false');
+ await expect(page.getByLabel('Clave API de Google Maps para navegador')).toHaveCount(0);
+ await expect(page.locator('.transport-fast-attribution')).toHaveCount(0);
+ await mapsToggle.click();
+ await expect(mapsToggle).toHaveAttribute('aria-expanded','true');
+ await expect(page.getByLabel('Clave API de Google Maps para navegador')).toBeVisible();
+ await expect(page.locator('.transport-fast-attribution')).toBeVisible();
+ await mapsToggle.click();
+ await expect(page.locator('.transport-fast-attribution')).toHaveCount(0);
+ await open(page,'/pedidos/PED-203');
+ await expect(page.locator('.crm-order-overview-grid')).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Información general'})).toBeVisible();
+ await open(page,'/agenda');
+ await expect(page.getByRole('heading',{name:'Agenda y notas'})).toBeVisible();
+ const calendar=page.locator('.agenda-pro-calendar');
+ await expect(calendar).toBeVisible();
+ expect((await calendar.boundingBox()).width).toBeLessThanOrEqual(425);
+ await open(page,'/resultados');
+ await expect(page.getByRole('heading',{name:'Resumen y mapa'})).toBeVisible();
+ await page.getByRole('button',{name:'Informe siguiente'}).click();
+ await expect(page).toHaveURL(/#\/resultados\/activity/);
+ await expect(page.getByRole('heading',{name:'Evolución',exact:true})).toBeVisible();
+ await open(page,'/configuracion/perfil');
+ await page.getByLabel('Cambiar vista simulada del CRM').selectOption('fabrica');
+ await open(page,'/fabrica');
+ await expect(page.locator('.factory-orders-panel .simple-item .initials').first()).toBeVisible();
+ await expect(page.locator('.factory-orders-panel .simple-item .initials').first()).not.toBeEmpty();
+ await expect(page.locator('.factory-orders-panel .simple-item').first().locator('svg').first()).toHaveCount(1);
+});

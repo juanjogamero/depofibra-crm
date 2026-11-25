@@ -1,0 +1,466 @@
+/* Refinamientos de Dirección · 25/11/2026 · solo presentación, sin cambios de datos. */
+:root {
+ --df-ink:#002d59;
+ --df-primary:#01488e;
+ --df-soft:#eaf2fb;
+ --df-edge:#dce7f0;
+}
+.app-body.is-agenda .page.page-agenda.agenda-pro,
+.app-body.is-results .page.page-results.page-results-insights,
+.app-body.is-catalog .page.page-catalog.catalog3,
+.app-body.is-transport .page.page-transport,
+.app-main .page.page-crm-record.crm-order-office {
+ background:
+  radial-gradient(ellipse at 88% 1%,rgba(1,72,142,.075),transparent 39%),
+  linear-gradient(135deg,#f9fcff 0%,#f3f8fc 44%,#edf4fa 100%);
+}
+/* Superficies limpias: gradiente muy tenue, no un banner protagonista. */
+.page-crm-record.crm-order-office .record-hero,
+.page-agenda.agenda-pro .op-screen-heading,
+.page-results-insights.ri-gsc .ri-header {
+ background:linear-gradient(105deg,rgba(255,255,255,.72) 12%,rgba(234,242,251,.4) 100%);
+}
+.page-agenda.agenda-pro .op-screen-heading,
+.page-results-insights.ri-gsc .ri-header {
+ border:0;
+ border-radius:9px;
+ padding:10px 12px;
+ margin-bottom:9px;
+}
+.page-agenda.agenda-pro .op-heading-copy h1,
+.page-results-insights.ri-gsc .ri-header h1 {
+ color:var(--df-ink);
+}
+/* 1. Configuración de Maps: solo el disparador cerrado. */
+.page-transport .transport-fast-bottom {
+ padding:13px 23px;
+ border-top:1px solid var(--df-edge);
+ justify-content:flex-start;
+}
+.page-transport .transport-fast-key-trigger {
+ min-height:34px;
+ gap:9px;
+ padding:5px 9px;
+ border-radius:7px;
+ color:var(--df-primary);
+ font-size:12.5px;
+ font-weight:750;
+}
+.page-transport .transport-fast-key-trigger:hover,
+.page-transport .transport-fast-key-trigger:focus-visible {
+ background:var(--df-soft);
+ color:var(--df-ink);
+ outline-offset:2px;
+}
+.page-transport .transport-fast-key-panel {
+ padding:15px 23px 17px;
+ border-top:1px solid #e2ebf2;
+ background:#fafdff;
+}
+.page-transport .transport-fast-key-panel .transport-fast-key-info {
+ color:#55728a;
+ font-size:12px;
+ margin:11px 0 4px;
+}
+.page-transport .transport-fast-key-panel .transport-fast-attribution {
+ margin:6px 0 0;
+ padding:0;
+ color:#6a8499;
+ font:500 11.8px/1.5 Inter,sans-serif;
+}
+.page-transport .transport-fast-key-panel .transport-fast-attribution span {
+ color:inherit;
+ font:inherit;
+}
+/* 2. Acciones con aire junto a bordes laterales. */
+.page-results-insights .ri-geo-zoom {
+ left:17px;
+ bottom:17px;
+ padding:3px;
+ border-radius:9px;
+ box-shadow:none;
+ border:1px solid #cbdce9;
+}
+.page-results-insights .ri-geo-zoom button {
+ width:33px;
+ height:33px;
+ border-radius:5px;
+}
+.page-results-insights .ri-geo-zoom button:focus-visible {
+ outline:2px solid var(--df-primary);
+ outline-offset:-2px;
+}
+.page-transport .transport-fast-clear {
+ padding-inline:12px;
+}
+.sidebar.sidebar-reference .sidebar-toggle {
+ top:13px;
+ right:16px;
+}
+/* 4. Pedidos: columnas en desktop; información íntegra a tamaño de lectura. */
+.page-crm-record.crm-order-office .crm-order-overview-grid {
+ display:grid;
+ grid-template-columns:minmax(0,1.6fr) minmax(320px,.9fr);
+ gap:15px;
+ align-items:start;
+ min-width:0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-primary {
+ display:flex;
+ flex-direction:column;
+ gap:15px;
+ min-width:0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-primary>.panel,
+.page-crm-record.crm-order-office .crm-order-itemized-panel>.panel,
+.page-crm-record.crm-order-office .crm-order-overview-grid .right-stack>.panel {
+ margin:0;
+ min-width:0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
+ display:flex;
+ flex-direction:column;
+ gap:15px;
+ min-width:0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .info-grid {
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:13px 22px;
+}
+.page-crm-record.crm-order-office .record-hero {
+ min-height:94px;
+ padding:15px 20px;
+ margin-bottom:9px;
+}
+.page-crm-record.crm-order-office .detail-tabs {
+ margin-bottom:12px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .panel-head {
+ margin-bottom:12px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .panel h3 {
+ font-size:14.5px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .info-item strong {
+ font-size:13px;
+ line-height:1.45;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .info-item span,
+.page-crm-record.crm-order-office .crm-order-overview-grid .note-area {
+ font-size:12px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .note-area {
+ margin-top:6px;
+ padding:11px 13px;
+}
+@container crm-content (max-width:1100px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid {
+  grid-template-columns:minmax(0,1fr);
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+}
+@container crm-content (max-width:750px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
+  grid-template-columns:minmax(0,1fr);
+ }
+}
+/* 5. Agenda: solo las celdas del calendario son pequeñas.
+   Notas, tareas, controles y titulares recuperan la tipografía del resto del CRM. */
+.page-agenda.agenda-pro .agenda-pro-layout {
+ grid-template-columns:minmax(350px,410px) minmax(0,1fr);
+ gap:15px;
+}
+.page-agenda.agenda-pro .agenda-pro-heading {padding:14px 17px;}
+.page-agenda.agenda-pro .agenda-pro-heading h2 {
+ font:750 15px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+ color:#123e60;
+}
+.page-agenda.agenda-pro .agenda-pro-heading p {
+ font-size:12.6px;
+ line-height:1.45;
+ color:#637e94;
+}
+.page-agenda.agenda-pro .agenda-pro-month strong {font-size:12.5px;}
+.page-agenda.agenda-pro .agenda-pro-day,
+.page-agenda.agenda-pro .agenda-pro-blank {
+ height:29px;
+ min-height:29px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-heading strong,
+.page-agenda.agenda-pro .agenda-pro-note h3,
+.page-agenda.agenda-pro .agenda-pro-task-text strong {
+ font-size:13.1px;
+}
+.page-agenda.agenda-pro .agenda-pro-notes-search input,
+.page-agenda.agenda-pro .agenda-pro-task-search input,
+.page-agenda.agenda-pro .agenda-pro-note p,
+.page-agenda.agenda-pro .agenda-pro-task-text small,
+.page-agenda.agenda-pro .agenda-pro-task-row time {
+ font-size:12.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-note-top>span,
+.page-agenda.agenda-pro .agenda-pro-local-hint {
+ font-size:12px;
+}
+.page-agenda.agenda-pro .agenda-pro-note {
+ padding:12px 2px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-row {
+ min-height:56px;
+ padding:10px 16px;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-tools {
+ padding:11px 16px;
+}
+.page-agenda.agenda-pro .agenda-pro-pills button {font-size:12.5px;}
+.page-agenda.agenda-pro .agenda-pro-notes-search {margin:12px 16px 8px;}
+.page-agenda.agenda-pro .agenda-pro-note-list {padding-inline:16px;}
+.page-agenda.agenda-pro .agenda-pro-local-hint {padding:11px 16px;}
+.page-agenda.agenda-pro .agenda-pro-day-details {padding:9px 15px;}
+/* 6. Resultados: guía continua entre los nueve informes, jerarquía uniforme. */
+.page-results-insights.ri-gsc .ri-toolbar-workspace {
+ margin-bottom:4px;
+ border-bottom:0;
+ padding:8px 2px 7px;
+}
+.page-results-insights.ri-gsc .ri-report-context {
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:18px;
+ padding:14px 16px;
+ margin:4px 0 12px;
+ background:rgba(255,255,255,.86);
+ border:1px solid var(--df-edge);
+ border-radius:10px;
+}
+.page-results-insights.ri-gsc .ri-report-context-copy {min-width:0;}
+.page-results-insights.ri-gsc .ri-report-context-copy>span {
+ display:block;
+ margin:0 0 4px;
+ color:var(--df-primary);
+ font:750 10.6px/1.3 Inter,sans-serif;
+ letter-spacing:.06em;
+}
+.page-results-insights.ri-gsc .ri-report-context-copy h2 {
+ margin:0 0 3px;
+ font:800 17px/1.25 "Plus Jakarta Sans",Inter,sans-serif;
+ color:var(--df-ink);
+}
+.page-results-insights.ri-gsc .ri-report-context-copy p {
+ margin:0;
+ color:#627d91;
+ font:500 12.4px/1.5 Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-report-context-nav {
+ display:flex;
+ gap:7px;
+ flex:0 0 auto;
+}
+.page-results-insights.ri-gsc .ri-report-context-nav button {
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:5px;
+ min-height:35px;
+ padding:8px 11px;
+ border:1px solid #d4e3ed;
+ border-radius:7px;
+ background:#fff;
+ color:var(--df-primary);
+ font:700 12px/1.2 Inter,sans-serif;
+ cursor:pointer;
+}
+.page-results-insights.ri-gsc .ri-report-context-nav button:not(:disabled):hover,
+.page-results-insights.ri-gsc .ri-report-context-nav button:not(:disabled):focus-visible {
+ background:var(--df-soft);
+ border-color:#aac9e3;
+ color:var(--df-ink);
+}
+.page-results-insights.ri-gsc .ri-report-context-nav button:disabled {
+ color:#a0b0bc;
+ cursor:default;
+}
+.page-results-insights.ri-gsc .ri-data-context {font-size:12px;margin-bottom:5px;}
+.page-results-insights.ri-gsc .ri-overview-signals {font-size:12.5px;}
+.page-results-insights.ri-gsc .ri-study-head h2,
+.page-results-insights.ri-gsc .ri-focus-head h2,
+.page-results-insights.ri-gsc .ri-activity-head h2,
+.page-results-insights.ri-gsc .ri-panel-head h2 {
+ font-size:15.2px;
+}
+.page-results-insights.ri-gsc .ri-study-table th,
+.page-results-insights.ri-gsc .ri-study-table td {
+ font-size:12.5px;
+ line-height:1.48;
+}
+.page-results-insights.ri-gsc .ri-study-table thead th {font-size:11.8px;}
+.page-results-insights.ri-gsc .ri-study-head p,
+.page-results-insights.ri-gsc .ri-rich-head p,
+.page-results-insights.ri-gsc .ri-panel-head p {font-size:12.2px;}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {
+ grid-template-columns:minmax(0,1.1fr) minmax(290px,.9fr);
+ gap:0;
+ padding:0;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-svg {
+ max-height:340px;
+}
+.page-results-insights.ri-gsc :is(.ri-focus-overview,.ri-geo-card,.ri-study-section,.ri-trend-report,.ri-integration-panel,.ri-panel,.ri-product-card,.ri-distribution-card,.ri-activity-board,.ri-digital-source-panel) {
+ border-radius:10px;
+ box-shadow:none!important;
+}
+.page-results-insights.ri-gsc :is(.ri-focus-overview,.ri-study-section,.ri-trend-report,.ri-geo-card,.ri-integration-panel,.ri-product-card,.ri-distribution-card,.ri-panel) {
+ margin-bottom:11px;
+}
+/* 7. Solo azul corporativo para hover/selección de navegación, filtros y listas. */
+.page-catalog.catalog3 .catalog3-tabs button.is-active,
+.page-catalog.catalog3 .catalog3-path button,
+.page-catalog.catalog3 .catalog3-category.is-active,
+.page-results-insights.ri-gsc .ri-period-pills button.is-active {
+ color:var(--df-primary);
+}
+.page-catalog.catalog3 .catalog3-tabs button.is-active::after {
+ background:var(--df-primary);
+}
+.page-catalog.catalog3 .catalog3-category.is-active {
+ background:var(--df-soft);
+ border-left-color:var(--df-primary);
+}
+.page-catalog.catalog3 .catalog3-category:hover,
+.page-catalog.catalog3 .catalog3-category:focus-visible,
+.page-catalog.catalog3 .catalog3-overview-row:hover,
+.page-catalog.catalog3 .catalog3-overview-row:focus-visible {
+ background:#eff5fb;
+}
+.page-catalog.catalog3 .catalog3-product-row:hover,
+.page-catalog.catalog3 .catalog3-product-row:focus-visible {
+ background:#f0f6fb;
+ box-shadow:inset 3px 0 var(--df-primary);
+}
+.page-catalog.catalog3 .catalog3-tabs button:hover,
+.page-catalog.catalog3 .catalog3-text-action:hover,
+.page-results-insights.ri-gsc .ri-map-zones-table>button:is(:hover,.is-active),
+.page-results-insights.ri-gsc .ri-geo-switch button:is(:hover,.is-active) {
+ color:var(--df-primary);
+ background:var(--df-soft);
+}
+.page-catalog.catalog3 .catalog3-primary:hover {
+ background:var(--df-primary);
+}
+.page-results-insights.ri-gsc .ri-study-table tbody tr:hover:not(.ri-study-total) {
+ background:#eff5fb;
+}
+/* 8. Avatares de compradores en Fábrica: iniciales legibles, tonos azules diferenciados. */
+.page-factory .factory-orders-panel .simple-item>.initials {
+ display:grid;
+ place-items:center;
+ flex:0 0 42px;
+ width:42px;
+ height:42px;
+ margin:0;
+ border:1px solid #c8dced;
+ border-radius:50%;
+ background:#dfeefa;
+ color:var(--df-primary);
+ font:800 13px/1 Inter,sans-serif;
+ letter-spacing:.02em;
+}
+.page-factory .factory-orders-panel .simple-item:nth-child(3n + 2)>.initials {
+ background:#ecf3fc;
+ color:#002d59;
+ border-color:#c8d8e9;
+}
+.page-factory .factory-orders-panel .simple-item:nth-child(3n + 3)>.initials {
+ background:#d9e6f7;
+ color:#1e5288;
+ border-color:#b7d0e8;
+}
+.page-factory .factory-orders-panel .simple-item:hover,
+.page-factory .factory-orders-panel .simple-item:focus-visible {
+ background:#eaf2fb;
+ outline-color:var(--df-primary);
+}
+/* Rediseño de superficie: conservar tamaño de lectura y permitir scroll local
+   únicamente si el contenido excede físicamente la altura disponible. */
+@media (min-width:1200px) and (min-height:730px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro,
+ .app-body.is-results .page.page-results.page-results-insights {
+  height:100%;
+  max-height:100%;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+ }
+ .page-agenda.agenda-pro .agenda-pro-layout {flex:0 0 auto;}
+ .page-agenda.agenda-pro .agenda-pro-tasks {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-height:180px;
+  overflow:hidden;
+ }
+ .page-agenda.agenda-pro .agenda-pro-task-rows {
+  flex:1 1 auto;
+  max-height:none;
+  min-height:0;
+  overflow-y:auto;
+ }
+ .page-results-insights.ri-gsc .ri-active-content {
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#b8cbda transparent;
+  padding-right:4px;
+ }
+}
+@container crm-content (max-width:1050px) {
+ .page-agenda.agenda-pro .agenda-pro-layout {grid-template-columns:minmax(0,1fr);}
+ .page-agenda.agenda-pro .agenda-pro-calendar {max-width:410px;}
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-body {grid-template-columns:minmax(0,1fr);}
+}
+@media(max-width:1199px), (max-height:729px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro,
+ .app-body.is-results .page.page-results.page-results-insights {
+  overflow-y:auto;
+  max-height:100%;
+ }
+ .page-results-insights.ri-gsc .ri-active-content {overflow:visible;}
+}
+@media(max-width:840px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro,
+ .app-body.is-results .page.page-results.page-results-insights {
+  height:auto;
+  max-height:none;
+  overflow-y:auto;
+ }
+ .page-agenda.agenda-pro .agenda-pro-layout {grid-template-columns:minmax(0,1fr);}
+ .page-agenda.agenda-pro .agenda-pro-calendar {max-width:410px;}
+ .page-results-insights.ri-gsc .ri-report-context {align-items:flex-start;flex-direction:column;}
+ .page-results-insights.ri-gsc .ri-report-context-nav {width:100%;}
+ .page-results-insights.ri-gsc .ri-report-context-nav button {flex:1;}
+ .page-results-insights.ri-gsc .ri-active-content {overflow:visible;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid {grid-template-columns:minmax(0,1fr);}
+ .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {display:flex;}
+}
+@media(max-width:600px) {
+ .page-agenda.agenda-pro .agenda-pro-heading {padding:12px;}
+ .page-agenda.agenda-pro .agenda-pro-days {margin-inline:10px;}
+ .page-agenda.agenda-pro .agenda-pro-day,
+ .page-agenda.agenda-pro .agenda-pro-blank {min-height:34px;height:34px;}
+ .page-results-insights.ri-gsc .ri-report-context {padding:13px;}
+ .page-results-insights.ri-gsc .ri-report-context-copy h2 {font-size:16px;}
+ .page-results-insights.ri-gsc .ri-report-context-copy p {font-size:12px;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid .info-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .page-transport .transport-fast-bottom {padding:11px 15px;}
+ .page-transport .transport-fast-key-panel {padding:13px 15px;}
+}
+@media (prefers-reduced-motion:reduce) {
+ .page-results-insights.ri-gsc .ri-report-context-nav button {transition:none;}
+}

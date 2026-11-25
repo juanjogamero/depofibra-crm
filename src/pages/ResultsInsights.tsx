@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
+  ArrowRight, ChevronLeft, ChevronRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
   Layers3, Search, Users
 } from 'lucide-react';
 import { useCrm } from '../store';
@@ -242,12 +242,13 @@ export default function ResultsInsights(){
     {id:'sources',label:'Web y SEO',description:'Fuentes GSC, GA4 y GTM, aún no conectadas'}
   ];
   const selectedReport=sections.find(section=>section.id===view)||sections[0];
+  const currentReportIndex=sections.findIndex(section=>section.id===view);
   const goToReport=(id:string)=>navigate(id==='overview'?'/resultados':'/resultados/'+id);
   return <div className="page page-opportunities page-results page-results-insights ri-gsc">
     <header className="ri-header">
       <div className="ri-header-copy">
         <h1>Rendimiento</h1>
-        <p>Estadísticas comerciales · {selectedReport.description}</p>
+        <p>Indicadores comerciales organizados por áreas.</p>
       </div>
     </header>
     <div className="ri-toolbar ri-toolbar-workspace">
@@ -259,7 +260,7 @@ export default function ResultsInsights(){
             aria-pressed={period===id} className={period===id?'is-active':''}
             onClick={()=>setPeriod(id)}>{period===id?'✓ ':''}{label}</button>)}
         </div>
-        <label className="ri-report-selector"><span>Informe</span>
+        <label className="ri-report-selector"><span>Ver informe</span>
           <select aria-label="Seleccionar subapartado de Resultados" value={view} onChange={e=>goToReport(e.target.value)}>
             {sections.map(section=><option key={section.id} value={section.id}>{section.label}</option>)}
           </select>
@@ -267,7 +268,20 @@ export default function ResultsInsights(){
       </div>
       <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
     </div>
-    <div className="ri-data-context"><span className="ri-status-dot"/> Datos de este navegador · Sin conexión a Analytics ni Search Console</div>
+    <div className="ri-data-context"><span className="ri-status-dot"/> Datos de demostración de este navegador · Sin conexión a Analytics ni Search Console</div>
+    <div className="ri-report-context" aria-label="Informe actual">
+      <div className="ri-report-context-copy">
+        <span>INFORME {currentReportIndex+1} DE {sections.length}</span>
+        <h2>{selectedReport.label}</h2>
+        <p>{selectedReport.description}</p>
+      </div>
+      <div className="ri-report-context-nav" role="group" aria-label="Cambiar de informe">
+        <button type="button" disabled={currentReportIndex<=0} aria-label="Informe anterior"
+          onClick={()=>goToReport(sections[Math.max(0,currentReportIndex-1)].id)}><ChevronLeft size={17}/> Anterior</button>
+        <button type="button" disabled={currentReportIndex>=sections.length-1} aria-label="Informe siguiente"
+          onClick={()=>goToReport(sections[Math.min(sections.length-1,currentReportIndex+1)].id)}>Siguiente <ChevronRight size={17}/></button>
+      </div>
+    </div>
     <div className="ri-active-content">
 
     {view==='overview'&&<>
