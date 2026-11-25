@@ -1,5 +1,5 @@
 import {useRef,useState,type FormEvent} from 'react';
-import {Check,CheckCircle2,ChevronDown,Copy,ExternalLink,Info,KeyRound,LoaderCircle,MapPin,RotateCcw,Route,Truck} from 'lucide-react';
+import {Check,CheckCircle2,ChevronDown,Copy,ExternalLink,Info,LoaderCircle,MapPin,RotateCcw,Route,Truck} from 'lucide-react';
 import {decimal,type TransportSettings} from '../domain';
 import {calculateGoogleRoute,googleRouteUrl,ORIGIN} from './googleTransportRoutes';
 
@@ -164,8 +164,7 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
   </div>
   <div className="transport-fast-bottom">
    <button type="button" className="transport-fast-key-trigger" aria-expanded={showApiKey}
-    onClick={()=>setShowApiKey(v=>!v)}><KeyRound size={15}/>
-    {apiKey?'Google Maps configurado':'Configurar Google Maps'} <ChevronDown size={15} className={showApiKey?'turned':''}/></button>
+    onClick={()=>setShowApiKey(v=>!v)}>Configurar Google Maps <ChevronDown size={15} className={showApiKey?'turned':''}/></button>
   </div>
   {showApiKey&&<div className="transport-fast-key-panel">
    <label className="transport-fast-field" htmlFor="transport-fast-key"><span>Clave API de Google Maps para navegador</span>
