@@ -149,13 +149,13 @@ export function Agenda(){
       <section className="agenda-pro-notes" aria-labelledby="agenda-pro-notes-title">
         <div className="agenda-pro-heading">
           <div><h2 id="agenda-pro-notes-title">Notas internas</h2><p>Condiciones y referencias que necesitas consultar.</p></div>
-          <button type="button" className="agenda-pro-note-add" onClick={()=>beginNote()}><Plus size={16}/>Nueva nota</button>
+          {role==='direccion'&&<button type="button" className="agenda-pro-note-add" onClick={()=>beginNote()}><Plus size={16}/>Nueva nota</button>}
         </div>
         <label className="agenda-pro-notes-search"><Search size={16}/>
           <input aria-label="Buscar notas internas" value={noteSearch} onChange={e=>setNoteSearch(e.target.value)} placeholder="Buscar en tus notas"/>
         </label>
         <div className="agenda-pro-note-list">
-          {role==='direccion'?shownNotes.map(n=><article key={n.id} className="agenda-pro-note">
+          {role==='direccion'?(shownNotes.length?shownNotes.map(n=><article key={n.id} className="agenda-pro-note">
             <div className="agenda-pro-note-top"><span>{n.category}</span>
               <div><button type="button" aria-label={n.pinned?'Desfijar '+n.title:'Fijar '+n.title} title={n.pinned?'Desfijar':'Fijar arriba'} onClick={()=>updateInternalNote(n.id,{pinned:!n.pinned})}><Pin size={15} fill={n.pinned?'currentColor':'none'}/></button>
                 <button type="button" aria-label={'Editar '+n.title} onClick={()=>beginNote(n.id)}><Pencil size={15}/></button>
@@ -163,10 +163,10 @@ export function Agenda(){
               </div>
             </div>
             <h3>{n.title}</h3><p>{n.body}</p>
-          </article>):role==='direccion'?<div className="agenda-pro-note-empty"><BookOpen size={23}/>
+          </article>):<div className="agenda-pro-note-empty"><BookOpen size={23}/>
             <strong>Tu espacio de consulta</strong><p>Anota aquí información técnica, condiciones comunicadas por proveedores o recordatorios comerciales. Comprueba su vigencia antes de aplicarlas.</p>
             <button type="button" onClick={()=>beginNote()}>Crear primera nota</button>
-          </div>:<div className="agenda-pro-note-empty"><BookOpen size={23}/>
+          </div>):<div className="agenda-pro-note-empty"><BookOpen size={23}/>
             <p>Las notas de Dirección no están disponibles en esta vista.</p>
           </div>}
         </div>
