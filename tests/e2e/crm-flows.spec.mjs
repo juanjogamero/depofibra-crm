@@ -549,7 +549,7 @@ test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',asy
    expect(v.cal.x).toBeLessThan(v.notes.x);
    expect(v.notes.y,'Calendario y notas en la misma fila').toBeGreaterThanOrEqual(v.cal.y-2);
    expect(v.tasks.y,'Tareas bajo calendario y notas').toBeGreaterThanOrEqual(Math.max(v.notes.bottom,v.cal.bottom)-2);
-   expect(v.tasks.bottom,'Los módulos habituales caben en pantalla').toBeLessThanOrEqual(height+2);
+   expect(v.tasks.bottom,'Los módulos habituales caben en pantalla: '+JSON.stringify(v)).toBeLessThanOrEqual(height+2);
   }else{
    expect(v.notes.y,'Las notas se colocan bajo el calendario en móvil/portátil').toBeGreaterThanOrEqual(v.cal.bottom-2);
    expect(v.tasks.y).toBeGreaterThanOrEqual(v.notes.bottom-2);
