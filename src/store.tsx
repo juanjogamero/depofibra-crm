@@ -111,8 +111,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       ...d, opportunities: [{ ...item, id: uid('OP'), createdAt: today(), receivedAt: new Date().toISOString(), activity: [{ at: today(), text: 'Solicitud introducida manualmente (demo)', by: 'Dirección' }] }, ...d.opportunities]
     })),
     updateOpportunity: (id: string, patch: Partial<Opportunity>) => setData(d => ({
-      ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch,
-        activity:[{at:today(),text:'Ficha de oportunidad actualizada',by:'Dirección'},...o.activity]} : o)
+      ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch } : o)
     })),
     deleteOpportunity: (id:string) => setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{
       ...o,deletedAt:today(),activity:[{at:today(),text:'Oportunidad archivada por Dirección',by:'Dirección'},...o.activity]
