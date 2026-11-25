@@ -1,0 +1,10 @@
+/* QA preventivo: no ocultar fallos de guardado del navegador. */
+.app-main>.crm-storage-alert {
+  position:relative;z-index:5;display:flex;align-items:flex-start;flex-wrap:wrap;gap:7px 11px;
+  margin:10px 16px 3px;padding:11px 13px;
+  border:1px solid #dfb6b7;border-radius:7px;background:#fff9f7;
+  color:#924348;font:500 12.5px/1.55 Inter,sans-serif;
+}
+.app-main>.crm-storage-alert strong {font-weight:800;}
+.app-main>.crm-storage-alert span {flex:1 1 250px;}
+@media(max-width:600px){.app-main>.crm-storage-alert {margin:10px 11px 3px;font-size:12px;}}
