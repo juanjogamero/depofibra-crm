@@ -42,6 +42,7 @@ import './topbar-removal.css';
 import './agenda-results-minimal.css';
 import './catalog-navigation.css';
 import './crm-direction-ux-20261125.css';
+import './soft-brand-background.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

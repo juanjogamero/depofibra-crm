@@ -1,0 +1,44 @@
+/* Depofibra CRM — fondo corporativo discreto (25/11/2026).
+   ÚNICAMENTE color de fondo. No cambia textos, tarjetas, navegación,
+   fuentes, tamaños, posiciones, acciones ni contenido. Sin imágenes. */
+.app-body .app-main,
+.app-body.is-dashboard .app-main {
+  background-color:#f5f9fd;
+  background-image:
+    radial-gradient(ellipse 72% 50% at 92% 5%,rgba(1,72,142,.075) 0%,rgba(1,72,142,0) 78%),
+    radial-gradient(ellipse 60% 47% at 4% 97%,rgba(0,45,89,.045) 0%,rgba(0,45,89,0) 82%),
+    linear-gradient(137deg,#fafdff 0%,#f5f9fd 42%,#edf5fb 75%,#f8fbff 100%);
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+
+/* Las páginas solo dejan ver el fondo común entre los módulos.
+   Las tarjetas, controles y superficies internas mantienen sus fondos. */
+.app-body .app-main > .page {
+  background-color:transparent !important;
+  background-image:none !important;
+}
+
+@media (max-width:840px) {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {
+    background-image:
+      radial-gradient(ellipse 85% 42% at 100% 0%,rgba(1,72,142,.068),transparent 80%),
+      linear-gradient(160deg,#fafdff 0%,#f1f7fc 65%,#edf4fa 100%);
+  }
+}
+
+@media (prefers-contrast:more) {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {
+    background-color:#f8fbff;
+    background-image:none;
+  }
+}
+@media print {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {
+    background-color:#fff;
+    background-image:none;
+  }
+}

@@ -400,3 +400,28 @@ test('Acciones al final de tablas: separación del borde en cinco áreas y papel
    'El botón de recuperar de la captura debe tener margen lateral').toBeGreaterThanOrEqual(width===390?6:9);
  }
 });
+
+test('Fondo Depofibra: degradado tenue sin alterar módulos ni legibilidad',async({page})=>{
+  test.setTimeout(120000);
+  for(const width of [1366,390]){
+    await page.setViewportSize({width,height:900});
+    for(const route of ['/','/oportunidades','/presupuestos','/pedidos/PED-203','/agenda','/resultados','/catalogo','/transporte']){
+      await open(page,route);
+      const surfaces=await page.evaluate(()=>{
+        const main=document.querySelector('.app-main');
+        const screen=document.querySelector('.app-main > .page');
+        if(!main||!screen)return null;
+        return {
+          backdrop:getComputedStyle(main).backgroundImage,
+          screenColor:getComputedStyle(screen).backgroundColor,
+          screenImage:getComputedStyle(screen).backgroundImage
+        };
+      });
+      expect(surfaces,route+' debe tener superficie principal').not.toBeNull();
+      expect(surfaces.backdrop,route+' debe mostrar el degradado azul').toContain('linear-gradient');
+      expect(surfaces.screenColor,route+' no debe ocultar el fondo').toBe('rgba(0, 0, 0, 0)');
+      expect(surfaces.screenImage).toBe('none');
+      await expect(page.locator('.app-main h1').first(),route+' mantiene el título legible').toBeVisible();
+    }
+  }
+});
