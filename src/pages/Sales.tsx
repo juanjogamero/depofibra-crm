@@ -480,7 +480,7 @@ export function Quotes(){
 
 export function QuoteNew(){
  const {data,addQuote}=useCrm();const nav=useNavigate();const [params]=useSearchParams();
- const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!['Aceptada','Perdida'].includes(o.status))?.id||'');
+ const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!o.deletedAt&&!['Aceptada','Perdida'].includes(o.status))?.id||'');
  const lead=data.opportunities.find(o=>o.id===opId);
  const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
  const [product,setProduct]=useState(leadProduct(lead));
@@ -526,7 +526,7 @@ export function QuoteNew(){
      <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
        setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
        setProduct(leadProduct(o));setCatalogId('');setAmount('');
-     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
+     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
      <Field label="Producto del catálogo o manual">
       <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
        <option value="manual">Escribir producto manualmente</option>
