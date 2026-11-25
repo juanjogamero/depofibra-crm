@@ -247,7 +247,7 @@ export default function ResultsInsights(){
   return <div className="page page-opportunities page-results page-results-insights ri-gsc">
     <header className="ri-header">
       <div className="ri-header-copy">
-        <h1>Resultados</h1>
+        <h1>Rendimiento</h1>
         <p>Indicadores comerciales organizados por áreas.</p>
       </div>
     </header>
