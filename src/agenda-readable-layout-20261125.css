@@ -1,0 +1,244 @@
+/* DEPOFIBRA CRM · Agenda: compactar SOLO calendario, 25/11/2026.
+   Notas y tareas vuelven a la escala de lectura del resto del CRM.
+   Mismos datos, textos, acciones y filtros: nueva distribución 2 columnas. */
+.app-body.is-agenda .page.page-agenda.agenda-pro {
+  max-width:none;
+  padding:clamp(18px,2.1vh,25px) clamp(16px,2vw,30px) 26px;
+  height:auto;
+  max-height:none;
+  min-height:100%;
+  display:block;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.page-agenda.agenda-pro .op-screen-heading {
+  min-height:66px;
+  margin-bottom:15px;
+}
+.page-agenda.agenda-pro .op-heading-copy h1 {
+  font-size:clamp(26px,2.05vw,30px);
+}
+.page-agenda.agenda-pro .op-heading-copy p {
+  font-size:13px;
+  line-height:1.55;
+}
+.page-agenda.agenda-pro .agenda-pro-layout {
+  display:grid;
+  grid-template-columns:minmax(305px,345px) minmax(0,1fr);
+  align-items:start;
+  gap:17px;
+  margin-bottom:0;
+  flex:none;
+}
+.page-agenda.agenda-pro .agenda-pro-workspace {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  gap:16px;
+}
+.page-agenda.agenda-pro :is(.agenda-pro-calendar,.agenda-pro-notes,.agenda-pro-tasks) {
+  border-radius:11px;
+  border-color:#dce7f0;
+}
+.page-agenda.agenda-pro .agenda-pro-notes {
+  align-self:stretch;
+}
+.page-agenda.agenda-pro .agenda-pro-heading,
+.page-agenda.agenda-pro .agenda-pro-tasks-heading {
+  padding:16px 19px;
+  min-height:68px;
+  align-items:center;
+}
+.page-agenda.agenda-pro .agenda-pro-heading h2 {
+  font:800 15.5px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+  color:#002d59;
+}
+.page-agenda.agenda-pro .agenda-pro-heading p {
+  font:500 13px/1.45 Inter,sans-serif;
+  color:#688298;
+  margin-top:4px;
+}
+.page-agenda.agenda-pro .agenda-pro-month {
+  gap:5px;
+}
+.page-agenda.agenda-pro .agenda-pro-month strong {
+  font-size:12px;
+}
+.page-agenda.agenda-pro :is(.agenda-pro-month button,.agenda-pro-day-heading button,.agenda-pro-note-add) {
+  min-width:34px;
+  min-height:34px;
+  border-radius:7px;
+  font-size:12.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-notes-search {
+  margin:14px 19px 9px;
+}
+.page-agenda.agenda-pro .agenda-pro-notes-search input,
+.page-agenda.agenda-pro .agenda-pro-task-search input {
+  min-height:39px;
+  font-size:13px;
+}
+.page-agenda.agenda-pro .agenda-pro-note-list {
+  padding:0 19px 7px;
+  max-height:280px;
+}
+.page-agenda.agenda-pro .agenda-pro-note {
+  padding:14px 1px;
+}
+.page-agenda.agenda-pro .agenda-pro-note-top>span {
+  font-size:12.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-note h3 {
+  font-size:14px;
+  line-height:1.45;
+  margin:6px 0;
+}
+.page-agenda.agenda-pro .agenda-pro-note p {
+  font-size:13px;
+  line-height:1.6;
+}
+.page-agenda.agenda-pro .agenda-pro-note-top button {
+  width:36px;
+  height:36px;
+}
+.page-agenda.agenda-pro .agenda-pro-local-hint {
+  padding:12px 19px;
+  font-size:12.5px;
+  line-height:1.5;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks {
+  flex:none;
+  min-height:0;
+  display:block;
+  overflow:hidden;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-tools {
+  padding:12px 19px;
+  gap:14px;
+  min-height:62px;
+}
+.page-agenda.agenda-pro .agenda-pro-pills button {
+  min-height:35px;
+  font-size:12.7px;
+  padding:8px 12px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-rows {
+  flex:none;
+  min-height:0;
+  max-height:410px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.page-agenda.agenda-pro .agenda-pro-task-row {
+  min-height:65px;
+  padding:12px 19px;
+  gap:12px;
+  align-items:center;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text {
+  gap:5px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text strong {
+  font-size:14px;
+  line-height:1.45;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text small,
+.page-agenda.agenda-pro .agenda-pro-task-row time {
+  font-size:12.5px;
+  line-height:1.45;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-heading>span {
+  font-size:12.5px;
+}
+/* Solo la cuadrícula mensual se mantiene compacta. */
+.page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-heading {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:stretch;
+  min-height:0;
+  padding:15px 17px 13px;
+}
+.page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-month {
+  justify-content:flex-start;
+}
+.page-agenda.agenda-pro .agenda-pro-weekdays,
+.page-agenda.agenda-pro .agenda-pro-days {
+  margin-inline:12px;
+  gap:2px;
+}
+.page-agenda.agenda-pro :is(.agenda-pro-day,.agenda-pro-blank) {
+  min-height:30px;
+  height:30px;
+  font-size:12px;
+  padding:0 2px;
+}
+.page-agenda.agenda-pro .agenda-pro-weekdays span {font-size:10.5px;}
+.page-agenda.agenda-pro .agenda-pro-day-heading strong {
+  font-size:13px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-list li strong {
+  font-size:12.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-details {
+  padding:12px 15px 13px;
+}
+@container crm-content (max-width:930px) {
+  .page-agenda.agenda-pro .agenda-pro-layout {
+    grid-template-columns:minmax(0,1fr);
+    gap:15px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-calendar {
+    width:min(100%,345px);
+    max-width:345px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-workspace {
+    gap:15px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-note-list {
+    max-height:300px;
+  }
+}
+@media(max-width:600px) {
+  .app-body.is-agenda .page.page-agenda.agenda-pro {
+    padding:17px 12px calc(77px + env(safe-area-inset-bottom));
+  }
+  .page-agenda.agenda-pro .op-screen-heading {
+    min-height:0;
+    margin-bottom:13px;
+  }
+  .page-agenda.agenda-pro .op-heading-copy p {
+    font-size:13px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-heading,
+  .page-agenda.agenda-pro .agenda-pro-tasks-heading {
+    padding:13px 14px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-heading {
+    padding:13px 14px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-notes-search {
+    margin:12px 14px 8px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-note-list {
+    padding:0 14px 6px;
+    max-height:250px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-local-hint {
+    padding:11px 14px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-tasks-tools {
+    padding:10px 14px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-task-row {
+    min-height:65px;
+    padding:12px 14px;
+  }
+  .page-agenda.agenda-pro .agenda-pro-task-row time {
+    margin-left:0;
+  }
+  .page-agenda.agenda-pro :is(.agenda-pro-day,.agenda-pro-blank) {
+    min-height:32px;
+    height:32px;
+  }
+}
