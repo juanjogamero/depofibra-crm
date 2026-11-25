@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, ExternalLink, X, Pencil, Trash2, RotateCcw, Archive, ClipboardCheck } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
-import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
+import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, type QuoteItemKind, type QuoteLineItem, quoteItemsSubtotal, quoteItemTotal, roundEuros, uid, decimal, money, dateText, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
 const statuses: OpportunityStatus[]=['Nueva','Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento','Aceptada','Perdida'];
@@ -491,100 +491,159 @@ export function Quotes(){
  </div>;
 }
 
+type QuoteDraftItem={id:string;kind:QuoteItemKind;description:string;quantity:string;unitPrice:string;productId:string};
+const quoteKindLabel:Record<QuoteItemKind,string>={product:'Producto',shipping:'Transporte',service:'Servicio',other:'Otro'};
+const newQuoteDraft=(kind:QuoteItemKind='product',description=''):QuoteDraftItem=>({
+ id:uid('LIN'),kind,description:description||(kind==='shipping'?'Transporte':''),
+ quantity:'1',unitPrice:'',productId:''
+});
+
 export function QuoteNew(){
- const {data,addQuote}=useCrm();const nav=useNavigate();const [params]=useSearchParams();
+ const {data,addQuote}=useCrm();
+ const nav=useNavigate();
+ const [params]=useSearchParams();
  const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!o.deletedAt&&!['Aceptada','Perdida'].includes(o.status))?.id||'');
  const lead=data.opportunities.find(o=>o.id===opId);
- const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
- const [product,setProduct]=useState(leadProduct(lead));
- const [catalogId,setCatalogId]=useState('');
- const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[sent,setSent]=useState(false);
- const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')||a.name.localeCompare(b.name,'es')||
-  (Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
- const categories=(data.productCategories||[]).filter(c=>available.some(p=>p.categoryId===c.id));
- const catalogProduct=data.products.find(p=>p.id===catalogId);
- const selectedCategory=(data.productCategories||[]).find(c=>c.id===catalogProduct?.categoryId);
- const attributes=selectedCategory?.attributes.filter(a=>a.value.trim())||[];
- const chooseCatalog=(id:string)=>{
-  if(id==='manual'){
-   setCatalogId('');setAmount('');
-   return;
-  }
-  const p=data.products.find(x=>x.id===id&&x.active);
-  if(!p)return;
-  setCatalogId(p.id);
-  setProduct(p.name+' · '+p.capacity);
-  setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
-  
+ const leadProduct=(o:typeof lead)=>o?o.product+(o.capacity?' · '+o.capacity:''):'';
+ const [lines,setLines]=useState<QuoteDraftItem[]>(()=>[newQuoteDraft('product',leadProduct(lead))]);
+ const [transport,setTransport]=useState('0');
+ const [commission,setCommission]=useState('0');
+ const [details,setDetails]=useState('');
+ const [sent,setSent]=useState(false);
+ const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')
+  ||a.name.localeCompare(b.name,'es')
+  ||(Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
+ const categories=(data.productCategories||[]).filter(cat=>available.some(p=>p.categoryId===cat.id));
+ const setLine=(id:string,patch:Partial<QuoteDraftItem>)=>
+   setLines(previous=>previous.map(line=>line.id===id?{...line,...patch}:line));
+ const addLine=(kind:QuoteItemKind)=>setLines(previous=>[...previous,newQuoteDraft(kind)]);
+ const chooseCatalog=(id:string,productId:string)=>{
+   if(!productId){setLine(id,{productId:''});return;}
+   const product=available.find(p=>p.id===productId);
+   if(!product)return;
+   setLine(id,{productId:product.id,description:product.name+' · '+product.capacity,
+     unitPrice:product.salePriceConfigured&&product.price>=0?String(product.price):''});
  };
-
- const save=(e:FormEvent)=>{
-  e.preventDefault();
-  const value=Number(amount);
-  if(!opId||!product.trim()||!Number.isFinite(value)||value<=0)return;
-  addQuote({
-   opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
-   productId:catalogId||undefined,amount:value,
-   commission:Number(commission)||0,transport:Number(transport)||0,details:details.trim(),
-   status:sent?'Enviado':'Borrador',message:''
-  });
-  nav('/presupuestos');
+ const parsed:QuoteLineItem[]=lines.map(line=>({
+   id:line.id,kind:line.kind,description:line.description.trim(),
+   quantity:Number(line.quantity),unitPrice:roundEuros(Number(line.unitPrice)),
+   productId:line.productId||undefined
+ }));
+ const validLines=lines.length>0&&lines.every(line=>line.description.trim().length>0
+  &&line.quantity.trim()!==''&&Number.isFinite(Number(line.quantity))&&Number(line.quantity)>0
+  &&line.unitPrice.trim()!==''&&Number.isFinite(Number(line.unitPrice))&&Number(line.unitPrice)>=0);
+ const subtotal=validLines?quoteItemsSubtotal(parsed):0;
+ const validPrivate=commission.trim()!==''&&Number.isFinite(Number(commission))&&Number(commission)>=0
+  &&Number.isFinite(Number(transport))&&Number(transport)>=0;
+ const canSave=Boolean(lead&&!lead.deletedAt&&validLines&&subtotal>0&&validPrivate
+  &&lines.some(x=>x.kind==='product'));
+ const save=(event:FormEvent)=>{
+   event.preventDefault();
+   if(!canSave||!lead)return;
+   const products=parsed.filter(line=>line.kind==='product');
+   const productSummary=products.map(line=>(line.quantity!==1?line.quantity+' × ':'')+line.description).join(' + ');
+   addQuote({opportunityId:opId,name:lead.name,product:productSummary,
+     productId:products.length===1?products[0].productId:undefined,
+     items:parsed,amount:subtotal,transport:roundEuros(Number(transport)),
+     commission:roundEuros(Number(commission)),details:details.trim(),
+     status:sent?'Enviado':'Borrador',message:''});
+   nav('/presupuestos');
  };
- return <div className="page page-crm-form page-quote-catalog"><Back to="/presupuestos" label="Volver a presupuestos"/>
-  <PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto" subtitle="Selecciona una referencia del catálogo para cargar su precio o introduce la oferta manualmente."/>
- <form onSubmit={save} className="quote-builder">
-  <div className="builder-main">
-   <Panel title="Información de la oferta">
-    <div className="form-grid">
-     <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
-       setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
-       setProduct(leadProduct(o));setCatalogId('');setAmount('');
-     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
-     <Field label="Producto del catálogo o manual">
-      <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
-       <option value="manual">Escribir producto manualmente</option>
-       {categories.map(c=><optgroup key={c.id} label={c.name}>
-        {available.filter(p=>p.categoryId===c.id).map(p=><option key={p.id} value={p.id}>
-          {p.name} · {p.capacity} · {p.salePriceConfigured&&p.price>0?decimal(p.price):'Precio por verificar'}
-        </option>)}
-       </optgroup>)}
-       {available.filter(p=>!categories.some(c=>c.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
-      </select>
-     </Field>
-     <Field label="Producto y capacidad"><input required value={product} onChange={e=>{
-       setProduct(e.target.value);if(catalogId){setCatalogId('');setAmount('');}
-     }} placeholder="Ej. Depósito vertical base plana · 10.000 L"/></Field>
-     <Field label="Precio comunicado (€)"><input type="number" required min=".01" step=".01"
-      value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0,00"/></Field>
-     <Field label="Transporte interno estimado (€)"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
-    </div>
-    {catalogProduct&&<div className={'quote-catalog-feedback'+(catalogProduct.salePriceConfigured&&catalogProduct.price>0?' is-priced':' is-unpriced')}>
-     <div><Package size={17}/><strong>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Precio de catálogo precargado':'Referencia sin precio de venta'}</strong></div>
-     <p>{catalogProduct.salePriceConfigured&&catalogProduct.price>0?'Puedes ajustar el importe de esta oferta sin modificar el precio guardado en el catálogo.':
-      'Introduce el precio manualmente antes de guardar la oferta; el catálogo no contiene un importe configurado para esta capacidad.'}</p>
-     {attributes.length>0&&<div className="quote-catalog-attributes">
-      <span>Atributos comunes de categoría (verifica su aplicación antes de ofertar):</span>
-      {attributes.map(a=><span key={a.id}>{a.label}: <b>{a.value}</b></span>)}
-     </div>}
-    </div>}
-    <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
-    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/transporte">Calculadora de transporte</Link> antes de comunicar condiciones.</div>
-   </Panel>
-
-  </div>
-  <div className="builder-side">
-   <Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{decimal(Number(amount)||0)}</strong></div>
-    <div className="summary-line"><span>Porte orientativo</span><strong>{decimal(Number(transport)||0)}</strong></div>
-    <div className="summary-line"><span>Comisión acordada</span><strong>{decimal(Number(commission)||0)}</strong></div>
-    <Field label="Comisión interna (€)"><input type="number" min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
-    <div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div>
-   </Panel>
-   <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
-     <span><strong>Marcar como enviada</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
-    <Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/>
-   </Panel>
-  </div>
- </form></div>;
+ return <div className="page page-crm-form page-quote-catalog crm-quote-multi">
+  <Back to="/presupuestos" label="Volver a presupuestos"/>
+  <PageHeader eyebrow="NUEVO PRESUPUESTO" title="Preparar presupuesto"
+    subtitle="Añade todos los productos y servicios. Los precios se guardan por partida y el total se calcula sin IVA."/>
+  <form onSubmit={save} className="quote-builder">
+   <div className="builder-main">
+    <Panel title="Datos de la oferta">
+     <Field label="Solicitud asociada"><select required value={opId} onChange={e=>{
+       setOpId(e.target.value);
+       const selected=data.opportunities.find(o=>o.id===e.target.value);
+       setLines([newQuoteDraft('product',leadProduct(selected))]);
+     }}><option value="">Elegir solicitud</option>
+       {data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}
+     </select></Field>
+    </Panel>
+    <Panel title="Desglose del presupuesto" className="crm-quote-items-panel">
+      <p className="crm-quote-help">Cada producto, transporte o servicio tiene su propio precio de venta. Los importes están expresados <strong>sin IVA</strong>.</p>
+      <div className="crm-quote-lines">
+       {lines.map((line,index)=>{
+         const selectedProduct=available.find(p=>p.id===line.productId);
+         const category=(data.productCategories||[]).find(cat=>cat.id===selectedProduct?.categoryId);
+         const commonAttrs=category?.attributes.filter(attr=>attr.value.trim()&&!attr.hidden)||[];
+         const lineValid=line.quantity.trim()!==''&&line.unitPrice.trim()!==''&&Number(line.quantity)>0&&Number(line.unitPrice)>=0;
+         return <article key={line.id} className="crm-quote-line">
+          <div className="crm-quote-line-header">
+           <strong>{index+1}. {quoteKindLabel[line.kind]}</strong>
+           <button type="button" onClick={()=>setLines(prev=>prev.filter(x=>x.id!==line.id))}
+              disabled={lines.length===1} aria-label={'Eliminar partida '+(index+1)}><Trash2 size={15}/>Quitar</button>
+          </div>
+          <div className="crm-quote-line-fields">
+           <Field label="Concepto"><select aria-label={'Tipo partida '+(index+1)} value={line.kind} onChange={e=>{
+             const kind=e.target.value as QuoteItemKind;
+             setLine(line.id,{kind,productId:kind==='product'?line.productId:'',description:kind==='shipping'&&!line.description?'Transporte':line.description});
+           }}>
+             <option value="product">Producto</option><option value="shipping">Transporte</option>
+             <option value="service">Servicio</option><option value="other">Otro concepto</option>
+           </select></Field>
+           {line.kind==='product'&&<Field label="Elegir referencia del catálogo">
+             <select value={line.productId} onChange={e=>chooseCatalog(line.id,e.target.value)}>
+              <option value="">Producto introducido manualmente</option>
+              {categories.map(cat=><optgroup key={cat.id} label={cat.name}>
+                {available.filter(p=>p.categoryId===cat.id).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}{p.salePriceConfigured?' · '+decimal(p.price):' · Precio sin verificar'}</option>)}
+              </optgroup>)}
+              {available.filter(p=>!categories.some(cat=>cat.id===p.categoryId)).map(p=><option key={p.id} value={p.id}>{p.name} · {p.capacity}</option>)}
+             </select></Field>}
+           <div className="crm-quote-line-description"><Field label="Descripción">
+             <input required value={line.description} onChange={e=>setLine(line.id,{description:e.target.value,productId:''})} placeholder={line.kind==='product'?'Depósito vertical 10.000 L':line.kind==='service'?'Revestimiento alimentario':'Concepto cobrado al cliente'}/>
+           </Field></div>
+           <Field label="Cantidad"><input type="number" required min=".01" step=".01" value={line.quantity} onChange={e=>setLine(line.id,{quantity:e.target.value})}/></Field>
+           <Field label="Precio unitario (€)"><input type="number" required min="0" step=".01" value={line.unitPrice} onChange={e=>setLine(line.id,{unitPrice:e.target.value})} placeholder="Sin IVA"/></Field>
+           <div className="crm-quote-line-total"><span>Importe</span><strong>{lineValid?decimal(quoteItemTotal(parsed[index])):'—'}</strong></div>
+          </div>
+          {line.productId&&selectedProduct&&!selectedProduct.salePriceConfigured&&<p className="crm-quote-line-caution">Esta referencia no tiene precio de venta verificado. Introduce manualmente el importe antes de guardar.</p>}
+          {commonAttrs.length>0&&<p className="crm-quote-line-attrs"><strong>Atributos de categoría:</strong> {commonAttrs.map(a=>a.label+': '+a.value).join(' · ')}. Comprueba que aplican a esta referencia.</p>}
+         </article>;
+       })}
+      </div>
+      <div className="crm-quote-add-row">
+       <button type="button" onClick={()=>addLine('product')}><Plus size={16}/>Añadir producto</button>
+       <button type="button" onClick={()=>addLine('shipping')}><Plus size={16}/>Añadir transporte</button>
+       <button type="button" onClick={()=>addLine('service')}><Plus size={16}/>Añadir servicio</button>
+       <button type="button" onClick={()=>addLine('other')}><Plus size={16}/>Otro concepto</button>
+      </div>
+      <div className="crm-quote-subtotal"><span>TOTAL SIN IVA</span><strong>{decimal(subtotal)}</strong></div>
+    </Panel>
+    <Panel title="Condiciones técnicas y de entrega">
+      <Field label="Observaciones verificadas"><textarea rows={4} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Condiciones confirmadas y especificaciones de los productos. No incluir acuerdos no contrastados."/></Field>
+      <p className="crm-quote-help">Los portes deben figurar como una partida de «Transporte» para sumarse al cliente. La descarga se verifica aparte con el transportista.</p>
+      <div className="inline-tip"><Truck size={17}/>Puedes calcular una estimación interna en la <Link to="/transporte">Calculadora de transporte</Link> antes de ofertar.</div>
+    </Panel>
+   </div>
+   <div className="builder-side">
+    <Panel title="Resumen económico">
+      <div className="crm-quote-private-summary">
+       <div><span>Productos</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='product')):0)}</strong></div>
+       <div><span>Envío facturado</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='shipping')):0)}</strong></div>
+       <div><span>Servicios y otros</span><strong>{decimal(validLines?quoteItemsSubtotal(parsed.filter(x=>x.kind==='service'||x.kind==='other')):0)}</strong></div>
+       <div className="is-total"><span>Total sin IVA</span><strong>{decimal(subtotal)}</strong></div>
+      </div>
+      <div className="crm-quote-private-fields">
+       <Field label="Comisión acordada (€) · solo uso interno"><input type="number" required min="0" step=".01" value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
+       <Field label="Porte orientativo de coste interno (€) · no suma al total"><input type="number" min="0" step=".01" value={transport} onChange={e=>setTransport(e.target.value)}/></Field>
+      </div>
+      <p className="crm-quote-private-notice"><Shield size={15}/> La comisión y la estimación interna de transporte no se suman al precio del cliente.</p>
+    </Panel>
+    <Panel title="Guardar presupuesto">
+      <label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
+       <span><strong>Marcar como enviado</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
+      <Button type="submit" className="full-width" disabled={!canSave}><Check size={16}/>Guardar presupuesto</Button>
+      {!canSave&&<p className="crm-quote-help">Añade al menos un producto, comprueba las cantidades y precios y confirma un total superior a cero.</p>}
+      <NoteDemo/>
+    </Panel>
+   </div>
+  </form>
+ </div>;
 }
 
 export function QuoteDetail(){
