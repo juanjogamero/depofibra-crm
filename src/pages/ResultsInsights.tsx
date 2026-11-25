@@ -268,7 +268,7 @@ export default function ResultsInsights(){
       </div>
       <ResultsExport data={data} snapshot={insights} period={period} series={times.points}/>
     </div>
-    <nav className="ri-reports-nav" aria-label="Informes de resultados">
+    <nav className="ri-reports-nav" aria-label="Accesos directos a informes">
       {sections.map(section=><Link key={section.id}
         to={section.id==='overview'?'/resultados':'/resultados/'+section.id}
         className={'ri-reports-nav-item'+(view===section.id?' is-active':'')}
