@@ -114,7 +114,7 @@ function FocusRequests({opportunities}:{opportunities:Opportunity[]}) {
       })}
       {!items.length&&<div className="focus-empty">No hay registros para mostrar ahora mismo. ¡Estás al día!</div>}
     </div>
-    <div className="focus-requests-foot">Datos locales de demostración · Todas las oportunidades se conservan en el listado</div>
+    <div className="focus-requests-foot">Registros de este navegador · Ver historial completo en Oportunidades</div>
   </section>;
 }
 
