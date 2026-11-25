@@ -567,9 +567,21 @@
   }
 }
 @container crm-content (max-width:480px) {
+  /* En móviles las columnas de acción requieren una anchura real. Se obtiene
+     de la columna de nombre (que ya admite ellipsis), sin ocultar estados. */
+  .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-client {width:41%;}
+  .page-opportunities:not(.page-quotes):not(.page-clients):not(.page-orders):not(.page-commissions) .op-data-table .op-col-open {width:12%;}
+  .page-quotes .quote-data-table .op-col-client {width:33%;}
+  .page-quotes .quote-data-table .op-col-open {width:12%;}
+  .page-clients .clients-data-table .op-col-client {width:47%;}
+  .page-clients .clients-data-table .op-col-open {width:12%;}
+  .page-orders .orders-data-table .op-col-client {width:40%;}
+  .page-orders .orders-data-table .op-col-open {width:12%;}
+  .page-commissions .commissions-data-table .commission-col-client {width:39%;}
+  .page-commissions .commissions-data-table .commission-col-open {width:12%;}
   .page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore),
   .page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
-    left:-20px;
+    left:-8px;
     min-width:30px;
     min-height:32px;
   }
