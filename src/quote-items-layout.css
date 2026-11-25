@@ -1,0 +1,203 @@
+/* REG-0159 · Partidas comerciales multiproducto y configuración por producto.
+   Solo presentación: cantidades y subtotal vienen de lógica tipada, no CSS. */
+.page-crm-form.crm-quote-multi .quote-builder {
+ display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,.68fr);
+ gap:16px;align-items:start;
+}
+.page-crm-form.crm-quote-multi .builder-main,
+.page-crm-form.crm-quote-multi .builder-side {display:flex;flex-direction:column;gap:16px;min-width:0;}
+.page-crm-form.crm-quote-multi .crm-quote-help {
+ margin:0 0 15px;color:#718a9c;font:500 12px/1.55 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-help strong {color:#315b7b;font-weight:750;}
+.page-crm-form.crm-quote-multi .crm-quote-line {
+ padding:16px 0;border-bottom:1px solid #e7eef3;min-width:0;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line:first-child {padding-top:3px;}
+.page-crm-form.crm-quote-multi .crm-quote-line:last-child {border-bottom:0;}
+.page-crm-form.crm-quote-multi .crm-quote-line-header {
+ display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-header strong {
+ font:750 13px/1.4 Inter,sans-serif;color:#284e6b;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-header button {
+ display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:6px 9px;
+ border:1px solid transparent;border-radius:5px;background:transparent;
+ color:#7e95a4;cursor:pointer;font:700 11.5px/1.3 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-header button:hover:not(:disabled) {
+ background:#fff3f3;border-color:#f0d9da;color:#a24d56;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-header button:disabled {
+ opacity:.35;cursor:not-allowed;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields {
+ display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1.6fr) minmax(105px,.67fr) minmax(125px,.9fr);
+ align-items:end;gap:11px;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field {min-width:0;margin:0;}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:first-child {grid-column:span 2;}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:nth-child(2) {grid-column:span 2;}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields:has(>.crm-quote-line-description)
+  >.crm-quote-line-description {grid-column:1/-1;}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields>.crm-quote-line-description .form-field {min-width:0;margin:0;}
+.page-crm-form.crm-quote-multi .crm-quote-line-fields :is(input,select) {width:100%;min-height:40px;box-sizing:border-box;}
+.page-crm-form.crm-quote-multi .crm-quote-line-total {
+ display:flex;flex-direction:column;align-items:flex-end;gap:5px;justify-content:flex-end;
+ min-height:40px;border-bottom:1px solid #e7edf3;padding-bottom:4px;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-total span {
+ font:650 11px/1.2 Inter,sans-serif;color:#7b93a5;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-total strong {
+ color:#234d6f;font:800 14px/1.4 Inter,sans-serif;white-space:nowrap;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-caution,
+.page-crm-form.crm-quote-multi .crm-quote-line-attrs {
+ margin:11px 0 0;color:#72899a;font:500 11.5px/1.5 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-line-caution {color:#946a33;}
+.page-crm-form.crm-quote-multi .crm-quote-line-attrs strong {color:#526f87;}
+.page-crm-form.crm-quote-multi .crm-quote-add-row {
+ display:flex;flex-wrap:wrap;gap:8px;padding:14px 0 17px;border-top:1px solid #e9eff3;
+}
+.page-crm-form.crm-quote-multi .crm-quote-add-row button {
+ display:inline-flex;align-items:center;gap:6px;min-height:36px;
+ padding:8px 11px;border:1px solid #d2e0eb;border-radius:6px;
+ background:#fff;color:#01488e;cursor:pointer;font:700 12px/1.3 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-add-row button:hover,
+.page-crm-form.crm-quote-multi .crm-quote-add-row button:focus-visible {
+ border-color:#95bdd8;background:#eaf2fb;
+}
+.page-crm-form.crm-quote-multi .crm-quote-subtotal {
+ display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+ padding:16px 0 4px;border-top:1px solid #dce7f0;
+}
+.page-crm-form.crm-quote-multi .crm-quote-subtotal span {
+ font:750 12px/1.35 Inter,sans-serif;color:#56768e;letter-spacing:.02em;
+}
+.page-crm-form.crm-quote-multi .crm-quote-subtotal strong {
+ font:800 23px/1.2 "Plus Jakarta Sans",Inter,sans-serif;color:#002d59;
+ white-space:nowrap;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary {display:flex;flex-direction:column;gap:0;}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary>div {
+ display:flex;align-items:baseline;justify-content:space-between;gap:7px;
+ padding:11px 0;border-bottom:1px solid #e8eef3;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary span {
+ color:#617f95;font:600 12px/1.4 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary strong {
+ color:#2a5672;font:750 13px/1.4 Inter,sans-serif;white-space:nowrap;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary .is-total {
+ padding:15px 0;border-bottom:0;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary .is-total span {
+ color:#234b6a;font-weight:800;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-summary .is-total strong {
+ color:#002d59;font:800 20px/1.2 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-fields {
+ display:flex;flex-direction:column;gap:12px;
+ margin-top:4px;padding-top:17px;border-top:1px solid #e7edf3;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-notice,
+.page-crm-record .crm-quote-private-notice {
+ display:flex;align-items:flex-start;gap:7px;margin:12px 0 0;
+ color:#718b9e;font:500 11.5px/1.55 Inter,sans-serif;
+}
+.page-crm-form.crm-quote-multi .crm-quote-private-notice svg {flex:0 0 15px;margin-top:2px;}
+/* El desglose comercial es común a presupuestos y pedidos. */
+.crm-quote-breakdown {width:100%;min-width:0;}
+.crm-quote-breakdown-scroll {overflow-x:auto;max-width:100%;scrollbar-width:thin;}
+.crm-quote-breakdown table {
+ width:100%;min-width:540px;border-collapse:collapse;table-layout:auto;
+ font:500 12.2px/1.5 Inter,sans-serif;color:#405d74;
+}
+.crm-quote-breakdown th {
+ padding:11px 10px;border-bottom:1px solid #dce7f0;
+ background:#f9fbfd;text-align:left;color:#7791a3;
+ font-size:11.3px;font-weight:750;white-space:nowrap;
+}
+.crm-quote-breakdown td {padding:12px 10px;border-bottom:1px solid #e8eef3;vertical-align:top;}
+.crm-quote-breakdown td:first-child {min-width:190px;}
+.crm-quote-breakdown td:first-child strong {
+ display:block;margin-top:4px;color:#2f516c;font-weight:700;overflow-wrap:anywhere;
+}
+.crm-quote-breakdown .crm-quote-kind {
+ display:inline-block;color:#6f91ab;font-size:10.7px;font-weight:750;
+}
+.crm-quote-breakdown .align-right {text-align:right;white-space:nowrap;}
+.crm-quote-breakdown tfoot td {
+ border-top:1px solid #cedeea;border-bottom:0;background:#f7fafc;
+ font:800 12.5px/1.4 Inter,sans-serif;color:#234e6c;
+}
+.crm-quote-breakdown tfoot .align-right {font-size:15px;color:#002d59;}
+.crm-quote-breakdown .crm-quote-mismatch {
+ margin:11px 0;color:#a04f46;font:700 12px/1.5 Inter,sans-serif;
+}
+.crm-quote-legacy {
+ padding:13px 14px;border:1px solid #dfe9f0;border-radius:6px;background:#fafcfd;
+}
+.crm-quote-legacy strong {color:#365c77;font:750 13px Inter,sans-serif;}
+.crm-quote-legacy p {margin:7px 0 0;color:#758da0;font:500 12px/1.55 Inter,sans-serif;}
+.crm-quote-detail-heading {margin:24px 0 9px;padding-top:14px;border-top:1px solid #e5edf3;}
+.crm-quote-detail-heading h3 {margin:0 0 4px;color:#315872;font:750 14px/1.35 Inter,sans-serif;}
+.crm-quote-detail-heading p {margin:0;color:#738b9d;font:500 11.8px/1.5 Inter,sans-serif;}
+.crm-order-itemized-panel {margin:0 0 15px;min-width:0;}
+.crm-order-itemized-panel>.panel {min-width:0;}
+/* Fábrica: configuración por producto sin atribuirle los detalles de otro. */
+.page-crm-record.crm-order-office .crm-office-products {display:flex;flex-direction:column;gap:16px;}
+.page-crm-record.crm-order-office .crm-office-product {
+ padding:14px 15px;border:1px solid #dce6ee;border-radius:7px;background:#fff;
+}
+.page-crm-record.crm-order-office .crm-office-product-head {
+ display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;
+ padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid #e8eef3;
+}
+.page-crm-record.crm-order-office .crm-office-product-head>span {
+ flex:0 0 auto;color:#6f8ba0;font:800 10.5px/1.35 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-product-head>strong {
+ flex:1 1 180px;min-width:0;color:#2b526f;font:750 13.2px/1.4 Inter,sans-serif;
+}
+.page-crm-record.crm-order-office .crm-office-product-head>small {
+ font:650 11px/1.35 Inter,sans-serif;color:#758fa2;
+}
+.page-crm-record.crm-order-office .crm-office-common-date {
+ max-width:310px;margin:0 0 15px;
+}
+.page-crm-record.crm-order-office .crm-office-common-date .form-field {margin:0;}
+.page-crm-record.crm-order-office .crm-office-common-date input {
+ width:100%;min-height:40px;padding:8px 10px;
+ border:1px solid #d0dfe9;border-radius:6px;background:#fff;
+ font:600 12.5px Inter,sans-serif;color:#355a73;
+}
+.page-crm-record.crm-order-office .crm-office-product .crm-office-fields {grid-template-columns:repeat(2,minmax(0,1fr));}
+.page-crm-record.crm-order-office .crm-office-date-locked {
+ margin-top:11px;color:#647f94;font:600 12px/1.5 Inter,sans-serif;
+}
+@container crm-content (max-width:1130px) {
+ .page-crm-form.crm-quote-multi .quote-builder {grid-template-columns:1fr;}
+ .page-crm-record.crm-order-office .crm-office-product .crm-office-fields {grid-template-columns:1fr 1fr;}
+}
+@media(max-width:890px) {
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:first-child,
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:nth-child(2) {grid-column:span 1;}
+ .page-crm-form.crm-quote-multi .crm-quote-line-description {grid-column:1/-1;}
+}
+@media(max-width:570px) {
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields {grid-template-columns:1fr 1fr;gap:10px;}
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:first-child,
+ .page-crm-form.crm-quote-multi .crm-quote-line-fields>.form-field:nth-child(2) {grid-column:1/-1;}
+ .page-crm-form.crm-quote-multi .crm-quote-subtotal strong {font-size:19px;}
+ .page-crm-form.crm-quote-multi .crm-quote-add-row button {flex:1 1 145px;}
+ .page-crm-record.crm-order-office .crm-office-product .crm-office-fields {grid-template-columns:1fr;}
+ .page-crm-record.crm-order-office .crm-office-product {padding:13px;}
+}
