@@ -42,7 +42,23 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobi
   const [resultsExpanded,setResultsExpanded] = useState(location.pathname.startsWith('/resultados'));
   const [accountOpen,setAccountOpen] = useState(false);
   const [profile,setProfile] = useState<SidebarProfile>(()=>sidebarProfile(role));
-  useEffect(()=>{if(location.pathname.startsWith('/resultados'))setResultsExpanded(true)},[location.pathname]);
+  const lastPath=useRef(location.pathname);
+  useEffect(()=>{
+    const isResults=location.pathname.startsWith('/resultados');
+    const wasResults=lastPath.current.startsWith('/resultados');
+    if(!isResults)setResultsExpanded(false);
+    else if(!wasResults)setResultsExpanded(true);
+    lastPath.current=location.pathname;
+  },[location.pathname]);
+  useEffect(()=>{
+    if(!resultsExpanded)return;
+    const closeOnOutside=(event:PointerEvent)=>{
+      const menu=document.querySelector('.ri-sidebar-results');
+      if(event.target instanceof Node && menu&&!menu.contains(event.target))setResultsExpanded(false);
+    };
+    document.addEventListener('pointerdown',closeOnOutside);
+    return ()=>document.removeEventListener('pointerdown',closeOnOutside);
+  },[resultsExpanded]);
   useEffect(()=>{
     const update=()=>setProfile(sidebarProfile(role));
     update();
@@ -226,7 +242,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
         </div>}
       </div>
       <span className="topbar-divider"/>
-      <div className="profile-menu"><span className={'avatar '+(role==='fabrica'?'avatar-factory':'')}>{role==='fabrica'?'F':'D'}</span><div className="profile-copy"><strong>{role==='fabrica'?'Oficina de Fábrica':'Dirección'}</strong><small>Vista en desarrollo</small></div><ChevronDown size={15}/>
+      <div className="profile-menu"><span className={'avatar '+(role==='fabrica'?'avatar-factory':'')}>{role==='fabrica'?'F':'D'}</span><div className="profile-copy"><strong>{role==='fabrica'?'Oficina de Fábrica':'Dirección'}</strong><small>Panel de trabajo</small></div><ChevronDown size={15}/>
         <select aria-label="Cambiar vista de perfil (simulada)" value={role} onChange={e=>{setRole(e.target.value as 'direccion'|'fabrica');navigate(e.target.value==='fabrica'?'/fabrica':'/')}}><option value="direccion">Dirección</option><option value="fabrica">Oficina de Fábrica</option></select>
       </div>
     </div>
@@ -291,6 +307,6 @@ export default function App() {
       <main className="app-main" id="main-content"><AppRoutes/></main>
     </div>
     <BottomBar/>
-    <div className="help-chip" title="Interfaz en desarrollo · conexión al VPS pendiente"><HelpCircle size={16}/></div>
+    <div className="help-chip" title="Ayuda de la plataforma · Conexiones de servidor pendientes"><HelpCircle size={16}/></div>
   </div>;
 }

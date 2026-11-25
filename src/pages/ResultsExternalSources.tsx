@@ -17,7 +17,7 @@ const details:{
    {label:'Dispositivos',columns:['Dispositivo','Clics','Impresiones','CTR']},
    {label:'Fechas',columns:['Día','Clics','Impresiones','CTR','Posición']}
   ],
-  note:'Search Console permite analizar rendimiento de búsqueda, no identifica directamente clientes ni ventas. Los datos de la captura proporcionada no se importan a la demo.'
+  note:'Search Console permite analizar rendimiento de búsqueda, no identifica directamente clientes ni ventas. Los datos de la captura proporcionada no se han importado al CRM.'
  },
  ga4:{
   label:'Google Analytics 4',status:'Sin conectar',

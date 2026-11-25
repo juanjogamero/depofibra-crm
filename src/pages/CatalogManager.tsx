@@ -194,6 +194,11 @@ export default function CatalogManager(){
       </div></div>
       <button className="catalog3-primary" type="button" onClick={()=>startProduct()}><Plus size={17}/> Añadir producto</button>
      </header>
+     <div className="catalog3-attribute-quick">
+       <div><strong>Atributos de esta categoría</strong><span>{selected.attributes.length} configurados · Se comparten entre las capacidades de {selected.name}.</span></div>
+       <div><button type="button" className="catalog3-attribute-manage" onClick={()=>setMode('attributes')}><Settings2 size={16}/>Ver y editar atributos</button>
+         <button type="button" className="catalog3-attribute-new" onClick={()=>startAttribute()}><Plus size={16}/>Añadir atributo</button></div>
+     </div>
      <div className="catalog3-search-row">
       <label><Search size={17}/><input type="search" aria-label="Buscar producto o referencia"
        value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre, capacidad o referencia"/>
@@ -230,13 +235,17 @@ export default function CatalogManager(){
        <button type="button" className="catalog3-primary" onClick={()=>startAttribute()}><Plus size={16}/> Añadir atributo</button>
       </div>
      </header>
+     <div className="catalog3-attribute-intro">
+       <div><strong>Datos técnicos fijos</strong><span>{selected.attributes.filter(a=>!a.responseType).length} · Información común que debe estar verificada.</span></div>
+       <div><strong>Preguntas para nuevas solicitudes</strong><span>{selected.attributes.filter(a=>Boolean(a.responseType)).length} · Opciones que se pueden rellenar al crear una consulta.</span></div>
+     </div>
      <div className="catalog3-table-scroll" role="region" aria-label="Atributos de categoría" tabIndex={0}>
       <table className="catalog3-table catalog3-attrs-table">
        <thead><tr><th>ATRIBUTO</th><th>CÓMO RESPONDE</th><th>VALORES</th><th/></tr></thead>
        <tbody>{selected.attributes.map(a=><tr key={a.id}>
         <td><strong>{a.label}</strong>{a.hidden&&<small>Oculto en nuevas solicitudes</small>}</td>
         <td>{responseName(a)}</td><td>{responseValues(a)}</td>
-        <td><button type="button" className="catalog3-text-action" onClick={()=>startAttribute(a)}>Editar</button></td>
+        <td><button type="button" className="catalog3-text-action" onClick={()=>startAttribute(a)}>Editar atributo</button></td>
        </tr>)}</tbody>
       </table>
       {!selected.attributes.length&&<p className="catalog3-no-rows">No hay atributos. Puedes añadir uno para definir opciones del producto o registrar información técnica común.</p>}
