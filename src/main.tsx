@@ -33,6 +33,7 @@ import './catalog-manager.css';
 import './transport-route.css';
 import './results-clean.css';
 import './results-console.css';
+import './ux-refinements.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
