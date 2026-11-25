@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, Wallet, X } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Check, CheckCircle2, ClipboardCheck, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
+import { type FactoryStatus, type FactoryCheckKey, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
@@ -188,13 +188,46 @@ export function Clients(){
 
 export function ClientDetail(){
  const {id}=useParams();const {data,addDocumentName}=useCrm();const [tab,setTab]=useState('Resumen');
+ const [selectedPdf,setSelectedPdf]=useState<File|null>(null);
+ const [docNotice,setDocNotice]=useState('');
  const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado del CRM."/></div>;
  const orders=data.orders.filter(o=>o.customerId===c.id);
  return <div className="page page-crm-record"><Back to="/clientes" label="Volver a clientes"/><div className="record-hero"><div className="record-identity"><Initials name={c.name}/><div><div className="eyebrow">{c.id} · Cliente confirmado</div><h1>{c.name}</h1><div className="record-meta"><MapPin size={14}/>{c.destination}<span>·</span><Pill tone="green">Comprador</Pill></div></div></div><Pill>{orders.length} pedidos</Pill></div>
  <div className="detail-tabs">{['Resumen','Pedidos','Documentos'].map(t=><button onClick={()=>setTab(t)} key={t} className={tab===t?'selected':''}>{t}</button>)}</div>
  {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de cliente"><div className="info-grid"><Info label="Cliente" value={c.name}/><Info label="Contacto" value={c.contact}/><Info label="Destino" value={c.destination}/><Info label="Desde" value={dateText(c.createdAt)}/></div><h4 className="minor-title">Observaciones</h4><div className="note-area">{c.notes||'Sin observaciones'}</div></Panel><Panel title="Resumen de compras"><div className="money-summary"><span>Pedidos registrados</span><strong>{orders.length}</strong></div><div className="summary-line"><span>Importe de operaciones</span><strong>{money(orders.reduce((a,o)=>a+o.amount,0))}</strong></div><div className="summary-line"><span>Documentos relacionados</span><strong>{c.documentNames.length}</strong></div></Panel></div>}
  {tab==='Pedidos'&&<Panel title="Historial de pedidos"><div className="simple-list">{orders.map(o=><Link to={'/pedidos/'+o.id} className="simple-item" key={o.id}><Package size={20}/><div><strong>{o.product} · {o.capacity}</strong><small>{o.id} · {dateText(o.createdAt)}</small></div><b>{money(o.amount)}</b><Status value={o.factory}/><ChevronRight size={16}/></Link>)}</div></Panel>}
- {tab==='Documentos'&&<div className="detail-grid"><Panel title="Documentos de la oficina"><div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}><FileText size={20}/><div><strong>{name}</strong><small>Nombre anotado · fichero no almacenado</small></div></div>)}{!c.documentNames.length&&<Empty title="Sin documentos" body="Los PDF se incorporarán a un sistema privado cuando exista el backend."/>}</div></Panel><Panel title="Adjuntos · almacenamiento pendiente"><p className="muted">Todavía no se guardan los PDF: únicamente se anota su nombre. No selecciones facturas reales.</p><Field label="Anotar nombre de PDF (no se sube)"><input type="file" accept="application/pdf" onChange={e=>{const f=e.target.files?.[0];if(f&&f.type==='application/pdf')addDocumentName(c.id,f.name)}}/></Field><NoteDemo/></Panel></div>}
+ {tab==='Documentos'&&<div className="detail-grid crm-client-documents">
+  <Panel title="Referencias de documentos">
+   <div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}>
+     <FileText size={20}/><div><strong>{name}</strong><small>Referencia anotada · archivo no almacenado</small></div></div>)}
+     {!c.documentNames.length&&<Empty title="Sin documentos anotados" body="Puedes registrar el nombre de un PDF para recordar qué documento está pendiente de archivar."/>}
+   </div>
+  </Panel>
+  <Panel title="Añadir referencia PDF">
+    <p className="crm-inline-help">Selecciona un PDF para guardar únicamente su nombre como referencia interna. El documento no se sube ni se almacena todavía; no selecciones archivos confidenciales.</p>
+    <label className="crm-file-picker">
+      <UploadCloud size={25}/>
+      <strong>{selectedPdf?selectedPdf.name:'Seleccionar archivo PDF'}</strong>
+      <span>{selectedPdf?'Archivo seleccionado; solo se conservará el nombre.':'Pulsa para elegir un PDF (sin subida real)'}</span>
+      <input type="file" accept="application/pdf,.pdf" aria-label="Elegir referencia PDF" onChange={e=>{
+        const next=e.currentTarget.files?.[0]||null;
+        if(next&&next.type!=='application/pdf'&&!next.name.toLowerCase().endsWith('.pdf')){setDocNotice('Selecciona un PDF válido.');setSelectedPdf(null);return;}
+        setSelectedPdf(next);setDocNotice('');
+      }}/>
+    </label>
+    {docNotice&&<p className="crm-inline-help" role="status">{docNotice}</p>}
+    <div className="crm-document-actions">
+      <Button disabled={!selectedPdf} onClick={()=>{
+        if(!selectedPdf)return;
+        if(c.documentNames.includes(selectedPdf.name)){setDocNotice('Esta referencia ya está registrada.');return;}
+        addDocumentName(c.id,selectedPdf.name);
+        setDocNotice('Nombre del documento anotado. El contenido del PDF no se ha guardado.');
+        setSelectedPdf(null);
+      }}><Check size={16}/>Anotar nombre del PDF</Button>
+      {selectedPdf&&<button type="button" className="crm-record-secondary" onClick={()=>setSelectedPdf(null)}>Cancelar</button>}
+    </div>
+  </Panel>
+ </div>}
  </div>;
 }
 
@@ -379,9 +412,67 @@ export function Orders(){
  </div>;
 }
 
+
+const factoryChecks:{key:FactoryCheckKey;label:string;hint:string}[]=[
+ {key:'product',label:'Producto, capacidad y uso confirmados',hint:'Contrastar modelo y destino con el presupuesto.'},
+ {key:'dimensions',label:'Medidas y características verificadas',hint:'Comprobar dimensiones, accesos y limitaciones.'},
+ {key:'finish',label:'Color y acabado definidos',hint:'Confirmar opción acordada con la oficina.'},
+ {key:'connections',label:'Bocas y conexiones verificadas',hint:'Ubicación y diámetro de tomas, tapas y accesorios.'},
+ {key:'quality',label:'Revisión final de fabricación confirmada',hint:'Comprobación comunicada por la oficina de Fábrica.'},
+ {key:'documentation',label:'Documentación necesaria comprobada',hint:'Verificar documentos aplicables al producto y uso.'},
+ {key:'access',label:'Destino, acceso y descarga coordinados',hint:'Transporte externo sin descarga estándar; confirmar medios.'},
+ {key:'transport',label:'Porte y fecha de salida confirmados',hint:'Validar dimensiones, coste y disponibilidad con transportista.'},
+ {key:'delivery',label:'Entrega confirmada',hint:'Marcar solo tras confirmación del cliente o transportista.'}
+];
+const factoryRequirements:Partial<Record<FactoryStatus,FactoryCheckKey[]>>={
+ 'En fabricación':['product','dimensions','finish','connections'],
+ 'Preparado':['quality','documentation'],
+ 'En tránsito':['access','transport'],
+ 'Entregado':['delivery']
+};
+function FactoryWorkflow({order,updateOrder}:{order:Order;updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void}){
+ const index=stages.indexOf(order.factory);
+ const next=stages[index+1];
+ const req=next?(factoryRequirements[next]||[]):[];
+ const checks=order.factoryChecklist||{};
+ const missing=req.filter(key=>!checks[key]);
+ const checked=factoryChecks.filter(item=>checks[item.key]).length;
+ const setCheck=(key:FactoryCheckKey,value:boolean)=>updateOrder(order.id,{
+  factoryChecklist:{...checks,[key]:value}
+ },(value?'Comprobación registrada: ':'Comprobación pendiente de nuevo: ')+factoryChecks.find(x=>x.key===key)?.label);
+ const progress=(index+1)+' de '+stages.length;
+ return <section className="crm-factory-workflow" aria-label="Protocolo de preparación del pedido">
+  <header className="crm-factory-workflow-head">
+   <div><span className="crm-factory-eyebrow">COORDINACIÓN CON FÁBRICA · PASO {progress}</span>
+    <h3>{order.factory}</h3><p>Marca cada comprobación solo cuando esté confirmada. Avanza en orden para no olvidar detalles.</p></div>
+   <span className="crm-factory-check-count">{checked}/{factoryChecks.length} verificaciones</span>
+  </header>
+  <ol className="crm-factory-step-nav">{stages.map((stage,i)=><li key={stage} className={i===index?'is-current':i<index?'is-complete':''}>
+   <span>{i<index?<Check size={14}/>:i+1}</span><small>{stage}</small>
+  </li>)}</ol>
+  <div className="crm-factory-checks">
+    <h4>Lista de comprobación</h4>
+    {factoryChecks.map(x=><label key={x.key} className={'crm-factory-check'+(checks[x.key]?' is-checked':'')}>
+      <input type="checkbox" checked={Boolean(checks[x.key])} onChange={e=>setCheck(x.key,e.target.checked)}/>
+      <span><strong>{x.label}</strong><small>{x.hint}</small></span>
+    </label>)}
+  </div>
+  <div className="crm-factory-next">
+    {next?<><div><strong>Próxima etapa: {next}</strong>
+     <p>{missing.length?'Antes de avanzar, faltan '+missing.length+' verificaciones necesarias para este paso.':'Puedes pasar a la siguiente etapa cuando se haya confirmado el avance con Fábrica.'}</p></div>
+     <button type="button" disabled={missing.length>0} onClick={()=>{
+       if(!window.confirm('¿Confirmas que el pedido pasa a «'+next+'»? Esta acción se anotará en su historial.'))return;
+       updateOrder(order.id,{factory:next},'Avance del protocolo de Fábrica: '+next);
+     }}>Marcar siguiente etapa <ChevronRight size={16}/></button></>
+    :<div><strong>Pedido en estado «Entregado»</strong><p>Conserva las comprobaciones para futuras consultas y posventa.</p></div>}
+  </div>
+  <p className="crm-inline-help">Esta lista registra verificaciones manuales; no sustituye certificados, documentación legal ni confirmación del fabricante o transportista.</p>
+ </section>;
+}
+
 export function OrderDetail(){
  const {id}=useParams();const [params]=useSearchParams();const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
- const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||'Resumen');const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
+ const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
  if(!o)return <div className="page"><Back to="/pedidos" label="Volver a pedidos"/><Empty title="Pedido no encontrado" body="Consulta el listado de pedidos."/></div>;
  const balance=Math.max(0,o.commission-o.commissionPaid);
  const tabs=role==='fabrica'?['Resumen','Fabricación','Actividad','Comisión (consulta)']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
@@ -394,7 +485,8 @@ export function OrderDetail(){
  {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div><div className="summary-line"><span>Ingreso inicial verificado</span><strong>{money(o.advanceReceived)}</strong></div><div className="summary-line"><span>Comisión pendiente</span><strong>{money(balance)}</strong></div></Panel>}</div></div>}
  {selected==='Formalización'&&role==='direccion'&&<div className="detail-grid"><Panel title="Comprobación del ingreso"><p className="muted">El documento oficial lo emite Fábrica. Registra únicamente pagos ya comprobados; no hay verificación bancaria integrada.</p><div className="form-grid"><Field label="Forma de pago"><select value={payMode||o.paymentMode} onChange={e=>setPayMode(e.target.value)}><option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option></select></Field><Field label="Importe comprobado (€)"><input type="number" min="0" step=".01" value={payment} onChange={e=>setPayment(e.target.value)} placeholder={String(o.advanceReceived)}/></Field></div><Button onClick={()=>{const mode=(payMode||o.paymentMode) as Order['paymentMode'];const amount=Number(payment||o.advanceReceived);if(mode!=='Pendiente'&&amount>0)verifyPayment(o.id,mode,amount)}}><CheckCircle2 size={16}/>Anotar verificación</Button><div className="inline-tip"><Check size={16}/> Solo tras verificar el anticipo/pago se crea el cliente comprador.</div></Panel>
  <Panel title="Documentación preparada por oficina"><div className="info-grid"><Info label="Presupuesto" value={o.quoteId||'Operación de ejemplo'}/><Info label="Proforma" value="Oficina del fabricante"/><Info label="Factura" value="Oficina del fabricante"/><Info label="Archivos PDF" value="Pendiente de almacenamiento privado"/></div><NoteDemo/></Panel></div>}
- {selected==='Fabricación'&&<div className="detail-grid"><Panel title="Gestión técnica y producción"><div className="form-stack"><Field label="Etapa actual"><select value={o.factory} onChange={e=>updateOrder(o.id,{factory:e.target.value as FactoryStatus},'Cambio de estado: '+e.target.value)}>{stages.map(s=><option key={s}>{s}</option>)}</select></Field><Field label="Fecha de entrega"><input type="date" value={o.deliveryDate} onChange={e=>updateOrder(o.id,{deliveryDate:e.target.value},'Fecha de entrega actualizada')}/></Field><Field label="Color"><input value={o.color} onChange={e=>updateOrder(o.id,{color:e.target.value})}/></Field><Field label="Conexiones / tomas"><textarea rows={3} value={o.connections} onChange={e=>updateOrder(o.id,{connections:e.target.value})}/></Field></div><div className="hint-row"><Factory size={17}/> La oficina de Fábrica confirma estos detalles con el comprador.</div></Panel>
+ {selected==='Fabricación'&&<div className="detail-grid"><Panel title="Gestión técnica y producción"><div className="form-stack"><FactoryWorkflow order={o} updateOrder={updateOrder}/>
+ <div className="crm-factory-edit-heading">Datos técnicos y de entrega</div><Field label="Fecha de entrega"><input type="date" value={o.deliveryDate} onChange={e=>updateOrder(o.id,{deliveryDate:e.target.value},'Fecha de entrega actualizada')}/></Field><Field label="Color"><input value={o.color} onChange={e=>updateOrder(o.id,{color:e.target.value})}/></Field><Field label="Conexiones / tomas"><textarea rows={3} value={o.connections} onChange={e=>updateOrder(o.id,{connections:e.target.value})}/></Field></div><div className="hint-row"><Factory size={17}/> La oficina de Fábrica confirma estos detalles con el comprador.</div></Panel>
  <Panel title="Registrar avance o incidencia"><form onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){updateOrder(o.id,{notes:note},note.trim());setNote('')}}} className="form-stack"><Field label="Observación"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)} placeholder="Ej. Confirmadas las bocas; entrega coordinada..."/></Field><Button type="submit"><Plus size={16}/>Guardar nota técnica</Button></form><div className="inline-tip"><CheckCircle2 size={16}/> Los avances se añaden al historial.</div></Panel></div>}
  {(selected==='Comisiones'||selected==='Comisión (consulta)')&&<div className="detail-grid"><Panel title="Liquidación comercial"><div className="big-balance">{money(balance)}<span>pendiente de abonar</span></div><div className="summary-line"><span>Comisión acordada</span><strong>{money(o.commission)}</strong></div><div className="summary-line"><span>Comisión abonada</span><strong>{money(o.commissionPaid)}</strong></div><div className="commission-meter"><span style={{width:(o.commission?100*o.commissionPaid/o.commission:0)+'%'}}/></div><Pill tone={balance?'amber':'green'}>{balance?'Pendiente / parcial':'Pagada'}</Pill></Panel>
  <Panel title={role==='direccion'?'Registrar cobro parcial o total':'Acceso de consulta'}>{role==='direccion'?<div className="form-stack"><p className="muted">Cada ingreso actualiza el saldo sin modificar el importe total acordado.</p><Field label="Importe recibido (€)"><input type="number" min=".01" step=".01" max={balance} value={commission} onChange={e=>setCommission(e.target.value)}/></Field><Button disabled={!(Number(commission)>0&&Number(commission)<=balance)} onClick={()=>{addCommissionPayment(o.id,Number(commission));setCommission('')}}><CreditCard size={16}/>Registrar cobro</Button></div>:<div className="inline-tip"><Shield size={18}/> Fábrica ve esta liquidación, pero no puede editarla ni marcarla como pagada.</div>}</Panel></div>}

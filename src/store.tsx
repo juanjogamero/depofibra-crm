@@ -7,9 +7,13 @@ type ContextValue = {
   role: Role; setRole: (role: Role) => void;
   addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => void;
   updateOpportunity: (id: string, patch: Partial<Opportunity>) => void;
+  deleteOpportunity: (id: string) => void;
+  restoreOpportunity: (id: string) => void;
   addActivity: (id: string, text: string) => void;
   addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => void;
   updateQuote: (id: string, patch: Partial<Quote>) => void;
+  archiveQuote: (id:string) => void;
+  restoreQuote: (id:string) => void;
   acceptQuote: (id: string) => void;
   verifyPayment: (id: string, mode: Order['paymentMode'], amount: number) => void;
   updateOrder: (id: string, patch: Partial<Order>, eventText?: string) => void;
@@ -29,6 +33,27 @@ type ContextValue = {
 };
 
 const STORAGE_KEY = 'depofibra-crm-demo-v1';
+export const QUOTE_ARCHIVE_DAYS=20;
+const addDays=(iso:string,days:number)=>{
+  const d=new Date(iso.slice(0,10)+'T12:00:00');
+  if(Number.isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+days);
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+};
+/** Solo al abrir/refrescar el CRM; GitHub Pages no ejecuta tareas en un servidor.
+ * Se excluyen borradores, aceptados y cualquier presupuesto relacionado con pedido. */
+export function archiveExpiredQuotes(source:CrmState,current=today()):CrmState {
+  let modified=false;
+  const quotes=source.quotes.map(q=>{
+    if(q.archivedAt||q.status==='Aceptado'||q.status==='Borrador'
+        ||source.orders.some(o=>o.quoteId===q.id))return q;
+    const expires=q.retainedUntil||addDays(q.createdAt,QUOTE_ARCHIVE_DAYS);
+    if(!expires||expires>current)return q;
+    modified=true;
+    return {...q,archivedAt:current};
+  });
+  return modified?{...source,quotes}:source;
+}
 /** On loading a legacy local demo, group existing references by family + name.
  * No prices, attributes, customers, quotes or orders are invented or overwritten. */
 function normalizeCatalog(source: CrmState): CrmState {
@@ -65,27 +90,43 @@ function initialData(): CrmState {
     if (json) {
       const parsed = JSON.parse(json) as CrmState;
       if (Array.isArray(parsed.opportunities) && Array.isArray(parsed.orders)
-          && Array.isArray(parsed.products) && parsed.transport) return normalizeCatalog(parsed);
+          && Array.isArray(parsed.products) && parsed.transport) return archiveExpiredQuotes(normalizeCatalog(parsed));
     }
   } catch { /* demo storage unavailable */ }
-  return normalizeCatalog(mockData);
+  return archiveExpiredQuotes(normalizeCatalog(mockData));
 }
 const Ctx = createContext<ContextValue | null>(null);
 export function CrmProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<CrmState>(initialData);
   const [role, setRole] = useState<Role>('direccion');
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* private browser */ } }, [data]);
+  useEffect(()=>{
+    const review=()=>setData(old=>archiveExpiredQuotes(old));
+    const timer=window.setInterval(review,3600000);
+    window.addEventListener('focus',review);
+    return ()=>{window.clearInterval(timer);window.removeEventListener('focus',review)};
+  },[]);
   const actions = useMemo(() => ({
     addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => setData(d => ({
       ...d, opportunities: [{ ...item, id: uid('OP'), createdAt: today(), receivedAt: new Date().toISOString(), activity: [{ at: today(), text: 'Solicitud introducida manualmente (demo)', by: 'Dirección' }] }, ...d.opportunities]
     })),
-    updateOpportunity: (id: string, patch: Partial<Opportunity>) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch } : o) })),
+    updateOpportunity: (id: string, patch: Partial<Opportunity>) => setData(d => ({
+      ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, ...patch } : o)
+    })),
+    deleteOpportunity: (id:string) => setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{
+      ...o,deletedAt:today(),activity:[{at:today(),text:'Oportunidad archivada por Dirección',by:'Dirección'},...o.activity]
+    }:o)})),
+    restoreOpportunity: (id:string) => setData(d=>({...d,opportunities:d.opportunities.map(o=>o.id===id?{
+      ...o,deletedAt:undefined,activity:[{at:today(),text:'Oportunidad recuperada',by:'Dirección'},...o.activity]
+    }:o)})),
     addActivity: (id: string, text: string) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, activity: [{ at: today(), text, by: 'Dirección' }, ...o.activity] } : o) })),
     addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => setData(d => ({
       ...d,
       quotes: [{ ...item, id: uid('PRE'), createdAt: today() }, ...d.quotes],
       opportunities: d.opportunities.map(o => o.id === item.opportunityId ? { ...o, status: item.status === 'Enviado' ? 'Presupuesto enviado' : 'Por presupuestar', activity: [{ at: today(), text: 'Presupuesto preparado (demo)', by: 'Dirección' }, ...o.activity] } : o)
     })),
+    archiveQuote: (id:string) => setData(d=>({...d,quotes:d.quotes.map(q=>q.id===id&&q.status!=='Aceptado'&&!d.orders.some(o=>o.quoteId===q.id)?{...q,archivedAt:today()}:q)})),
+    restoreQuote: (id:string) => setData(d=>({...d,quotes:d.quotes.map(q=>q.id===id?{...q,archivedAt:undefined,retainedUntil:addDays(today(),QUOTE_ARCHIVE_DAYS)}:q)})),
     updateQuote: (id: string, patch: Partial<Quote>) => setData(d => ({
       ...d, quotes: d.quotes.map(q => q.id === id ? { ...q, ...patch } : q),
       opportunities: d.opportunities.map(o => d.quotes.some(q => q.id === id && q.opportunityId === o.id) && patch.status === 'Enviado' ? { ...o, status: 'Presupuesto enviado' } : o)
@@ -94,8 +135,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       const q = d.quotes.find(x => x.id === id);
       if (!q || d.orders.some(o => o.quoteId === id)) return d;
       const lead = d.opportunities.find(x => x.id === q.opportunityId);
+      const customerId=uid('CLI');
+      const customer={
+        id:customerId,name:lead?.name||q.name,contact:lead?.contact||'Por completar',
+        destination:lead?.destination||'Pendiente',createdAt:today(),
+        notes:'Cliente generado tras confirmar expresamente la aceptación del presupuesto '+q.id+'. Pago pendiente de comprobar.',
+        documentNames:[] as string[]
+      };
       const order: Order = {
-        id: uid('PED'), quoteId: id, buyerName: q.name, product: q.product,
+        id: uid('PED'), quoteId: id, customerId, buyerName: q.name, product: q.product,
         capacity: lead?.capacity ?? 'Por confirmar', amount: q.amount, commission: q.commission, commissionPaid: 0,
         advanceReceived: 0, paymentMode: 'Pendiente', factory: 'Pendiente', createdAt: today(),
         deliveryDate: '', notes: 'Esperando ingreso verificado y documentación de la oficina.', color: 'Por confirmar',
@@ -104,6 +152,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       };
       return { ...d,
         orders: [order, ...d.orders],
+        customers:[customer,...d.customers],
         quotes: d.quotes.map(x => x.id === id ? { ...x, status: 'Aceptado' } : x),
         opportunities: d.opportunities.map(o => o.id === q.opportunityId ? { ...o, status: 'Aceptada', activity: [{ at: today(), by: 'Dirección', text: 'Presupuesto aceptado, pendiente de ingreso.' }, ...o.activity] } : o)
       };

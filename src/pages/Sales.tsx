@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Package, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, ExternalLink, X, Pencil, Trash2, RotateCcw, Archive, ClipboardCheck } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
 import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
-import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
+import { ActionLink, Back, Button, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
 const statuses: OpportunityStatus[]=['Nueva','Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento','Aceptada','Perdida'];
 const channels: Channel[]=CHANNELS;
@@ -15,7 +15,7 @@ type OpportunitySort = 'Recientes'|'Antiguas'|'Próximo seguimiento';
 const formatRangeDate=(iso:string)=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T12:00:00'));
 
 export function Opportunities(){
- const {data,addOpportunity}=useCrm();
+ const {data,addOpportunity,restoreOpportunity}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [quick,setQuick]=useState<OpportunityQuickFilter>('Todas');
@@ -28,6 +28,7 @@ export function Opportunities(){
  const [filtersOpen,setFiltersOpen]=useState(false);
  const [datesOpen,setDatesOpen]=useState(false);
  const [modal,setModal]=useState(false);
+ const [showDeleted,setShowDeleted]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,originChannel:'' as Channel|'',contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const [quickCategoryId,setQuickCategoryId]=useState('');
  const [quickAnswers,setQuickAnswers]=useState<Record<string,string>>({});
@@ -45,7 +46,7 @@ export function Opportunities(){
  ];
  const query=search.trim().toLocaleLowerCase('es-ES');
  const list=data.opportunities.filter(o=>
-   quickMatch(o.status,quick)
+   Boolean(o.deletedAt)===showDeleted && quickMatch(o.status,quick)
    &&(status==='Todos los estados'||o.status===status)
    &&(channel==='Todos los canales'||sourceChannel(o)===channel)
    &&(!overdueOnly||isOverdue(o))
@@ -95,13 +96,14 @@ export function Opportunities(){
        <button type="button" className="op-new-button" onClick={()=>setModal(true)}><Plus size={17}/>Nueva solicitud</button>
      </div>
    </div>
+   {showDeleted&&<div className="crm-trash-notice"><Archive size={16}/> Oportunidades apartadas: puedes recuperarlas sin afectar sus presupuestos.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar oportunidades por estado">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab op-phase-'+g.tone+(quick===g.id?' is-active':'')}
        aria-pressed={quick===g.id}
        onClick={()=>{setQuick(g.id);setStatus('Todos los estados')}}>
        <span>{g.label}</span>
-       <strong>{data.opportunities.filter(o=>quickMatch(o.status,g.id)).length}</strong>
+       <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted&&quickMatch(o.status,g.id)).length}</strong>
      </button>)}
    </nav>
    <div className="op-searchbar">
@@ -176,13 +178,14 @@ export function Opportunities(){
              <td className="op-col-city"><span className="op-location" title={o.destination}>{o.destination||'Por concretar'}</span></td>
              <td className="op-col-date"><time dateTime={received}>{dateText(received)}</time></td>
              <td className="op-col-status"><span className={'op-status-pill is-'+tone} title={o.status}>{badge}</span></td>
-             <td className="op-col-open"><Link className="op-row-open" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+o.name}><ChevronRight size={17}/></Link></td>
+             <td className="op-col-open">{showDeleted?<button type="button" className="crm-trash-restore" title="Recuperar oportunidad" aria-label={'Recuperar '+o.name} onClick={e=>{e.stopPropagation();restoreOpportunity(o.id)}}><RotateCcw size={17}/></button>:<Link className="op-row-open" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+o.name}><ChevronRight size={17}/></Link>}</td>
            </tr>;
          })}</tbody>
        </table>
        {!list.length&&<Empty title="No hay solicitudes" body="Prueba otra búsqueda o cambia los filtros."/>}
      </div>
-     <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</footer>
+     <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted).length}</strong> solicitudes
+      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters()}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Se guarda en este navegador; no introduzcas información sensible" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
    <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Empresa o referencia de consulta"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
@@ -246,26 +249,69 @@ export function OpportunityNew(){
 }
 
 export function OpportunityDetail(){
- const {id}=useParams();const {data,updateOpportunity,addActivity}=useCrm();const o=data.opportunities.find(x=>x.id===id);
- const [tab,setTab]=useState('Resumen'),[note,setNote]=useState(''); if(!o)return <Missing to="/oportunidades"/>;
+ const {id}=useParams();const {data,updateOpportunity,deleteOpportunity,restoreOpportunity,addActivity}=useCrm();const nav=useNavigate();const o=data.opportunities.find(x=>x.id===id);
+ const [tab,setTab]=useState('Resumen'),[note,setNote]=useState('');
+ const [editing,setEditing]=useState(false);
+ const [draft,setDraft]=useState({
+   name:'',contact:'',alias:'',channel:'Web' as Channel,originChannel:'' as Channel|'',
+   destination:'',product:'',capacity:'',conversation:'',message:'',status:'Nueva' as OpportunityStatus,
+   nextAction:'',nextDate:''
+ });
+ const beginEdit=()=>{if(!o)return;setDraft({
+   name:o.name,contact:o.contact||'',alias:o.alias||'',channel:o.channel,originChannel:o.originChannel||'',
+   destination:o.destination||'',product:o.product,capacity:o.capacity||'',conversation:o.conversation||'',
+   message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||''
+ });setEditing(true)};
+ const saveEdit=(event:FormEvent)=>{event.preventDefault();if(!o||!draft.name.trim()||!draft.product.trim())return;
+   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});addActivity(o.id,'Datos de oportunidad actualizados');setEditing(false);
+ };
+ if(!o)return <Missing to="/oportunidades"/>;
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
- return <div className="page page-crm-record"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><Link className="btn btn-primary" to={'/presupuestos/nuevo?op='+o.id}><Plus size={16}/>Preparar presupuesto</Link></div>
+ return <div className="page page-crm-record"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><div className="crm-record-actions">
+ {o.deletedAt?<button type="button" className="crm-record-secondary" onClick={()=>restoreOpportunity(o.id)}><RotateCcw size={16}/>Recuperar</button>:
+ <><button type="button" className="crm-record-secondary" onClick={beginEdit}><Pencil size={16}/>Editar datos</button>
+ <button type="button" className="crm-record-danger" onClick={()=>{
+  if(window.confirm('¿Apartar esta oportunidad? No se borrarán los presupuestos ni pedidos relacionados y podrás recuperarla.')){
+    deleteOpportunity(o.id);nav('/oportunidades');
+  }
+ }}><Trash2 size={16}/>Eliminar</button>
+ <Link className="btn btn-primary" to={'/presupuestos/nuevo?op='+o.id}><Plus size={16}/>Preparar presupuesto</Link></>}
+ </div></div>
  <div className="detail-tabs">{['Resumen','Presupuestos','Actividad'].map(t=><button key={t} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t}{t==='Presupuestos'&&<span className="tab-count">{quotes.length}</span>}</button>)}</div>
  {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de la consulta"><div className="info-grid"><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity||'Sin concretar'}/><Info label="Localidad" value={o.destination||'Pendiente'}/><Info label="Canal contacto" value={o.channel}/><Info label="Origen captación" value={o.originChannel||'No identificado (informe usa canal de contacto)'}/><Info label="Contacto" value={o.contact||'Sin datos'}/><Info label="Alias" value={o.alias||'No disponible'}/><Info label="Registrado" value={dateText(o.createdAt)}/><Info label="Referencia" value={o.id}/></div>
  {o.attributeAnswers?.length&&<><h4 className="minor-title">Atributos indicados por el comprador</h4>
   <div className="info-grid">{o.attributeAnswers.map(a=><Info key={a.attributeId} label={a.label} value={a.value}/>)}</div>
  </>}
  <h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
- <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button className="text-button" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
- {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer mensaje comercial de esta consulta."/>}</div></Panel>}
+ <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
+ {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer presupuesto para esta consulta."/>}</div></Panel>}
  {tab==='Actividad'&&<div className="detail-grid"><Panel title="Historial de interacciones"><Timeline items={o.activity}/></Panel><Panel title="Registrar seguimiento"><form onSubmit={e=>{e.preventDefault();if(note.trim()){addActivity(o.id,note.trim());setNote('')}}} className="form-stack"><Field label="Nota de la conversación"><textarea value={note} onChange={e=>setNote(e.target.value)} rows={5} placeholder="Llamada, respuesta, comentario..."/></Field><Button type="submit"><Plus size={16}/>Añadir nota</Button></form></Panel></div>}
+ {editing&&<Modal title="Editar oportunidad" subtitle={'Ficha '+o.id} onClose={()=>setEditing(false)}>
+ <form className="modal-form crm-edit-opportunity" onSubmit={saveEdit}>
+  <div className="form-grid">
+   <Field label="Cliente o referencia"><input required value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/></Field>
+   <Field label="Canal de contacto"><select value={draft.channel} onChange={e=>setDraft({...draft,channel:e.target.value as Channel})}>{channels.map(ch=><option key={ch}>{ch}</option>)}</select></Field>
+   <Field label="Origen de captación"><select value={draft.originChannel} onChange={e=>setDraft({...draft,originChannel:e.target.value as Channel|''})}><option value="">Sin identificar</option>{channels.map(ch=><option key={ch}>{ch}</option>)}</select></Field>
+   <Field label="Contacto"><input value={draft.contact} onChange={e=>setDraft({...draft,contact:e.target.value})}/></Field>
+   <Field label="Alias"><input value={draft.alias} onChange={e=>setDraft({...draft,alias:e.target.value})}/></Field>
+   <Field label="Producto"><input required value={draft.product} onChange={e=>setDraft({...draft,product:e.target.value})}/></Field>
+   <Field label="Capacidad"><input value={draft.capacity} onChange={e=>setDraft({...draft,capacity:e.target.value})}/></Field>
+   <Field label="Localidad"><input value={draft.destination} onChange={e=>setDraft({...draft,destination:e.target.value})}/></Field>
+   <Field label="Estado"><select value={draft.status} onChange={e=>setDraft({...draft,status:e.target.value as OpportunityStatus})}>{statuses.map(st=><option key={st}>{st}</option>)}</select></Field>
+   <Field label="Seguimiento"><input type="date" value={draft.nextDate} onChange={e=>setDraft({...draft,nextDate:e.target.value})}/></Field>
+  </div>
+  <Field label="Próxima acción"><input value={draft.nextAction} onChange={e=>setDraft({...draft,nextAction:e.target.value})}/></Field>
+  <Field label="Enlace de conversación"><input value={draft.conversation} onChange={e=>setDraft({...draft,conversation:e.target.value})}/></Field>
+  <Field label="Información de la solicitud"><textarea rows={4} value={draft.message} onChange={e=>setDraft({...draft,message:e.target.value})}/></Field>
+  <div className="modal-actions"><Button variant="outline" onClick={()=>setEditing(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar cambios</Button></div>
+ </form></Modal>}
  </div>;
 }
 
 type QuoteListFilter = 'Todos' | QuoteStatus;
 type QuoteListSort = 'Recientes'|'Antiguos'|'Mayor importe'|'Menor importe';
 export function Quotes(){
- const {data}=useCrm();
+ const {data,restoreQuote}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [phase,setPhase]=useState<QuoteListFilter>('Todos');
@@ -275,6 +321,7 @@ export function Quotes(){
  const [dateTo,setDateTo]=useState('');
  const [datesOpen,setDatesOpen]=useState(false);
  const [filtersOpen,setFiltersOpen]=useState(false);
+ const [showTrash,setShowTrash]=useState(false);
  const query=search.trim().toLocaleLowerCase('es-ES');
  const groups:{id:QuoteListFilter;label:string}[]=[
    {id:'Todos',label:'Todos'},
@@ -285,7 +332,7 @@ export function Quotes(){
  ];
  const quotes=data.quotes.filter(q=>{
    const opportunity=data.opportunities.find(o=>o.id===q.opportunityId);
-   return (phase==='Todos'||q.status===phase)
+   return Boolean(q.archivedAt)===showTrash &&(phase==='Todos'||q.status===phase)
      &&(opportunityFilter==='Todas las solicitudes'||q.opportunityId===opportunityFilter)
      &&(!dateFrom||q.createdAt.slice(0,10)>=dateFrom)
      &&(!dateTo||q.createdAt.slice(0,10)<=dateTo)
@@ -329,11 +376,12 @@ export function Quotes(){
        <Link className="op-new-button" to="/presupuestos/nuevo"><Plus size={17}/>Nuevo presupuesto</Link>
      </div>
    </div>
+   {showTrash&&<div className="crm-trash-notice"><Archive size={16}/> Papelera recuperable. Los presupuestos enviados o rechazados sin pedido pasan aquí tras 20 días. Los aceptados y vinculados permanecen visibles.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar presupuestos por estado">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab'+(phase===g.id?' is-active':'')}
        aria-pressed={phase===g.id} onClick={()=>setPhase(g.id)}>
-       <span>{g.label}</span><strong>{g.id==='Todos'?data.quotes.length:data.quotes.filter(q=>q.status===g.id).length}</strong>
+       <span>{g.label}</span><strong>{g.id==='Todos'?data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash).length:data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash&&q.status===g.id).length}</strong>
      </button>)}
    </nav>
    <div className="op-searchbar">
@@ -415,16 +463,16 @@ export function Quotes(){
              <td className="quote-col-amount"><strong className="quote-amount">{decimal(q.amount)}</strong></td>
              <td className="op-col-date"><time dateTime={q.createdAt}>{dateText(q.createdAt)}</time></td>
              <td className="op-col-status"><span className={'op-status-pill is-'+tone}>{q.status}</span></td>
-             <td className="op-col-open"><Link className="op-row-open" to={'/presupuestos/'+q.id}
-               onClick={e=>e.stopPropagation()} aria-label={'Abrir presupuesto '+q.id}><ChevronRight size={17}/></Link></td>
+             <td className="op-col-open">{showTrash?<button type="button" className="crm-trash-restore" aria-label={'Recuperar presupuesto '+q.id} title="Recuperar presupuesto" onClick={e=>{e.stopPropagation();restoreQuote(q.id)}}><RotateCcw size={17}/></button>:<Link className="op-row-open" to={'/presupuestos/'+q.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir presupuesto '+q.id}><ChevronRight size={17}/></Link>}</td>
            </tr>;
          })}</tbody>
        </table>
        {!quotes.length&&<Empty title="No hay presupuestos" body="Prueba otra búsqueda o modifica los filtros."/>}
      </div>
      <footer className="op-table-footer">
-       Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.length}</strong> presupuestos
-       <span className="quote-footer-note">Importes y estados anotados en este navegador</span>
+       Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash).length}</strong> presupuestos
+       <button type="button" className="crm-trash-link" onClick={()=>{setShowTrash(v=>!v);clearFilters()}}>{showTrash?'Volver a activos':'Papelera ('+data.quotes.filter(q=>q.archivedAt).length+')'} <Archive size={15}/></button>
+       <span className="quote-footer-note">Los registros archivados se conservan íntegros</span>
      </footer>
    </section>
  </div>;
@@ -432,12 +480,12 @@ export function Quotes(){
 
 export function QuoteNew(){
  const {data,addQuote}=useCrm();const nav=useNavigate();const [params]=useSearchParams();
- const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!['Aceptada','Perdida'].includes(o.status))?.id||'');
+ const [opId,setOpId]=useState(params.get('op')||data.opportunities.find(o=>!o.deletedAt&&!['Aceptada','Perdida'].includes(o.status))?.id||'');
  const lead=data.opportunities.find(o=>o.id===opId);
  const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
  const [product,setProduct]=useState(leadProduct(lead));
  const [catalogId,setCatalogId]=useState('');
- const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[text,setText]=useState(''),[sent,setSent]=useState(false);
+ const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[sent,setSent]=useState(false);
  const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')||a.name.localeCompare(b.name,'es')||
   (Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
  const categories=(data.productCategories||[]).filter(c=>available.some(p=>p.categoryId===c.id));
@@ -446,7 +494,7 @@ export function QuoteNew(){
  const attributes=selectedCategory?.attributes.filter(a=>a.value.trim())||[];
  const chooseCatalog=(id:string)=>{
   if(id==='manual'){
-   setCatalogId('');setAmount('');setText('');
+   setCatalogId('');setAmount('');
    return;
   }
   const p=data.products.find(x=>x.id===id&&x.active);
@@ -454,12 +502,9 @@ export function QuoteNew(){
   setCatalogId(p.id);
   setProduct(p.name+' · '+p.capacity);
   setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
-  setText('');
+  
  };
- const generated=()=>{
-  const greeting=(lead?.name||'').split(' ·')[0];
-  return '¡Buenas tardes'+(greeting?', '+greeting:'')+'! 😊 Soy Juan, de Depofibra.\n\nYa tengo preparado el precio de la opción que nos consultaste:\n\n💧 '+(product||'Producto por definir')+'\n✅ PRECIO: '+decimal(Number(amount)||0)+'\n\n'+(details||'Podemos confirmar las características técnicas del modelo y las condiciones de entrega para dejarlo todo preparado.')+'\n\nSi te encaja, concretamos con la oficina las conexiones, el color y el resto de detalles.\n\n¿Qué te parece el presupuesto? ¡Muchas gracias! Un saludo.';
- };
+
  const save=(e:FormEvent)=>{
   e.preventDefault();
   const value=Number(amount);
@@ -467,8 +512,8 @@ export function QuoteNew(){
   addQuote({
    opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
    productId:catalogId||undefined,amount:value,
-   commission:Number(commission)||0,transport:Number(transport)||0,
-   status:sent?'Enviado':'Borrador',message:text||generated()
+   commission:Number(commission)||0,transport:Number(transport)||0,details:details.trim(),
+   status:sent?'Enviado':'Borrador',message:''
   });
   nav('/presupuestos');
  };
@@ -480,8 +525,8 @@ export function QuoteNew(){
     <div className="form-grid">
      <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
        setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
-       setProduct(leadProduct(o));setCatalogId('');setAmount('');setText('');
-     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
+       setProduct(leadProduct(o));setCatalogId('');setAmount('');
+     }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>!o.deletedAt&&o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
      <Field label="Producto del catálogo o manual">
       <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
        <option value="manual">Escribir producto manualmente</option>
@@ -510,12 +555,9 @@ export function QuoteNew(){
      </div>}
     </div>}
     <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
-    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/configuracion">Configuración</Link> antes de comunicar condiciones.</div>
+    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/transporte">Calculadora de transporte</Link> antes de comunicar condiciones.</div>
    </Panel>
-   <Panel title="Mensaje comercial" extra={<Button variant="subtle" onClick={()=>setText(generated())}><Sparkles size={16}/>Generar borrador</Button>}>
-    <Field label="Edita y revisa antes de copiar"><textarea rows={12} className="message-editor" value={text} onChange={e=>setText(e.target.value)} placeholder="Pulsa «Generar borrador» o escribe un mensaje personalizado."/></Field>
-    <div className="hint-row"><MessageCircle size={16}/> El CRM no genera proformas ni facturas oficiales. Seleccionar un producto no envía el presupuesto.</div>
-   </Panel>
+
   </div>
   <div className="builder-side">
    <Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{decimal(Number(amount)||0)}</strong></div>
@@ -525,7 +567,7 @@ export function QuoteNew(){
     <div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div>
    </Panel>
    <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
-     <span><strong>Marcar como enviada</strong><small>Solo si ya has comunicado el precio (simulación).</small></span></label>
+     <span><strong>Marcar como enviada</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
     <Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/>
    </Panel>
   </div>
@@ -533,13 +575,76 @@ export function QuoteNew(){
 }
 
 export function QuoteDetail(){
- const {id}=useParams();const {data,updateQuote,acceptQuote}=useCrm();const q=data.quotes.find(x=>x.id===id);
- const [text,setText]=useState(q?.message||'');const nav=useNavigate();if(!q)return <Missing to="/presupuestos"/>;
+ const {id}=useParams();
+ const {data,updateQuote,acceptQuote,archiveQuote,restoreQuote}=useCrm();
+ const nav=useNavigate();
+ const q=data.quotes.find(x=>x.id===id);
+ const [pendingStatus,setPendingStatus]=useState<QuoteStatus|''>('');
+ if(!q)return <Missing to="/presupuestos"/>;
  const linked=data.orders.find(o=>o.quoteId===q.id);
- return <div className="page page-crm-record"><Back to="/presupuestos" label="Volver a presupuestos"/><div className="record-hero"><div><div className="eyebrow">{q.id} · {dateText(q.createdAt)}</div><h1>{q.name}</h1><p>{q.product}</p></div><Status value={q.status}/></div>
- <div className="detail-grid"><Panel title="Mensaje comercial"><textarea className="message-editor message-card" value={text} onChange={e=>setText(e.target.value)} rows={14}/><div className="action-line"><CopyButton text={text}/><Button variant="outline" onClick={()=>updateQuote(q.id,{message:text})}><Check size={16}/>Guardar texto</Button></div><div className="hint-row">Copiar no equivale a enviar. Cambia el estado únicamente cuando proceda.</div></Panel>
- <div className="right-stack"><Panel title="Control de presupuesto"><div className="money-summary"><span>Importe ofertado</span><strong>{money(q.amount)}</strong></div><div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div><div className="summary-line"><span>Transporte interno</span><strong>{money(q.transport)}</strong></div><Field label="Estado"><select value={q.status} onChange={e=>updateQuote(q.id,{status:e.target.value as QuoteStatus})}>{quoteStatuses.map(s=><option key={s}>{s}</option>)}</select></Field>{!linked&&q.status!=='Rechazado'&&<Button onClick={()=>{if(window.confirm('¿Crear pedido pendiente de formalización en este CRM?')){acceptQuote(q.id);nav('/pedidos')}}}><CheckCircle2 size={17}/>Aceptado: crear pedido</Button>}{linked&&<Link className="btn btn-outline" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id}<ArrowRight size={16}/></Link>}</Panel>
- <Panel title="Documentación de oficina"><div className="inline-tip"><CircleAlert size={17}/> La proforma y la factura las emite la oficina del fabricante, no el CRM.</div></Panel></div></div></div>;
+ const currentStatus=pendingStatus||q.status;
+ const changed=currentStatus!==q.status;
+ const needsAcceptance=currentStatus==='Aceptado'&&!linked;
+ const saveStatus=()=>{
+   if(!changed&&!needsAcceptance)return;
+   if(currentStatus==='Aceptado'){
+     if(linked)return;
+     if(!window.confirm('¿Confirmar que el cliente ha aceptado este presupuesto? Se creará su ficha y un pedido pendiente de formalización, sin registrar ningún cobro.'))return;
+     acceptQuote(q.id);
+     nav('/clientes');
+     return;
+   }
+   if(linked){window.alert('El presupuesto tiene un pedido vinculado. No se puede revertir su aceptación desde esta pantalla.');return;}
+   updateQuote(q.id,{status:currentStatus});setPendingStatus('');
+ };
+ return <div className="page page-crm-record crm-quote-detail">
+   <Back to="/presupuestos" label="Volver a presupuestos"/>
+   <div className="record-hero">
+     <div><div className="eyebrow">{q.id} · {dateText(q.createdAt)}</div><h1>{q.name}</h1><p>{q.product}</p></div>
+     <div className="crm-record-actions"><Status value={q.status}/>
+       {!q.archivedAt&&!linked&&q.status!=='Aceptado'&&<button type="button" className="crm-record-secondary" onClick={()=>{
+         if(window.confirm('¿Mover este presupuesto a la papelera recuperable?')){archiveQuote(q.id);nav('/presupuestos');}
+       }}><Archive size={16}/>Archivar</button>}
+       {q.archivedAt&&<button type="button" className="crm-record-secondary" onClick={()=>restoreQuote(q.id)}><RotateCcw size={16}/>Recuperar</button>}
+     </div>
+   </div>
+   {q.archivedAt&&<div className="crm-trash-notice"><Archive size={17}/> Presupuesto en papelera desde {dateText(q.archivedAt)}. Recupéralo para continuar gestionándolo.</div>}
+   <div className="detail-grid crm-quote-detail-grid">
+     <Panel title="Resumen del presupuesto">
+       <div className="crm-quote-summary">
+         <div><span>Importe ofertado</span><strong>{decimal(q.amount)}</strong></div>
+         <div><span>Producto</span><strong>{q.product}</strong></div>
+         <div><span>Cliente</span><strong>{q.name}</strong></div>
+         <div><span>Registrado</span><strong>{dateText(q.createdAt)}</strong></div>
+       </div>
+       {q.opportunityId&&<Link className="crm-text-link" to={'/oportunidades/'+q.opportunityId}>Abrir solicitud relacionada <ArrowRight size={16}/></Link>}
+       {q.details&&<div className="crm-quote-details"><strong>Características y condiciones anotadas</strong><p>{q.details}</p></div>}
+       <p className="crm-inline-help">Los mensajes comerciales se redactan fuera del CRM. Aquí se conserva exclusivamente el control del presupuesto.</p>
+     </Panel>
+     <div className="right-stack">
+       <Panel title="Estado y formalización">
+         <div className="summary-line"><span>Importe</span><strong>{money(q.amount)}</strong></div>
+         <div className="summary-line"><span>Comisión privada</span><strong>{money(q.commission)}</strong></div>
+         <div className="summary-line"><span>Transporte orientativo</span><strong>{money(q.transport)}</strong></div>
+         <div className="crm-quote-status-control">
+           <Field label="Estado del presupuesto">
+             <select value={currentStatus} disabled={Boolean(q.archivedAt||linked)} onChange={e=>setPendingStatus(e.target.value as QuoteStatus)}>
+               {quoteStatuses.map(s=><option key={s} value={s}>{s}</option>)}
+             </select>
+           </Field>
+           {(changed||needsAcceptance)&&!q.archivedAt&&!linked&&<div className="crm-quote-save-row">
+             <Button onClick={saveStatus}><Check size={16}/>{currentStatus==='Aceptado'?'Guardar aceptación':'Guardar estado'}</Button>
+             <button type="button" className="crm-record-secondary" onClick={()=>setPendingStatus('')}>Cancelar</button>
+           </div>}
+           {currentStatus==='Aceptado'&&!linked&&!q.archivedAt&&<p className="crm-inline-help">Al guardar se creará el cliente y su pedido. El pago quedará pendiente de verificación.</p>}
+           {!changed&&!linked&&!needsAcceptance&&<p className="crm-inline-help">Elige otro estado y pulsa «Guardar» para confirmar el cambio.</p>}
+           {linked&&<Link className="crm-record-secondary crm-quote-order-link" to={'/pedidos/'+linked.id}>Abrir pedido {linked.id} <ArrowRight size={16}/></Link>}
+         </div>
+       </Panel>
+       <Panel title="Documentación oficial"><p className="crm-inline-help"><CircleAlert size={16}/> Proformas y facturas se gestionan con la oficina del fabricante. No se generan automáticamente desde el CRM.</p></Panel>
+     </div>
+   </div>
+ </div>;
 }
 
 function Missing({to}:{to:string}){return <div className="page"><Back to={to} label="Volver al listado"/><Empty title="Registro no encontrado" body="Puede que los datos de este navegador se hayan reiniciado."/></div>}

@@ -57,7 +57,7 @@ export function ResultsExecutiveOverview({data,period,summary,mode='summary'}:{d
   const notQuoted=summary.leads.filter(o=>o.status==='Por presupuestar').length;
   const awaitingQuote=summary.quotes.filter(q=>q.status==='Enviado').length;
   const average=summary.orders.length?summary.amount/summary.orders.length:0;
-  const previous=previousCount(data.opportunities,period);
+  const previous=previousCount(data.opportunities.filter(o=>!o.deletedAt),period);
   const todayTasks=data.tasks.filter(t=>!t.done&&t.due<today()).length;
   const pending=firstResponse+notQuoted+summary.overdue;
   const priority=summary.overdue>0?'Revisa primero los seguimientos vencidos':

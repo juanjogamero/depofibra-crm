@@ -1,0 +1,307 @@
+/* REG-0157 · Reparación de pantallas y flujos comerciales · 25/11/2026.
+   Se carga tras los estilos vigentes para evitar regresiones de maquetación. */
+
+/* Botones: prohibir apariencia nativa accidental en enlaces/acciones del CRM. */
+.page-crm-record .crm-text-link,
+.page-crm-record button.text-button {
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:34px;max-width:100%;padding:7px 10px;
+ border:1px solid transparent;border-radius:6px;background:transparent;
+ color:#01488e;text-decoration:none;cursor:pointer;
+ font:700 12.5px/1.35 Inter,Arial,sans-serif;
+}
+.page-crm-record .crm-text-link:hover,
+.page-crm-record button.text-button:hover {border-color:#dbe8f3;background:#eaf2fb;}
+.page-crm-record .crm-text-link:focus-visible,
+.page-crm-record button.text-button:focus-visible {outline:2px solid #5c9ec9;outline-offset:2px;}
+.page-crm-record .crm-record-actions {
+ display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;min-width:0;
+}
+.page-crm-record .crm-record-secondary,
+.page-opportunities .crm-trash-restore {
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ min-height:38px;box-sizing:border-box;padding:8px 11px;
+ background:#fff;color:#01488e;border:1px solid #cddfea;border-radius:6px;
+ cursor:pointer;text-decoration:none;font:700 12.4px/1.35 Inter,Arial,sans-serif;
+}
+.page-crm-record .crm-record-secondary:hover,
+.page-opportunities .crm-trash-restore:hover {background:#eaf2fb;border-color:#91b4cf;}
+.page-crm-record .crm-record-danger {
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ box-sizing:border-box;min-height:38px;padding:8px 11px;
+ border:1px solid #e8c6cb;border-radius:6px;color:#a54d57;background:#fff;
+ cursor:pointer;font:700 12.4px/1.35 Inter,Arial,sans-serif;
+}
+.page-crm-record .crm-record-danger:hover {background:#fff4f4;border-color:#cf9aa1;}
+.page-crm-record .crm-record-actions .btn {min-height:38px;margin:0;}
+.page-crm-record .crm-record-actions button:focus-visible,
+.page-opportunities .crm-trash-link:focus-visible {outline:2px solid #629dcc;outline-offset:2px;}
+.page-crm-record .crm-edit-opportunity {min-width:0;}
+.page-crm-record .crm-inline-help {
+ display:flex;align-items:flex-start;gap:6px;max-width:100%;
+ margin:13px 0 0;color:#667f93;line-height:1.55;
+ font:500 12px/1.55 Inter,Arial,sans-serif;
+}
+.page-crm-record .crm-inline-help svg {flex:0 0 16px;margin-top:1px;}
+
+/* Presupuestos: estado separado del botón de Guardar. El formulario no se pisa. */
+.page-crm-record.crm-quote-detail .crm-quote-detail-grid {align-items:start;}
+.page-crm-record.crm-quote-detail .crm-quote-summary {
+ display:flex;flex-direction:column;gap:0;margin-bottom:15px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-summary>div {
+ display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;
+ gap:10px;padding:12px 0;border-bottom:1px solid #e7edf3;
+}
+.page-crm-record.crm-quote-detail .crm-quote-summary span {color:#778da0;font:600 12px Inter,sans-serif;}
+.page-crm-record.crm-quote-detail .crm-quote-summary strong {
+ color:#234c68;font:750 13.5px/1.4 Inter,sans-serif;overflow-wrap:anywhere;
+}
+.page-crm-record.crm-quote-detail .crm-quote-summary>div:first-child strong {
+ font:800 23px/1.3 "Plus Jakarta Sans",Inter,sans-serif;color:#002d59;
+}
+.page-crm-record.crm-quote-detail .crm-quote-status-control {
+ display:flex;flex-direction:column;align-items:stretch;gap:12px;
+ margin-top:22px;padding-top:18px;border-top:1px solid #e5edf3;
+}
+.page-crm-record.crm-quote-detail .crm-quote-status-control>.form-field {
+ display:flex;flex-direction:column;gap:7px;width:100%;min-width:0;margin:0;
+}
+.page-crm-record.crm-quote-detail .crm-quote-status-control select {
+ display:block;box-sizing:border-box;width:100%;min-height:45px;margin:0;
+ padding:10px 13px;font-size:14px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-save-row {
+ display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:2px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-save-row .btn {min-height:39px;margin:0;}
+.page-crm-record.crm-quote-detail .crm-quote-order-link {
+ align-self:flex-start;max-width:100%;margin-top:4px;
+}
+.page-crm-record.crm-quote-detail .panel {min-width:0;}
+.page-crm-record.crm-quote-detail .panel .summary-line {align-items:center;gap:9px;}
+.page-opportunities .crm-trash-notice,
+.page-crm-record .crm-trash-notice {
+ display:flex;align-items:center;gap:9px;padding:11px 14px;margin-bottom:12px;
+ border:1px solid #e1e9f0;border-radius:7px;background:#f7fafc;
+ color:#55758c;font:600 12.5px/1.4 Inter,sans-serif;
+}
+.page-opportunities .crm-trash-notice svg,
+.page-crm-record .crm-trash-notice svg {flex-shrink:0;color:#507d9d;}
+.page-opportunities .crm-trash-link {
+ display:inline-flex;align-items:center;gap:7px;min-height:30px;
+ margin-left:14px;padding:4px 8px;border:1px solid transparent;
+ border-radius:5px;background:transparent;color:#547b9b;cursor:pointer;
+ text-decoration:none;font:700 11.5px/1.3 Inter,sans-serif;
+}
+.page-opportunities .crm-trash-link:hover {background:#eaf2fb;color:#01488e;}
+.page-opportunities .op-table-footer .crm-trash-link {margin-right:auto;}
+.page-opportunities .crm-trash-restore {min-height:31px;padding:5px;}
+
+/* Documentos: selector accesible y sin falsa subida a un servidor. */
+.page-crm-record .crm-client-documents {align-items:start;}
+.page-crm-record .crm-file-picker {
+ position:relative;display:flex;align-items:center;justify-content:center;
+ flex-direction:column;gap:7px;min-height:166px;max-width:100%;
+ box-sizing:border-box;padding:23px 14px;margin:17px 0 13px;
+ border:1.5px dashed #b8cedf;border-radius:9px;background:#f9fcff;
+ color:#315b7d;cursor:pointer;text-align:center;
+}
+.page-crm-record .crm-file-picker svg {color:#438cbd;}
+.page-crm-record .crm-file-picker strong {
+ color:#315775;font:750 14px/1.3 Inter,sans-serif;
+ overflow-wrap:anywhere;max-width:100%;
+}
+.page-crm-record .crm-file-picker span {color:#8096a7;font:500 12px/1.45 Inter,sans-serif;}
+.page-crm-record .crm-file-picker:hover,
+.page-crm-record .crm-file-picker:focus-within {
+ border-color:#5d9bc3;background:#f0f8fe;
+}
+.page-crm-record .crm-file-picker input {
+ position:absolute;inset:0;width:100%;height:100%;opacity:0;
+ cursor:pointer;z-index:1;
+}
+.page-crm-record .crm-file-picker:focus-within {outline:2px solid #5d9bc3;outline-offset:2px;}
+.page-crm-record .crm-document-actions {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.page-crm-record .crm-document-actions .btn {min-height:41px;margin:0;}
+
+/* Fábrica: un proceso de verificación secuencial, no un desplegable que salta etapas. */
+.page-crm-record .crm-factory-workflow {
+ display:flex;flex-direction:column;gap:0;min-width:0;
+ margin:0 0 18px;border:1px solid #dce8ef;border-radius:8px;background:#fff;
+ overflow:hidden;
+}
+.page-crm-record .crm-factory-workflow-head {
+ display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;
+ gap:11px;padding:17px 17px 14px;border-bottom:1px solid #e9eff3;
+}
+.page-crm-record .crm-factory-eyebrow {
+ color:#5484a5;font:750 10px/1.35 Inter,sans-serif;letter-spacing:.05em;
+}
+.page-crm-record .crm-factory-workflow-head h3 {
+ margin:5px 0!important;font:750 17px/1.35 "Plus Jakarta Sans",Inter,sans-serif!important;
+}
+.page-crm-record .crm-factory-workflow-head p {
+ margin:0;color:#72899d;font:500 12px/1.5 Inter,sans-serif;
+}
+.page-crm-record .crm-factory-check-count {
+ padding:6px 10px;border:1px solid #dce8ef;border-radius:6px;
+ background:#f7fafc;color:#436c8a;font:700 11px Inter,sans-serif;
+}
+.page-crm-record .crm-factory-step-nav {
+ display:flex;align-items:stretch;gap:0;list-style:none;margin:0;padding:12px 14px;
+ overflow-x:auto;border-bottom:1px solid #e9eff3;scrollbar-width:thin;
+}
+.page-crm-record .crm-factory-step-nav li {
+ display:flex;align-items:center;flex:1 0 108px;gap:7px;min-width:0;
+ padding:5px 8px;color:#8295a5;font:650 11px/1.35 Inter,sans-serif;
+}
+.page-crm-record .crm-factory-step-nav li+li {border-left:1px solid #e8eff4;}
+.page-crm-record .crm-factory-step-nav li>span {
+ display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;
+ border:1px solid #d6e3ed;border-radius:50%;background:#fff;font-weight:800;
+}
+.page-crm-record .crm-factory-step-nav li.is-current {color:#01488e;}
+.page-crm-record .crm-factory-step-nav li.is-current>span {background:#01488e;border-color:#01488e;color:#fff;}
+.page-crm-record .crm-factory-step-nav li.is-complete {color:#437d70;}
+.page-crm-record .crm-factory-step-nav li.is-complete>span {background:#ecf6f2;border-color:#c0e4d4;color:#357964;}
+.page-crm-record .crm-factory-step-nav li small {font:inherit;white-space:normal;}
+.page-crm-record .crm-factory-checks {padding:17px 17px 9px;}
+.page-crm-record .crm-factory-checks h4 {
+ margin:0 0 9px;color:#345674;font:750 13px/1.4 Inter,sans-serif;
+}
+.page-crm-record .crm-factory-check {
+ display:flex;align-items:center;gap:11px;min-height:52px;
+ margin:0;padding:10px 0;border-bottom:1px solid #edf2f5;cursor:pointer;
+}
+.page-crm-record .crm-factory-check:last-child {border-bottom:0;}
+.page-crm-record .crm-factory-check>input {
+ flex:0 0 17px;width:17px;height:17px;min-height:17px;
+ margin:0;accent-color:#01488e;
+}
+.page-crm-record .crm-factory-check>span {display:flex;flex-direction:column;gap:3px;min-width:0;}
+.page-crm-record .crm-factory-check strong {
+ color:#395872;font:700 12.5px/1.35 Inter,sans-serif;
+}
+.page-crm-record .crm-factory-check small {
+ color:#8499ab;font:500 11.5px/1.4 Inter,sans-serif;
+}
+.page-crm-record .crm-factory-check.is-checked strong {color:#477d6c;}
+.page-crm-record .crm-factory-next {
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ gap:13px;margin:0;padding:15px 17px;border-top:1px solid #e0e9ef;background:#f8fbfd;
+}
+.page-crm-record .crm-factory-next>div {flex:1 1 180px;min-width:0;}
+.page-crm-record .crm-factory-next strong {color:#2f5370;font:750 13px Inter,sans-serif;}
+.page-crm-record .crm-factory-next p {margin:5px 0 0;color:#768ea2;font:500 11.8px/1.4 Inter,sans-serif;}
+.page-crm-record .crm-factory-next button {
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:39px;padding:9px 13px;border:1px solid #01488e;border-radius:6px;
+ background:#01488e;color:#fff;cursor:pointer;font:700 12.5px Inter,sans-serif;
+}
+.page-crm-record .crm-factory-next button:disabled {
+ background:#edf2f6;border-color:#d8e3eb;color:#889cae;cursor:not-allowed;
+}
+.page-crm-record .crm-factory-workflow>.crm-inline-help {
+ margin:0;padding:11px 17px;border-top:1px solid #e6edf3;
+ font-size:11px;background:#fff;
+}
+.page-crm-record .crm-factory-edit-heading {
+ margin:8px 0 13px;padding-bottom:9px;border-bottom:1px solid #e6edf3;
+ color:#315875;font:750 13.5px Inter,sans-serif;
+}
+
+/* Agenda de trabajo: activar de verdad el scroll interno y conservar cabeceras. */
+.app-body.is-agenda .page.page-agenda.agenda-pro {
+ height:100%;max-height:100%;min-height:0;overflow-y:auto!important;
+ overflow-x:hidden;scrollbar-width:thin;overscroll-behavior-y:contain;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks {
+ display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-heading,
+.page-agenda.agenda-pro .agenda-pro-tasks-tools {flex:0 0 auto;}
+.page-agenda.agenda-pro .agenda-pro-task-rows {
+ display:block;min-height:100px;
+ max-height:clamp(180px,46vh,560px);
+ overflow-y:auto!important;overflow-x:hidden;
+ overscroll-behavior:contain;scrollbar-width:thin;
+ scrollbar-color:#b6cbd9 transparent;
+}
+.page-agenda.agenda-pro .agenda-pro-task-rows:focus-within {
+ outline:1px solid #d5e6f3;outline-offset:-1px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-row {box-sizing:border-box;}
+@media(max-width:840px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro {height:auto;max-height:none;overflow-y:visible!important;}
+ .page-agenda.agenda-pro .agenda-pro-task-rows {max-height:360px;}
+}
+
+/* Calculadora: resultado legible; acciones y parámetros ordenados por pasos. */
+.page-transport .transport-fast {
+ border-color:#dce5ec;border-radius:9px;background:#fff;box-shadow:none;
+}
+.page-transport .transport-fast-main {
+ grid-template-columns:minmax(0,1.5fr) minmax(270px,.68fr);
+}
+.page-transport .transport-fast-form {padding:22px 25px 23px;}
+.page-transport .transport-fast-step-label {
+ display:flex;align-items:center;gap:10px;margin-bottom:16px;
+ color:#315672;font:750 13.2px/1.35 Inter,sans-serif;
+}
+.page-transport .transport-fast-step-label>span {
+ display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;
+ border:1px solid #d2e3ef;border-radius:5px;background:#f5f9fc;
+ color:#01488e;font:800 11px Inter,sans-serif;
+}
+.page-transport .transport-fast-step-label>strong {font:inherit;}
+.page-transport .transport-fast-origin {
+ display:flex;align-items:center;gap:8px;margin-bottom:13px;padding:9px 11px;
+ border:1px solid #e6eef4;border-radius:6px;background:#fbfdfe;font-size:12px;
+}
+.page-transport .transport-fast-row {gap:13px;}
+.page-transport .transport-fast-divider {margin-block:20px;}
+.page-transport .transport-fast-inputs {gap:17px;}
+.page-transport .transport-fast-field>span,
+.page-transport .transport-fast-diameter legend {font-size:12.5px;}
+.page-transport .transport-fast-choice button {min-height:44px;}
+.page-transport .transport-fast-estimate {
+ border-left:1px solid #e5edf3;background:#fafcfe;padding:22px;
+}
+.page-transport .transport-fast-estimate-header {
+ padding-bottom:12px;border-bottom:1px solid #e6edf3;
+ font-size:12px;color:#52738d;
+}
+.page-transport .transport-fast-total {
+ margin:22px 0 10px;font:800 clamp(24px,2.4vw,33px)/1.2 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-transport .transport-fast-result-description {
+ font-size:12.3px;color:#6f879b;line-height:1.55;
+}
+.page-transport .transport-fast-breakdown {margin-top:16px;padding-top:8px;}
+.page-transport .transport-fast-breakdown>div {padding:10px 0;font-size:12px;}
+.page-transport .transport-fast-breakdown strong {font-size:12.3px;}
+.page-transport .transport-fast-result-actions {margin-top:19px;}
+.page-transport .transport-fast-caution {
+ margin-top:17px;padding-top:12px;border-top:1px solid #e4ebf1;
+ line-height:1.55;font-size:11.5px;color:#667f93;
+}
+.page-transport .transport-fast-bottom {padding:12px 25px;}
+.page-transport .transport-fast-bottom>span {font-size:11.4px;}
+.page-transport .transport-fast-attribution {padding-inline:25px;font-size:11px;}
+@container crm-content (max-width:930px) {
+ .page-transport .transport-fast-main {grid-template-columns:1fr;}
+ .page-transport .transport-fast-estimate {border-top:1px solid #e5edf3;border-left:0;}
+}
+@media(max-width:620px) {
+ .page-crm-record .crm-record-actions {width:100%;justify-content:flex-start;}
+ .page-crm-record .crm-quote-save-row {flex-direction:column;align-items:stretch;}
+ .page-crm-record .crm-document-actions .btn {width:100%;}
+ .page-crm-record .crm-factory-step-nav li {flex-basis:120px;}
+ .page-transport .transport-fast-form,.page-transport .transport-fast-estimate {padding:17px;}
+ .page-transport .transport-fast-step-label {margin-bottom:12px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .page-crm-record .crm-record-secondary,
+ .page-crm-record .crm-record-danger {transition:none;}
+}

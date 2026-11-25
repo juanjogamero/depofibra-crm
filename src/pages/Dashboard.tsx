@@ -29,7 +29,7 @@ function QuickSearch(){
     const term=fold(query.trim());
     if(term.length<2)return [];
     const all:QuickMatch[]=[
-      ...data.opportunities.map(o=>({title:o.product,detail:o.name+' · '+o.id+' · '+o.capacity,type:'Oportunidad',destination:'/oportunidades/'+o.id,keywords:[o.product,o.name,o.id,o.capacity,o.channel,o.destination,o.contact].join(' ')})),
+      ...data.opportunities.filter(o=>!o.deletedAt).map(o=>({title:o.product,detail:o.name+' · '+o.id+' · '+o.capacity,type:'Oportunidad',destination:'/oportunidades/'+o.id,keywords:[o.product,o.name,o.id,o.capacity,o.channel,o.destination,o.contact].join(' ')})),
       ...data.customers.map(c=>({title:c.name,detail:c.destination+' · '+c.id,type:'Cliente',destination:'/clientes/'+c.id,keywords:[c.name,c.id,c.destination,c.contact].join(' ')})),
       ...data.quotes.map(q=>({title:q.name,detail:q.product+' · '+q.id,type:'Presupuesto',destination:'/presupuestos/'+q.id,keywords:[q.name,q.product,q.id,q.status].join(' ')})),
       ...data.orders.map(o=>({title:o.buyerName,detail:o.product+' · '+o.id,type:'Pedido',destination:'/pedidos/'+o.id,keywords:[o.buyerName,o.id,o.product,o.capacity,o.factory].join(' ')})),
@@ -217,7 +217,7 @@ export default function Dashboard(){
       </div>
       <QuickSearch/>
       <div className="focus-main">
-        <FocusRequests opportunities={data.opportunities}/>
+        <FocusRequests opportunities={data.opportunities.filter(o=>!o.deletedAt)}/>
         <MiniCalendar tasks={data.tasks}/>
       </div>
     </div>

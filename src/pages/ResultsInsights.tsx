@@ -189,7 +189,7 @@ export default function ResultsInsights(){
   const allowed=['overview','activity','products','channels','zones','quotes','orders','conversion','sources'];
   const view=allowed.includes(route)?route:'overview';
   const insights=useMemo(()=>{
-    const leads=data.opportunities.filter(o=>dateWithin(o.createdAt,period));
+    const leads=data.opportunities.filter(o=>!o.deletedAt&&dateWithin(o.createdAt,period));
     const quotes=data.quotes.filter(q=>dateWithin(q.createdAt,period));
     const orders=data.orders.filter(o=>dateWithin(o.createdAt,period));
     const accepted=leads.filter(o=>o.status==='Aceptada');

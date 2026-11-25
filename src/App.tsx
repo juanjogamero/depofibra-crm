@@ -97,7 +97,7 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobi
     observer.observe(activeLink);
     return () => observer.disconnect();
   }, [location.pathname, collapsed, role, resultsExpanded]);
-  const pending = data.opportunities.filter(o => !['Aceptada','Perdida'].includes(o.status)).length;
+  const pending = data.opportunities.filter(o => !o.deletedAt&&!['Aceptada','Perdida'].includes(o.status)).length;
   const groups: Group[] = role === 'fabrica'
     ? [{ caption:'ÁREA DEL FABRICANTE', links:[{label:'Mis pedidos',path:'/fabrica',icon:Factory},{label:'Pedidos',path:'/pedidos',icon:PackageCheck}] }]
     : [
@@ -209,7 +209,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
     const term=q.toLocaleLowerCase('es').trim();
     if(!term) return [];
     const matches=[
-      ...data.opportunities.map(o=>({name:o.name,sub:o.product+' · '+o.id,to:'/oportunidades/'+o.id,type:'Oportunidad'})),
+      ...data.opportunities.filter(o=>!o.deletedAt).map(o=>({name:o.name,sub:o.product+' · '+o.id,to:'/oportunidades/'+o.id,type:'Oportunidad'})),
       ...data.orders.map(o=>({name:o.buyerName,sub:o.product+' · '+o.id,to:'/pedidos/'+o.id,type:'Pedido'})),
       ...data.customers.map(c=>({name:c.name,sub:c.destination+' · '+c.id,to:'/clientes/'+c.id,type:'Cliente'}))
     ];
