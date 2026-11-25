@@ -15,11 +15,23 @@ export type Opportunity = {
   deletedAt?: string;
 };
 export const sourceChannel = (o:Opportunity):Channel => o.originChannel || o.channel;
+export type QuoteItemKind = 'product'|'shipping'|'service'|'other';
+/** Partida comercial del presupuesto, siempre en EUR sin IVA. Nunca representa coste privado de compra. */
+export type QuoteLineItem = {
+ id:string; kind:QuoteItemKind; description:string; quantity:number;
+ unitPrice:number; productId?:string;
+};
+export const roundEuros = (value:number):number => Math.round((value+Number.EPSILON)*100)/100;
+export const quoteItemTotal = (item:QuoteLineItem):number => roundEuros(item.quantity*item.unitPrice);
+export const quoteItemsSubtotal = (items:QuoteLineItem[]):number =>
+ roundEuros(items.reduce((sum,item)=>sum+quoteItemTotal(item),0));
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
   /** Optional reference to chosen catalog variant; quoted amount and name stay as historical snapshot. */
   productId?: string;
+  /** Desglose comercial sin IVA. Omitido en presupuestos históricos sin desglose. */
+  items?: QuoteLineItem[];
   /** Condiciones técnicas de la oferta redactadas por Dirección, no un mensaje generado. */
   details?: string;
   /** Archivo recuperable. Nunca afecta a ofertas aceptadas ni vinculadas a pedidos. */
@@ -34,6 +46,8 @@ export type Order = {
   paymentMode: 'Pendiente' | 'Anticipo verificado' | 'Pago completo verificado';
   factory: FactoryStatus; createdAt: string; deliveryDate: string; notes: string;
   color: string; connections: string; activity: TimelineItem[];
+  /** Fotografía de partidas del presupuesto aceptado; pedidos anteriores pueden carecer de ella. */
+  items?: QuoteLineItem[];
   /** Campos opcionales: compatibles con pedidos históricos y sin alterar sus importes. */
   paymentVerifiedAt?: string;
   paymentVerifiedBy?: 'Dirección'|'Oficina';
