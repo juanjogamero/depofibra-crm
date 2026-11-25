@@ -472,7 +472,7 @@ function FactoryWorkflow({order,updateOrder}:{order:Order;updateOrder:(id:string
 
 export function OrderDetail(){
  const {id}=useParams();const [params]=useSearchParams();const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
- const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||'Resumen');const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
+ const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
  if(!o)return <div className="page"><Back to="/pedidos" label="Volver a pedidos"/><Empty title="Pedido no encontrado" body="Consulta el listado de pedidos."/></div>;
  const balance=Math.max(0,o.commission-o.commissionPaid);
  const tabs=role==='fabrica'?['Resumen','Fabricación','Actividad','Comisión (consulta)']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
