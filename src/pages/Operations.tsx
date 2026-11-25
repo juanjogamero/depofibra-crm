@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, Wallet, X } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Check, CheckCircle2, ClipboardCheck, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
+import { type FactoryStatus, type FactoryCheckKey, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
@@ -188,13 +188,46 @@ export function Clients(){
 
 export function ClientDetail(){
  const {id}=useParams();const {data,addDocumentName}=useCrm();const [tab,setTab]=useState('Resumen');
+ const [selectedPdf,setSelectedPdf]=useState<File|null>(null);
+ const [docNotice,setDocNotice]=useState('');
  const c=data.customers.find(x=>x.id===id);if(!c)return <div className="page"><Back to="/clientes" label="Volver a clientes"/><Empty title="Cliente no encontrado" body="Revisa el listado del CRM."/></div>;
  const orders=data.orders.filter(o=>o.customerId===c.id);
  return <div className="page page-crm-record"><Back to="/clientes" label="Volver a clientes"/><div className="record-hero"><div className="record-identity"><Initials name={c.name}/><div><div className="eyebrow">{c.id} · Cliente confirmado</div><h1>{c.name}</h1><div className="record-meta"><MapPin size={14}/>{c.destination}<span>·</span><Pill tone="green">Comprador</Pill></div></div></div><Pill>{orders.length} pedidos</Pill></div>
  <div className="detail-tabs">{['Resumen','Pedidos','Documentos'].map(t=><button onClick={()=>setTab(t)} key={t} className={tab===t?'selected':''}>{t}</button>)}</div>
  {tab==='Resumen'&&<div className="detail-grid"><Panel title="Datos de cliente"><div className="info-grid"><Info label="Cliente" value={c.name}/><Info label="Contacto" value={c.contact}/><Info label="Destino" value={c.destination}/><Info label="Desde" value={dateText(c.createdAt)}/></div><h4 className="minor-title">Observaciones</h4><div className="note-area">{c.notes||'Sin observaciones'}</div></Panel><Panel title="Resumen de compras"><div className="money-summary"><span>Pedidos registrados</span><strong>{orders.length}</strong></div><div className="summary-line"><span>Importe de operaciones</span><strong>{money(orders.reduce((a,o)=>a+o.amount,0))}</strong></div><div className="summary-line"><span>Documentos relacionados</span><strong>{c.documentNames.length}</strong></div></Panel></div>}
  {tab==='Pedidos'&&<Panel title="Historial de pedidos"><div className="simple-list">{orders.map(o=><Link to={'/pedidos/'+o.id} className="simple-item" key={o.id}><Package size={20}/><div><strong>{o.product} · {o.capacity}</strong><small>{o.id} · {dateText(o.createdAt)}</small></div><b>{money(o.amount)}</b><Status value={o.factory}/><ChevronRight size={16}/></Link>)}</div></Panel>}
- {tab==='Documentos'&&<div className="detail-grid"><Panel title="Documentos de la oficina"><div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}><FileText size={20}/><div><strong>{name}</strong><small>Nombre anotado · fichero no almacenado</small></div></div>)}{!c.documentNames.length&&<Empty title="Sin documentos" body="Los PDF se incorporarán a un sistema privado cuando exista el backend."/>}</div></Panel><Panel title="Adjuntos · almacenamiento pendiente"><p className="muted">Todavía no se guardan los PDF: únicamente se anota su nombre. No selecciones facturas reales.</p><Field label="Anotar nombre de PDF (no se sube)"><input type="file" accept="application/pdf" onChange={e=>{const f=e.target.files?.[0];if(f&&f.type==='application/pdf')addDocumentName(c.id,f.name)}}/></Field><NoteDemo/></Panel></div>}
+ {tab==='Documentos'&&<div className="detail-grid crm-client-documents">
+  <Panel title="Referencias de documentos">
+   <div className="simple-list">{c.documentNames.map((name,i)=><div className="simple-item" key={i}>
+     <FileText size={20}/><div><strong>{name}</strong><small>Referencia anotada · archivo no almacenado</small></div></div>)}
+     {!c.documentNames.length&&<Empty title="Sin documentos anotados" body="Puedes registrar el nombre de un PDF para recordar qué documento está pendiente de archivar."/>}
+   </div>
+  </Panel>
+  <Panel title="Añadir referencia PDF">
+    <p className="crm-inline-help">Selecciona un PDF para guardar únicamente su nombre como referencia interna. El documento no se sube ni se almacena todavía; no selecciones archivos confidenciales.</p>
+    <label className="crm-file-picker">
+      <UploadCloud size={25}/>
+      <strong>{selectedPdf?selectedPdf.name:'Seleccionar archivo PDF'}</strong>
+      <span>{selectedPdf?'Archivo seleccionado; solo se conservará el nombre.':'Pulsa para elegir un PDF (sin subida real)'}</span>
+      <input type="file" accept="application/pdf,.pdf" aria-label="Elegir referencia PDF" onChange={e=>{
+        const next=e.currentTarget.files?.[0]||null;
+        if(next&&next.type!=='application/pdf'&&!next.name.toLowerCase().endsWith('.pdf')){setDocNotice('Selecciona un PDF válido.');setSelectedPdf(null);return;}
+        setSelectedPdf(next);setDocNotice('');
+      }}/>
+    </label>
+    {docNotice&&<p className="crm-inline-help" role="status">{docNotice}</p>}
+    <div className="crm-document-actions">
+      <Button disabled={!selectedPdf} onClick={()=>{
+        if(!selectedPdf)return;
+        if(c.documentNames.includes(selectedPdf.name)){setDocNotice('Esta referencia ya está registrada.');return;}
+        addDocumentName(c.id,selectedPdf.name);
+        setDocNotice('Nombre del documento anotado. El contenido del PDF no se ha guardado.');
+        setSelectedPdf(null);
+      }}><Check size={16}/>Anotar nombre del PDF</Button>
+      {selectedPdf&&<button type="button" className="crm-record-secondary" onClick={()=>setSelectedPdf(null)}>Cancelar</button>}
+    </div>
+  </Panel>
+ </div>}
  </div>;
 }
 
