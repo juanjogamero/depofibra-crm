@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { CalendarDays, CalendarPlus, Check, CheckCircle2, ClipboardCheck, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
+import { Bell, CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
@@ -241,7 +241,7 @@ const orderGroupMatches=(order:Order,group:OrderListGroup)=>
  ||group==='Entregados'&&order.factory==='Entregado';
 
 export function Orders(){
- const {data}=useCrm();
+ const {data,role,markOrderAlertRead}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [group,setGroup]=useState<OrderListGroup>('Todos');
@@ -309,6 +309,15 @@ export function Orders(){
        <Link to="/presupuestos" className="op-new-button"><FileText size={17}/>Ver presupuestos</Link>
      </div>
    </div>
+   {role==='direccion'&&(data.orderAlerts||[]).some(x=>!x.readAt)&&<section className="crm-order-alerts" aria-label="Avisos de Fábrica para Dirección">
+     <div className="crm-order-alerts-heading"><Bell size={17}/><div><strong>Actualizaciones de Fábrica</strong><p>Registradas dentro de este navegador. El envío por WhatsApp o correo sigue pendiente de conexión.</p></div></div>
+     <div className="crm-order-alerts-list">
+       {(data.orderAlerts||[]).filter(x=>!x.readAt).slice(0,5).map(alert=><div key={alert.id} className="crm-order-alert">
+         <Link to={'/pedidos/'+alert.orderId+'?tab=Actividad'}><strong>{alert.title} · {alert.orderId}</strong><small>{alert.description}</small></Link>
+         <button type="button" onClick={()=>markOrderAlertRead(alert.id)} aria-label={'Marcar leído: '+alert.title+' '+alert.orderId}>Marcar leído</button>
+       </div>)}
+     </div>
+   </section>}
    <nav className="op-phase-tabs" aria-label="Filtrar pedidos por fase de preparación">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab'+(group===g.id?' is-active':'')}
@@ -713,7 +722,7 @@ export function Commissions(){
  const [quickAmount,setQuickAmount]=useState('');
  const [quickError,setQuickError]=useState('');
  const openQuick=()=>{
-   const first=data.orders.find(o=>o.commission>o.commissionPaid);
+   const first=data.orders.find(o=>o.factory==='Entregado'&&o.commission>o.commissionPaid);
    setQuickMode(first?'payment':'agreed');setSelectedOrder(first?.id||data.orders[0]?.id||'');
    setQuickAmount('');setQuickError('');setQuickModal(true);
  };
@@ -721,7 +730,7 @@ export function Commissions(){
  const quickBalance=quickOrder?Math.max(0,quickOrder.commission-quickOrder.commissionPaid):0;
  const quickValue=Number(quickAmount);
  const quickValid=Boolean(quickOrder&&quickAmount.trim()!==''&&Number.isFinite(quickValue)&&quickValue>=0&&
-   (quickMode==='payment'?(quickValue>0&&quickValue<=quickBalance):(quickValue>=quickOrder.commissionPaid)));
+   (quickMode==='payment'?(quickOrder.factory==='Entregado'&&quickValue>0&&quickValue<=quickBalance):(quickValue>=quickOrder.commissionPaid)));
  const saveQuick=(event:FormEvent)=>{
    event.preventDefault();setQuickError('');
    if(!quickOrder||!quickValid){setQuickError('Comprueba el pedido y el importe indicado.');return;}
@@ -732,15 +741,18 @@ export function Commissions(){
  // Mantener exactamente la clasificación y los cálculos existentes del store.
  const matchesStatus=(o:Order,status:string)=>
    status==='Todas'
-   ||(status==='Pendientes'&&o.commissionPaid===0)
-   ||(status==='Parciales'&&o.commissionPaid>0&&o.commissionPaid<o.commission)
-   ||(status==='Pagadas'&&o.commissionPaid>=o.commission);
- const tabs=['Pendientes','Parciales','Pagadas','Todas'];
+   ||(status==='Pendientes'&&o.factory==='Entregado'&&o.commissionPaid===0&&o.commission>0)
+   ||(status==='Parciales'&&o.factory==='Entregado'&&o.commissionPaid>0&&o.commissionPaid<o.commission)
+   ||(status==='Pagadas'&&o.commissionPaid>=o.commission)
+   ||(status==='Por entregar'&&o.factory!=='Entregado'&&o.commission>o.commissionPaid);
+ const tabs=['Pendientes','Parciales','Pagadas','Por entregar','Todas'];
  const term=search.trim().toLocaleLowerCase('es-ES');
  const list=data.orders.filter(o=>matchesStatus(o,filter)
    &&[o.buyerName,o.id,o.product,o.capacity].join(' ').toLocaleLowerCase('es-ES').includes(term));
  const earned=data.orders.reduce((a,o)=>a+o.commission,0);
  const paid=data.orders.reduce((a,o)=>a+o.commissionPaid,0);
+ const dueNow=data.orders.filter(o=>o.factory==='Entregado').reduce((a,o)=>a+Math.max(0,o.commission-o.commissionPaid),0);
+ const notYetDue=data.orders.filter(o=>o.factory!=='Entregado').reduce((a,o)=>a+Math.max(0,o.commission-o.commissionPaid),0);
  return <div className="page page-opportunities page-commissions">
    <div className="op-screen-heading">
      <div className="op-heading-copy">
@@ -756,7 +768,7 @@ export function Commissions(){
      <article className="commission-banner is-generated">
        <div className="commission-banner-heading"><span>Comisiones generadas</span><span className="commission-banner-icon"><Wallet size={19}/></span></div>
        <strong className="commission-banner-value">{money(earned)}</strong>
-       <span className="commission-banner-caption">Total acordado en los pedidos registrados</span>
+       <span className="commission-banner-caption">Total acordado (incluye pedidos aún no entregados)</span>
      </article>
      <article className="commission-banner is-collected">
        <div className="commission-banner-heading"><span>Comisiones cobradas</span><span className="commission-banner-icon"><CheckCircle2 size={19}/></span></div>
@@ -765,8 +777,8 @@ export function Commissions(){
      </article>
      <article className="commission-banner is-outstanding">
        <div className="commission-banner-heading"><span>Pendiente de cobro</span><span className="commission-banner-icon"><Clock3 size={19}/></span></div>
-       <strong className="commission-banner-value">{money(earned-paid)}</strong>
-       <span className="commission-banner-caption">Saldo de comisión · No equivale a beneficio neto</span>
+       <strong className="commission-banner-value">{money(dueNow)}</strong>
+       <span className="commission-banner-caption">Exigible tras entrega · {money(notYetDue)} todavía no exigibles</span>
      </article>
    </section>
    <nav className="op-phase-tabs commission-tabs" aria-label="Filtrar por estado de comisión">
@@ -798,8 +810,8 @@ export function Commissions(){
          </tr></thead>
          <tbody>{list.map(o=>{
            const balance=o.commission-o.commissionPaid;
-           const state=o.commissionPaid===0?'Pendiente':o.commissionPaid<o.commission?'Parcialmente cobrada':'Pagada';
-           const tone=state==='Pendiente'?'is-due':state==='Pagada'?'is-paid':'is-partial';
+           const state=o.commissionPaid>=o.commission?'Pagada':o.factory!=='Entregado'?'No exigible':o.commissionPaid===0?'Pendiente de cobro':'Cobro parcial';
+           const tone=state==='Pendiente de cobro'?'is-due':state==='Pagada'?'is-paid':'is-partial';
            const orderUrl='/pedidos/'+o.id+'?tab=Comisiones';
            const customerUrl='/clientes/'+o.customerId;
            return <tr key={o.id} className="op-clickable-row" onClick={()=>navigate(orderUrl)}>
@@ -839,7 +851,7 @@ export function Commissions(){
        </div>
        {quickOrder&&<div className="commission-quick-facts"><div><span>Acordada</span><strong>{money(quickOrder.commission)}</strong></div><div><span>Registrada como cobrada</span><strong>{money(quickOrder.commissionPaid)}</strong></div><div><span>Pendiente</span><strong>{money(quickBalance)}</strong></div></div>}
        <Field label={quickMode==='payment'?'Cobro recibido (€)':'Importe acordado total (€)'}><input type="number" required min={quickMode==='payment'?'0.01':String(quickOrder?.commissionPaid||0)} max={quickMode==='payment'?String(quickBalance):undefined} step="0.01" value={quickAmount} onChange={e=>setQuickAmount(e.target.value)} placeholder="0,00"/></Field>
-       <p className="commission-quick-hint">{quickMode==='payment'?'Registra únicamente importes realmente recibidos; el saldo se actualiza sin superar la comisión acordada.':'Edita la comisión pactada para este pedido. No se modifican cobros anteriores; el total no puede ser inferior a lo ya cobrado.'}</p>
+       <p className="commission-quick-hint">{quickMode==='payment'?(quickOrder&&quickOrder.factory!=='Entregado'?'No se pueden registrar nuevas comisiones cobradas hasta que el pedido esté entregado.':'Registra únicamente importes recibidos tras la entrega, sin superar la comisión acordada.'):'Edita la comisión pactada. No se modifican cobros anteriores; el total no puede ser inferior a lo ya cobrado.'}</p>
        {quickError&&<p className="commission-quick-error" role="alert">{quickError}</p>}
        <div className="modal-actions"><Button variant="outline" onClick={()=>setQuickModal(false)}>Cancelar</Button><Button type="submit" disabled={!quickValid}><Check size={16}/>Guardar</Button></div>
      </form>
