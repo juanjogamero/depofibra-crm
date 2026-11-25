@@ -311,7 +311,7 @@ export function OpportunityDetail(){
 type QuoteListFilter = 'Todos' | QuoteStatus;
 type QuoteListSort = 'Recientes'|'Antiguos'|'Mayor importe'|'Menor importe';
 export function Quotes(){
- const {data}=useCrm();
+ const {data,restoreQuote}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [phase,setPhase]=useState<QuoteListFilter>('Todos');
@@ -321,6 +321,7 @@ export function Quotes(){
  const [dateTo,setDateTo]=useState('');
  const [datesOpen,setDatesOpen]=useState(false);
  const [filtersOpen,setFiltersOpen]=useState(false);
+ const [showTrash,setShowTrash]=useState(false);
  const query=search.trim().toLocaleLowerCase('es-ES');
  const groups:{id:QuoteListFilter;label:string}[]=[
    {id:'Todos',label:'Todos'},
@@ -331,7 +332,7 @@ export function Quotes(){
  ];
  const quotes=data.quotes.filter(q=>{
    const opportunity=data.opportunities.find(o=>o.id===q.opportunityId);
-   return (phase==='Todos'||q.status===phase)
+   return Boolean(q.archivedAt)===showTrash &&(phase==='Todos'||q.status===phase)
      &&(opportunityFilter==='Todas las solicitudes'||q.opportunityId===opportunityFilter)
      &&(!dateFrom||q.createdAt.slice(0,10)>=dateFrom)
      &&(!dateTo||q.createdAt.slice(0,10)<=dateTo)
@@ -375,11 +376,12 @@ export function Quotes(){
        <Link className="op-new-button" to="/presupuestos/nuevo"><Plus size={17}/>Nuevo presupuesto</Link>
      </div>
    </div>
+   {showTrash&&<div className="crm-trash-notice"><Archive size={16}/> Papelera recuperable. Los presupuestos enviados o rechazados sin pedido pasan aquí tras 20 días. Los aceptados y vinculados permanecen visibles.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar presupuestos por estado">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab'+(phase===g.id?' is-active':'')}
        aria-pressed={phase===g.id} onClick={()=>setPhase(g.id)}>
-       <span>{g.label}</span><strong>{g.id==='Todos'?data.quotes.length:data.quotes.filter(q=>q.status===g.id).length}</strong>
+       <span>{g.label}</span><strong>{g.id==='Todos'?data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash).length:data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash&&q.status===g.id).length}</strong>
      </button>)}
    </nav>
    <div className="op-searchbar">
