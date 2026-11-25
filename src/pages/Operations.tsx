@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Bell, CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
+import { type FactoryStatus, type ProductConfiguration, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
@@ -426,14 +426,23 @@ export function Orders(){
 function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
  updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void;onPayment:()=>void;}){
  const paid=order.paymentMode!=='Pendiente'&&order.advanceReceived>0;
- const [config,setConfig]=useState(()=>({
-   color:order.color==='Por confirmar'?'':order.color,
-   inletCount:order.inletCount||'',outletCount:order.outletCount||'',
-   inletDiameterMm:order.inletDiameterMm||'',outletDiameterMm:order.outletDiameterMm||'',
-   inletHeightMm:order.inletHeightMm||'',outletHeightMm:order.outletHeightMm||'',
-   configurationNotes:order.configurationNotes||'',
-   deliveryDate:order.deliveryDate||''
- }));
+ const productLines=(order.items||[]).filter(line=>line.kind==='product');
+ const products=productLines.length?productLines:[{id:'legacy',description:order.product,quantity:1}];
+ const defaultSpec=(key:string):ProductConfiguration=>{
+   const found=order.itemConfigurations?.[key];
+   if(found)return {...found};
+   const prior=products.length===1;
+   return {color:prior&&order.color!=='Por confirmar'?order.color:'',
+     inletCount:prior?order.inletCount||'':'',outletCount:prior?order.outletCount||'':'',
+     inletDiameterMm:prior?order.inletDiameterMm||'':'',outletDiameterMm:prior?order.outletDiameterMm||'':'',
+     inletHeightMm:prior?order.inletHeightMm||'':'',outletHeightMm:prior?order.outletHeightMm||'':'',
+     notes:prior?order.configurationNotes||'':''};
+ };
+ const [configs,setConfigs]=useState<Record<string,ProductConfiguration>>(()=>
+   Object.fromEntries(products.map(line=>[line.id,defaultSpec(line.id)])));
+ const [estimatedDate,setEstimatedDate]=useState(order.deliveryDate||'');
+ const updateSpec=(id:string,patch:Partial<ProductConfiguration>)=>
+   setConfigs(prev=>({...prev,[id]:{...prev[id],...patch}}));
  const [spoken,setSpoken]=useState(false);
  const [transport,setTransport]=useState(()=>({
    transportCompany:order.transportCompany||'',transportContact:order.transportContact||'',
@@ -444,31 +453,39 @@ function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
  const [deliveryConfirmed,setDeliveryConfirmed]=useState(false);
  const [notice,setNotice]=useState('');
  const numberOk=(s:string)=>s.trim()!==''&&Number.isInteger(Number(s))&&Number(s)>=0;
- const mmOk=(s:string)=>s.trim()!==''&&Number.isFinite(Number(s))&&Number(s)>0;
- const countAndSizesOk=numberOk(config.inletCount)&&numberOk(config.outletCount)
-  &&(Number(config.inletCount)===0||mmOk(config.inletDiameterMm))
-  &&(Number(config.outletCount)===0||mmOk(config.outletDiameterMm));
- const configOk=paid&&config.color.trim()!==''&&config.color!=='Por confirmar'&&
-   countAndSizesOk&&Boolean(config.deliveryDate)&&spoken;
+ const mmOk=(s:string,zeroAllowed=false)=>s.trim()!==''&&Number.isFinite(Number(s))&&(zeroAllowed?Number(s)>=0:Number(s)>0);
+ const validSpec=(s:ProductConfiguration)=>Boolean(s?.color.trim())&&numberOk(s.inletCount)&&numberOk(s.outletCount)
+   &&(Number(s.inletCount)===0||(mmOk(s.inletDiameterMm)&&mmOk(s.inletHeightMm,true)))
+   &&(Number(s.outletCount)===0||(mmOk(s.outletDiameterMm)&&mmOk(s.outletHeightMm,true)));
+ const configOk=paid&&products.every(line=>validSpec(configs[line.id]))&&Boolean(estimatedDate)&&spoken;
  const transportOk=Boolean(transport.transportCompany.trim()&&transport.departureDate&&carrierConfirmed);
  const patchConfig=()=>{
-   const connections='Entradas: '+config.inletCount+' · Ø '+(config.inletDiameterMm||'—')+
-   ' mm · posición '+(config.inletHeightMm||'por confirmar')+' mm. Salidas: '+
-   config.outletCount+' · Ø '+(config.outletDiameterMm||'—')+
-   ' mm · posición '+(config.outletHeightMm||'por confirmar')+' mm.';
-   return {...config,connections};
+   const first=configs[products[0].id];
+   const connections=products.length===1?
+     'Entradas: '+first.inletCount+' · Ø '+(first.inletDiameterMm||'—')+' mm · altura '+(first.inletHeightMm||'—')+
+       ' mm. Salidas: '+first.outletCount+' · Ø '+(first.outletDiameterMm||'—')+' mm · altura '+(first.outletHeightMm||'—')+' mm.':
+     'Varias referencias. Consultar las configuraciones técnicas individuales de cada partida.';
+   return {itemConfigurations:configs,deliveryDate:estimatedDate,
+     color:products.length===1?first.color:'Varios productos',
+     inletCount:products.length===1?first.inletCount:undefined,
+     outletCount:products.length===1?first.outletCount:undefined,
+     inletDiameterMm:products.length===1?first.inletDiameterMm:undefined,
+     outletDiameterMm:products.length===1?first.outletDiameterMm:undefined,
+     inletHeightMm:products.length===1?first.inletHeightMm:undefined,
+     outletHeightMm:products.length===1?first.outletHeightMm:undefined,
+     connections,configurationNotes:products.length===1?first.notes:'Consultar anotaciones por producto'};
  };
  const saveConfig=()=>{
-   updateOrder(order.id,patchConfig(),'Ficha de configuración del depósito guardada por la oficina');
-   setNotice('Datos técnicos guardados en este navegador.');
+   updateOrder(order.id,patchConfig(),'Ficha técnica por producto guardada por la oficina');
+   setNotice('Datos técnicos guardados. Comprueba sus medidas antes de fabricar.');
  };
  const startProduction=()=>{
    if(!configOk||order.factory!=='Confirmando detalles')return;
-   if(!window.confirm('¿Has hablado con el cliente y confirmado la configuración, medidas y fecha estimada? Se marcará el inicio de fabricación.'))return;
+   if(!window.confirm('¿Has hablado con el cliente y confirmado las características de CADA producto, sus medidas y la fecha estimada de entrega?'))return;
    updateOrder(order.id,{...patchConfig(),configurationConfirmedAt:new Date().toISOString(),
      productionStartedAt:new Date().toISOString(),factory:'En fabricación'},
-   'Configuración confirmada con el cliente. Fabricación iniciada; aviso a Dirección registrado localmente.');
-   setNotice('Fabricación iniciada. Aviso registrado en este CRM; el correo y WhatsApp aún no están conectados.');
+   'Configuración de '+products.length+' partida(s) de producto confirmada. Fabricación iniciada; aviso local a Dirección.');
+   setNotice('Fabricación iniciada. Aviso registrado en este CRM; correo y WhatsApp pendientes de conexión.');
  };
  const finishProduction=()=>{
    if(!window.confirm('¿Fábrica ha confirmado que la fabricación ha terminado y el producto está preparado?'))return;
@@ -513,28 +530,46 @@ function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
   </div>}
   {paid&&phase!=='Pendiente'&&<div className="crm-office-config">
     <div className="crm-office-section-heading"><div><span>PASO DE CONFIGURACIÓN</span>
-     <h4>Datos acordados con el cliente</h4><p>Color, entradas, salidas, medidas en mm y entrega estimada.</p></div>
-     {order.configurationConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
+      <h4>Detalles de cada producto</h4>
+      <p>Se guardan por separado. Si dos unidades necesitan medidas diferentes, crea partidas distintas en el presupuesto.</p></div>
+      {order.configurationConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
     </div>
-    {phase==='Confirmando detalles'||phase==='En fabricación'?<div className="crm-office-fields">
-      <Field label="Color del depósito"><input value={config.color} placeholder="Ej. Blanco" onChange={e=>setConfig(v=>({...v,color:e.target.value}))}/></Field>
-      <Field label="Entrega estimada"><input type="date" value={config.deliveryDate} onChange={e=>setConfig(v=>({...v,deliveryDate:e.target.value}))}/></Field>
-      <Field label="Número de entradas"><input type="number" min="0" step="1" value={config.inletCount} placeholder="0" onChange={e=>setConfig(v=>({...v,inletCount:e.target.value}))}/></Field>
-      <Field label="Diámetro entradas (mm)"><input type="number" min="0" step="1" value={config.inletDiameterMm} placeholder="Ej. 63" onChange={e=>setConfig(v=>({...v,inletDiameterMm:e.target.value}))}/></Field>
-      <Field label="Altura/posición entradas (mm)"><input type="number" min="0" step="1" value={config.inletHeightMm} placeholder="Desde la base, si aplica" onChange={e=>setConfig(v=>({...v,inletHeightMm:e.target.value}))}/></Field>
-      <Field label="Número de salidas"><input type="number" min="0" step="1" value={config.outletCount} placeholder="0" onChange={e=>setConfig(v=>({...v,outletCount:e.target.value}))}/></Field>
-      <Field label="Diámetro salidas (mm)"><input type="number" min="0" step="1" value={config.outletDiameterMm} placeholder="Ej. 50" onChange={e=>setConfig(v=>({...v,outletDiameterMm:e.target.value}))}/></Field>
-      <Field label="Altura/posición salidas (mm)"><input type="number" min="0" step="1" value={config.outletHeightMm} placeholder="Desde la base, si aplica" onChange={e=>setConfig(v=>({...v,outletHeightMm:e.target.value}))}/></Field>
-      <div className="crm-office-field-wide"><Field label="Otras conexiones, ubicación y detalles de la llamada"><textarea rows={3} value={config.configurationNotes} onChange={e=>setConfig(v=>({...v,configurationNotes:e.target.value}))} placeholder="Tomas, accesorios, observaciones y condiciones confirmadas..."/></Field></div>
-    </div>:<div className="crm-office-summary">
-      <span><b>Color:</b> {order.color||'Pendiente'}</span>
-      <span><b>Entradas:</b> {order.inletCount||'No anotadas'} · diámetro {order.inletDiameterMm||'—'} mm</span>
-      <span><b>Salidas:</b> {order.outletCount||'No anotadas'} · diámetro {order.outletDiameterMm||'—'} mm</span>
-      <span><b>Entrega prevista:</b> {dateText(order.deliveryDate)}</span>
-      {order.configurationNotes&&<p>{order.configurationNotes}</p>}
+    {(phase==='Confirmando detalles'||phase==='En fabricación')&&<div className="crm-office-common-date">
+      <Field label="Entrega estimada del pedido"><input type="date" value={estimatedDate} onChange={e=>setEstimatedDate(e.target.value)}/></Field>
     </div>}
+    <div className="crm-office-products">
+      {products.map((item,index)=>{
+        const spec=configs[item.id]||defaultSpec(item.id);
+        const editable=phase==='Confirmando detalles'||phase==='En fabricación';
+        return <section key={item.id} className="crm-office-product">
+          <div className="crm-office-product-head">
+            <span>PRODUCTO {index+1}</span><strong>{item.description}</strong><small>Cantidad: {item.quantity}</small>
+          </div>
+          {editable?<div className="crm-office-fields">
+            <Field label="Color / acabado"><input value={spec.color} placeholder="Ej. Blanco · No aplica" onChange={e=>updateSpec(item.id,{color:e.target.value})}/></Field>
+            <Field label="Número de entradas"><input type="number" min="0" step="1" value={spec.inletCount} placeholder="0 si no hay" onChange={e=>updateSpec(item.id,{inletCount:e.target.value})}/></Field>
+            {Number(spec.inletCount)>0&&<>
+              <Field label="Diámetro entradas (mm)"><input type="number" min="0" step="1" value={spec.inletDiameterMm} placeholder="Ej. 63" onChange={e=>updateSpec(item.id,{inletDiameterMm:e.target.value})}/></Field>
+              <Field label="Altura entradas desde base (mm)"><input type="number" min="0" step="1" value={spec.inletHeightMm} placeholder="Ej. 250" onChange={e=>updateSpec(item.id,{inletHeightMm:e.target.value})}/></Field>
+            </>}
+            <Field label="Número de salidas"><input type="number" min="0" step="1" value={spec.outletCount} placeholder="0 si no hay" onChange={e=>updateSpec(item.id,{outletCount:e.target.value})}/></Field>
+            {Number(spec.outletCount)>0&&<>
+              <Field label="Diámetro salidas (mm)"><input type="number" min="0" step="1" value={spec.outletDiameterMm} placeholder="Ej. 50" onChange={e=>updateSpec(item.id,{outletDiameterMm:e.target.value})}/></Field>
+              <Field label="Altura salidas desde base (mm)"><input type="number" min="0" step="1" value={spec.outletHeightMm} placeholder="Ej. 150" onChange={e=>updateSpec(item.id,{outletHeightMm:e.target.value})}/></Field>
+            </>}
+            <div className="crm-office-field-wide"><Field label="Otras tomas, revestimientos y anotaciones del cliente"><textarea rows={3} value={spec.notes} onChange={e=>updateSpec(item.id,{notes:e.target.value})} placeholder="Posición, accesorios y observaciones concretas de este producto..."/></Field></div>
+          </div>:<div className="crm-office-summary">
+            <span><b>Color/acabado:</b> {spec.color||'Pendiente'}</span>
+            <span><b>Entradas:</b> {spec.inletCount||'0'} · Ø {spec.inletDiameterMm||'—'} mm · altura {spec.inletHeightMm||'—'} mm</span>
+            <span><b>Salidas:</b> {spec.outletCount||'0'} · Ø {spec.outletDiameterMm||'—'} mm · altura {spec.outletHeightMm||'—'} mm</span>
+            {spec.notes&&<p>{spec.notes}</p>}
+          </div>}
+        </section>;
+      })}
+    </div>
+    {phase!=='Confirmando detalles'&&<div className="crm-office-date-locked"><b>Entrega estimada:</b> {dateText(order.deliveryDate)}</div>}
     {phase==='Confirmando detalles'&&<div className="crm-office-actions">
-      <label className="crm-office-confirm"><input type="checkbox" checked={spoken} onChange={e=>setSpoken(e.target.checked)}/>He hablado con el cliente y ha confirmado estos datos</label>
+      <label className="crm-office-confirm"><input type="checkbox" checked={spoken} onChange={e=>setSpoken(e.target.checked)}/>He hablado con el cliente y confirmado la configuración de todos los productos.</label>
       <div><button type="button" className="crm-office-secondary" onClick={saveConfig}>Guardar anotaciones</button>
       <button type="button" className="crm-office-primary" disabled={!configOk} onClick={startProduction}><Factory size={16}/>Confirmar e iniciar fabricación</button></div>
     </div>}
