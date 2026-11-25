@@ -430,8 +430,12 @@
 /* Garantizar controles del mapa clicables al navegar entre informes:
    cabecera y selector encima de la propia cartografía, sin superposiciones. */
 .page-results-insights.ri-gsc .ri-active-content {
+ /* No encoger los informes dentro del área con scroll: el mapa debe
+    conservar su altura real y los bloques siguientes no pueden taparlo. */
+ display:block;
  position:relative;
  z-index:1;
+ min-height:0;
 }
 .page-results-insights.ri-gsc .ri-geo-pro {
  position:relative;
