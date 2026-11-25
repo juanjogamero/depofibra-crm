@@ -44,6 +44,7 @@ import './catalog-navigation.css';
 import './crm-direction-ux-20261125.css';
 import './soft-brand-background.css';
 import './table-chrome-minimal.css';
+import './agenda-readable-layout-20261125.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

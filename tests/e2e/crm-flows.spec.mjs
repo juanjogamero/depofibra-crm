@@ -505,3 +505,54 @@ test('Detalle de pedidos: resumen panorámico legible y sin scroll en escritorio
  }
  expect(await page.locator('.crm-order-overview-grid').evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(1);
 });
+
+test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',async({page})=>{
+ test.setTimeout(110000);
+ for(const {width,height} of [{width:1440,height:900},{width:1024,height:850},{width:390,height:750}]){
+  await page.setViewportSize({width,height});
+  await open(page,'/agenda');
+  await expect(page.getByRole('heading',{name:'Agenda y notas'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Calendario'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Notas internas'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Tareas de trabajo'})).toBeVisible();
+  const v=await page.evaluate(()=>{
+    const p=document.querySelector('.page-agenda.agenda-pro');
+    const cal=p?.querySelector('.agenda-pro-calendar');
+    const notes=p?.querySelector('.agenda-pro-notes');
+    const tasks=p?.querySelector('.agenda-pro-tasks');
+    const taskTitle=p?.querySelector('.agenda-pro-task-text strong');
+    const notesLabel=p?.querySelector('.agenda-pro-notes .agenda-pro-heading h2');
+    const noteDescription=p?.querySelector('.agenda-pro-notes .agenda-pro-heading p');
+    const taskSearch=p?.querySelector('.agenda-pro-task-search input');
+    const day=p?.querySelector('.agenda-pro-day');
+    if(!p||!cal||!notes||!tasks||!notesLabel||!noteDescription||!taskSearch||!day)return null;
+    const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom}};
+    return {cal:rect(cal),notes:rect(notes),tasks:rect(tasks),
+      noteHeadingFont:parseFloat(getComputedStyle(notesLabel).fontSize),
+      noteDescriptionFont:parseFloat(getComputedStyle(noteDescription).fontSize),
+      taskFont:taskTitle?parseFloat(getComputedStyle(taskTitle).fontSize):null,
+      searchFont:parseFloat(getComputedStyle(taskSearch).fontSize),
+      dayHeight:day.getBoundingClientRect().height,
+      pageScroll:getComputedStyle(p).overflowY,
+      workspaceExists:!!p.querySelector('.agenda-pro-layout')
+    };
+  });
+  expect(v,'La página contiene los tres módulos').not.toBeNull();
+  expect(v.workspaceExists).toBeTruthy();
+  expect(v.cal.width,'Solo calendario reducido').toBeLessThanOrEqual(350);
+  expect(v.dayHeight,'Celda del calendario compacta').toBeLessThanOrEqual(35);
+  expect(v.noteHeadingFont,'Título como resto de CRM').toBeGreaterThanOrEqual(15);
+  expect(v.noteDescriptionFont,'Texto de los paneles legible').toBeGreaterThanOrEqual(12.8);
+  expect(v.searchFont,'Búsqueda a tamaño normal').toBeGreaterThanOrEqual(13);
+  if(v.taskFont!==null) expect(v.taskFont,'No encoger tareas').toBeGreaterThanOrEqual(13.8);
+  if(width>=1200){
+   expect(v.cal.x).toBeLessThan(v.notes.x);
+   expect(v.notes.y,'Calendario y notas en la misma fila').toBeGreaterThanOrEqual(v.cal.y-2);
+   expect(v.tasks.y,'Tareas bajo calendario y notas').toBeGreaterThanOrEqual(Math.max(v.notes.bottom,v.cal.bottom)-2);
+   expect(v.tasks.bottom,'Los módulos habituales caben en pantalla: '+JSON.stringify(v)).toBeLessThanOrEqual(height+2);
+  }else{
+   expect(v.notes.y,'Las notas se colocan bajo el calendario en móvil/portátil').toBeGreaterThanOrEqual(v.cal.bottom-2);
+   expect(v.tasks.y).toBeGreaterThanOrEqual(v.notes.bottom-2);
+  }
+ }
+});
