@@ -40,6 +40,12 @@ export type Quote = {
   retainedUntil?: string;
 };
 export type Customer = { id: string; name: string; contact: string; destination: string; createdAt: string; notes: string; documentNames: string[] };
+export type ProductConfiguration = {
+ color:string; inletCount:string; outletCount:string;
+ inletDiameterMm:string; outletDiameterMm:string;
+ inletHeightMm:string; outletHeightMm:string;
+ notes:string;
+};
 export type Order = {
   id: string; quoteId: string; customerId?: string; buyerName: string; product: string; capacity: string;
   amount: number; commission: number; commissionPaid: number; advanceReceived: number;
@@ -48,6 +54,8 @@ export type Order = {
   color: string; connections: string; activity: TimelineItem[];
   /** Fotografía de partidas del presupuesto aceptado; pedidos anteriores pueden carecer de ella. */
   items?: QuoteLineItem[];
+  /** Configuración particular de cada partida de producto, no común a todo el pedido. */
+  itemConfigurations?: Record<string,ProductConfiguration>;
   /** Campos opcionales: compatibles con pedidos históricos y sin alterar sus importes. */
   paymentVerifiedAt?: string;
   paymentVerifiedBy?: 'Dirección'|'Oficina';
