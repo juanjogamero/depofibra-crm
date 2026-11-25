@@ -688,3 +688,24 @@
   }
   .page-results-insights.ri-gsc .ri-geo-pro-strip>div {padding:10px 12px;}
 }
+
+
+/* REG-0149 · El selector activo de Resumen y mapa es el subenlace, no el padre.
+   El indicador flotante se mide por el propio enlace seleccionado en App.tsx. */
+.sidebar.sidebar-reference .ri-sidebar-results-parent>.nav-link.is-section-current {
+  background:transparent;color:#e6eff9;
+}
+.sidebar.sidebar-reference .ri-sidebar-results-parent>.nav-link.is-section-current:hover {
+  background:#ffffff1d;color:#fff;
+}
+.sidebar.sidebar-reference .ri-sidebar-results-parent>.nav-link.is-section-current svg {color:#bfd2e8;}
+.sidebar.sidebar-reference .nav-scroll.has-nested-active .nav-selection-indicator {
+  border-radius:7px;
+}
+.sidebar.sidebar-reference .nav-scroll.has-active-indicator .ri-sidebar-subnav .ri-sidebar-sublink.active,
+.sidebar.sidebar-reference .nav-scroll.has-active-indicator .ri-sidebar-subnav .ri-sidebar-sublink.active:hover {
+  background:transparent;color:#01488e;
+}
+.sidebar.sidebar-reference .ri-sidebar-subnav .ri-sidebar-sublink.active {
+  color:#01488e;font-weight:750;
+}
