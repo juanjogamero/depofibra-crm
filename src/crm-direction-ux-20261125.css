@@ -531,7 +531,7 @@
   .page-transport .transport-maps-standalone .transport-fast-key-panel {padding:14px;}
 }
 
-/* REG-0176 · Espaciado uniforme de acciones en el borde derecho de los listados.
+/* REG-0178 · Espaciado uniforme de acciones en el borde derecho de los listados.
    Afecta a Consultas, Presupuestos (activos/papelera), Clientes, Pedidos
    y Comisiones. El botón nunca queda pegado al borde ni exige scroll lateral.
    Desplazamiento visual, sin alterar el reparto de columnas ni los datos. */
