@@ -146,6 +146,7 @@ export function Agenda(){
           {requestedDay&&<button type="button" className="agenda-pro-all" onClick={()=>setSearchParams({})}>Mostrar todas las fechas</button>}
         </div>
       </section>
+      <div className="agenda-pro-workspace">
       <section className="agenda-pro-notes" aria-labelledby="agenda-pro-notes-title">
         <div className="agenda-pro-heading">
           <div><h2 id="agenda-pro-notes-title">Notas internas</h2><p>Condiciones y referencias que necesitas consultar.</p></div>
@@ -172,7 +173,6 @@ export function Agenda(){
         </div>
         <p className="agenda-pro-local-hint">Las notas se guardan en este navegador. La privacidad por usuario se activará con el acceso del servidor.</p>
       </section>
-    </div>
     <section className="agenda-pro-tasks" aria-label="Listado de tareas">
       <div className="agenda-pro-heading agenda-pro-tasks-heading">
         <div><h2>Tareas de trabajo</h2><p>Consulta lo pendiente y marca las tareas completadas.</p></div>
@@ -193,6 +193,8 @@ export function Agenda(){
         {!tasks.length&&<p className="agenda-pro-empty">No hay tareas que coincidan con estos filtros.</p>}
       </div>
     </section>
+      </div>
+    </div>
     {modal&&<Modal title="Nueva tarea" onClose={closeTask}>
       <form className="modal-form agenda-pro-modal" onSubmit={saveTask}>
         <Field label="Tarea"><input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ej. Revisar presupuesto de un cliente"/></Field>
