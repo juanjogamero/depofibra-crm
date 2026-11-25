@@ -536,13 +536,13 @@ function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
       <p>Se guardan por separado. Si dos unidades necesitan medidas diferentes, crea partidas distintas en el presupuesto.</p></div>
       {order.configurationConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
     </div>
-    {(phase==='Confirmando detalles'||phase==='En fabricación')&&<div className="crm-office-common-date">
+    {phase==='Confirmando detalles'&&<div className="crm-office-common-date">
       <Field label="Entrega estimada del pedido"><input type="date" value={estimatedDate} onChange={e=>setEstimatedDate(e.target.value)}/></Field>
     </div>}
     <div className="crm-office-products">
       {products.map((item,index)=>{
         const spec=configs[item.id]||defaultSpec(item.id);
-        const editable=phase==='Confirmando detalles'||phase==='En fabricación';
+        const editable=phase==='Confirmando detalles';
         return <section key={item.id} className="crm-office-product">
           <div className="crm-office-product-head">
             <span>PRODUCTO {index+1}</span><strong>{item.description}</strong><small>Cantidad: {item.quantity}</small>
@@ -576,8 +576,8 @@ function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
       <button type="button" className="crm-office-primary" disabled={!configOk} onClick={startProduction}><Factory size={16}/>Confirmar e iniciar fabricación</button></div>
     </div>}
     {phase==='En fabricación'&&<div className="crm-office-actions">
-      <div><button type="button" className="crm-office-secondary" onClick={saveConfig}>Guardar cambios técnicos</button>
-      <button type="button" className="crm-office-primary" onClick={finishProduction}>Fabricación terminada <ChevronRight size={16}/></button></div>
+      <p className="crm-office-locked-note">Configuración confirmada y bloqueada durante la fabricación. Para incidencias utiliza «Anotaciones de oficina».</p>
+      <div><button type="button" className="crm-office-primary" onClick={finishProduction}>Fabricación terminada <ChevronRight size={16}/></button></div>
     </div>}
   </div>}
   {paid&&['Preparado','En tránsito','Entregado'].includes(phase)&&<div className="crm-office-transport">
@@ -636,8 +636,7 @@ export function OrderDetail(){
  const payable=o.factory==='Entregado';
  const paymentAmount=Number(payment);
  const canVerify=!paid&&paymentChecked&&payment.trim()!==''&&Number.isFinite(paymentAmount)
-   &&paymentAmount>0&&paymentAmount<=o.amount
-   &&(payMode!=='Pago completo verificado'||Math.abs(paymentAmount-o.amount)<0.01);
+   &&paymentAmount>0;
  const tabs=role==='fabrica'?['Resumen','Formalización','Fabricación','Actividad']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
  const selected=tabs.includes(tab)?tab:'Resumen';
  const confirmPayment=()=>{
@@ -690,19 +689,19 @@ export function OrderDetail(){
       <small>{o.paymentVerifiedAt?'Registrado el '+dateText(o.paymentVerifiedAt.slice(0,10)):'Verificación histórica sin fecha exacta registrada'}{o.paymentVerifiedBy?' · '+o.paymentVerifiedBy:''}</small>
       </div></div>:
      <div className="crm-payment-form">
-      <p className="muted">Confirma aquí únicamente un ingreso realmente comprobado. No se verifica con el banco automáticamente.</p>
+      <p className="muted">Confirma únicamente un ingreso comprobado. El presupuesto muestra el total sin IVA: verifica el importe real contra la documentación de pago, sin asumir un tipo impositivo.</p>
       <div className="form-grid">
        <Field label="Tipo de pago"><select value={payMode} onChange={e=>{setPayMode(e.target.value as Order['paymentMode']);setPaymentError('')}}>
          <option value="Anticipo verificado">Anticipo verificado</option><option value="Pago completo verificado">Pago completo verificado</option>
        </select></Field>
-       <Field label="Importe realmente comprobado (€)"><input type="number" required inputMode="decimal" min=".01" max={o.amount} step=".01" value={payment}
+       <Field label="Importe realmente comprobado (€)"><input type="number" required inputMode="decimal" min=".01" step=".01" value={payment}
         onChange={e=>{setPayment(e.target.value);setPaymentError('')}} placeholder="Introduce el importe confirmado"/></Field>
       </div>
       <label className="crm-payment-assertion"><input type="checkbox" checked={paymentChecked} onChange={e=>setPaymentChecked(e.target.checked)}/>
        He comprobado el ingreso con el medio de pago correspondiente.</label>
       {paymentError&&<p role="alert" className="crm-office-error">{paymentError}</p>}
       <button type="button" className="crm-office-primary" disabled={!canVerify} onClick={confirmPayment}><CheckCircle2 size={16}/>Confirmar primer pago</button>
-      <p className="crm-inline-help">Al guardar, se desbloqueará la preparación del depósito. No se volverá a registrar el mismo primer pago.</p>
+      <p className="crm-inline-help">Al guardar se desbloquea la configuración de los productos. Este primer pago no podrá volver a registrarse ni modificarse desde aquí.</p>
      </div>}
    </Panel>
    <Panel title="Documentación gestionada por oficina"><div className="info-grid">
