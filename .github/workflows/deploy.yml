@@ -20,8 +20,26 @@ jobs:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Unit tests for business rules
+        run: npm run test:unit
       - name: Typecheck and build
         run: npm run build
+      - name: Install browser testing tools
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund @playwright/test@1.55.0
+          google-chrome --version
+      - name: Full CRM browser regression tests
+        run: npm run test:e2e
+      - name: Preserve browser failures for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-browser-qa
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
