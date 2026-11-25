@@ -184,7 +184,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     verifyPayment: (id: string, mode: Order['paymentMode'], amount: number, by:'Dirección'|'Oficina'='Dirección') => setData(d => {
       const order=d.orders.find(o=>o.id===id);
-      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0||amount>order.amount||(mode==='Pago completo verificado'&&Math.abs(amount-order.amount)>=0.01))return d;
+      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0)return d;
       const date=today(),timestamp=new Date().toISOString();
       const customerId=order.customerId||uid('CLI');
       const customerExists=d.customers.some(c=>c.id===customerId);
