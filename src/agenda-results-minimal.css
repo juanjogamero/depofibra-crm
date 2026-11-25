@@ -1,0 +1,707 @@
+/* REG-0169 · Agenda compacta + Resultados con jerarquía editorial minimalista.
+   Aplicado después de estilos aprobados. NO elimina métricas, enlaces, tablas ni filtros.
+   Únicamente cambia presentación y dimensiones de los bloques. */
+
+/* ── AGENDA: calendario proporcionado, notas con ancho útil y tareas visibles. ── */
+.app-body.is-agenda .page.page-agenda.agenda-pro {
+ max-width:1550px;
+ padding:18px 21px 28px;
+}
+.page-agenda.agenda-pro .op-screen-heading {
+ min-height:58px;
+ margin-bottom:11px;
+}
+.page-agenda.agenda-pro .op-heading-copy h1 {
+ font-size:clamp(23px,2vw,28px);
+ line-height:1.24;
+}
+.page-agenda.agenda-pro .op-heading-copy p {
+ margin-top:4px;
+ font-size:12.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-layout {
+ display:grid;
+ grid-template-columns:minmax(345px,420px) minmax(0,1fr);
+ gap:12px;
+ align-items:start;
+ margin-bottom:12px;
+}
+.page-agenda.agenda-pro .agenda-pro-calendar,
+.page-agenda.agenda-pro .agenda-pro-notes,
+.page-agenda.agenda-pro .agenda-pro-tasks {
+ min-width:0;
+ border:1px solid #e0e9ef;
+ border-radius:8px;
+ box-shadow:none;
+ background:#fff;
+}
+.page-agenda.agenda-pro .agenda-pro-heading {
+ padding:11px 14px;
+ gap:8px;
+ min-height:0;
+}
+.page-agenda.agenda-pro .agenda-pro-heading h2 {
+ font:750 14px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+ color:#254a66;
+}
+.page-agenda.agenda-pro .agenda-pro-heading p {
+ font:500 11.5px/1.45 Inter,sans-serif;
+ color:#8294a3;
+ margin-top:3px;
+}
+.page-agenda.agenda-pro .agenda-pro-month {
+ gap:3px;
+}
+.page-agenda.agenda-pro .agenda-pro-month strong {
+ min-width:113px;
+ font:700 11.5px/1.3 Inter,sans-serif;
+ color:#526f84;
+}
+.page-agenda.agenda-pro .agenda-pro-month button,
+.page-agenda.agenda-pro .agenda-pro-day-heading button,
+.page-agenda.agenda-pro .agenda-pro-note-add {
+ min-width:30px;
+ min-height:30px;
+ border-radius:5px;
+}
+.page-agenda.agenda-pro .agenda-pro-weekdays,
+.page-agenda.agenda-pro .agenda-pro-days {
+ margin-inline:13px;
+ gap:2px;
+}
+.page-agenda.agenda-pro .agenda-pro-weekdays {
+ padding:8px 0 3px;
+}
+.page-agenda.agenda-pro .agenda-pro-weekdays span {
+ font-size:10.5px;
+ color:#889ba9;
+}
+.page-agenda.agenda-pro .agenda-pro-days {
+ padding-bottom:8px;
+}
+.page-agenda.agenda-pro .agenda-pro-day,
+.page-agenda.agenda-pro .agenda-pro-blank {
+ min-height:31px;
+ height:31px;
+ padding:0 2px;
+ border-radius:5px;
+ font:650 12px/1.3 Inter,sans-serif;
+}
+.page-agenda.agenda-pro .agenda-pro-day small {
+ min-width:14px;
+ width:auto;
+ height:14px;
+ font-size:9px;
+}
+.page-agenda.agenda-pro .agenda-pro-day.is-selected {
+ background:#e8f2fa;
+ color:#01488e;
+ border-color:#c9dfef;
+}
+.page-agenda.agenda-pro .agenda-pro-day.is-selected small {
+ color:#fff;
+ background:#01488e;
+}
+.page-agenda.agenda-pro .agenda-pro-day:focus-visible {
+ outline:2px solid #438dbe;
+ outline-offset:1px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-details {
+ border-top:1px solid #e8eff4;
+ padding:9px 13px 10px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-heading>div {
+ flex-direction:row;
+ align-items:baseline;
+ gap:9px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-heading strong {
+ font-size:12px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-heading span {
+ font-size:10.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-list {
+ margin:4px 0 0;
+ padding:0;
+}
+.page-agenda.agenda-pro .agenda-pro-day-list li {
+ gap:7px;
+ padding:4px 0;
+}
+.page-agenda.agenda-pro .agenda-pro-day-list li strong {
+ font-size:11.4px;
+ font-weight:650;
+ line-height:1.4;
+}
+.page-agenda.agenda-pro .agenda-pro-day-list li small {
+ font-size:10.5px;
+}
+.page-agenda.agenda-pro .agenda-pro-event-dot {
+ width:6px;
+ height:6px;
+ flex-basis:6px;
+ margin-top:5px;
+}
+.page-agenda.agenda-pro .agenda-pro-day-more,
+.page-agenda.agenda-pro .agenda-pro-day-empty {
+ margin:5px 0 0;
+ font-size:11px;
+}
+.page-agenda.agenda-pro .agenda-pro-notes {
+ display:flex;
+ flex-direction:column;
+ min-height:0;
+ align-self:start;
+}
+.page-agenda.agenda-pro .agenda-pro-notes-search {
+ margin:10px 13px 6px;
+}
+.page-agenda.agenda-pro .agenda-pro-notes-search input {
+ min-height:34px;
+ font-size:12px;
+}
+.page-agenda.agenda-pro .agenda-pro-note-list {
+ min-height:0;
+ max-height:250px;
+ overflow-y:auto;
+ padding:0 13px 6px;
+}
+.page-agenda.agenda-pro .agenda-pro-note {
+ padding:9px 0;
+}
+.page-agenda.agenda-pro .agenda-pro-note h3 {
+ margin:3px 0 4px;
+ font-size:12.8px;
+ line-height:1.35;
+}
+.page-agenda.agenda-pro .agenda-pro-note p {
+ font-size:11.8px;
+ line-height:1.45;
+}
+.page-agenda.agenda-pro .agenda-pro-note-top button {
+ width:30px;
+ height:30px;
+}
+.page-agenda.agenda-pro .agenda-pro-local-hint {
+ margin-top:auto;
+ padding:9px 13px;
+ font-size:11px;
+ color:#8297a8;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-heading {
+ padding:12px 15px;
+}
+.page-agenda.agenda-pro .agenda-pro-tasks-tools {
+ gap:7px;
+ padding:7px 13px;
+}
+.page-agenda.agenda-pro .agenda-pro-pills button {
+ min-height:32px;
+ padding:6px 10px;
+ font-size:11.7px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-search input {
+ min-height:34px;
+ font-size:12px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-rows {
+ max-height:clamp(220px,40vh,480px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+}
+.page-agenda.agenda-pro .agenda-pro-task-row {
+ min-height:49px;
+ padding:9px 14px;
+ gap:10px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text strong {
+ font-size:12.3px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text small,
+.page-agenda.agenda-pro .agenda-pro-task-row time {
+ font-size:11px;
+}
+.page-agenda.agenda-pro .agenda-pro-task-text {
+ gap:3px;
+}
+@container crm-content (max-width:830px) {
+ .page-agenda.agenda-pro .agenda-pro-layout {
+  grid-template-columns:minmax(0,1fr);
+ }
+ .page-agenda.agenda-pro .agenda-pro-calendar {
+  max-width:420px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-notes {
+  width:100%;
+ }
+ .page-agenda.agenda-pro .agenda-pro-note-list {
+  max-height:220px;
+ }
+}
+@media (max-width:840px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro {
+  padding:19px 13px 25px;
+ }
+}
+@media (max-width:600px) {
+ .app-body.is-agenda .page.page-agenda.agenda-pro {
+  padding:54px 11px 78px;
+ }
+ .page-agenda.agenda-pro .op-screen-heading {
+  align-items:flex-start;
+  margin-bottom:9px;
+ }
+ .page-agenda.agenda-pro .op-heading-copy p {
+  font-size:11.8px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-layout {
+  gap:10px;
+  margin-bottom:10px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-heading {
+  padding:10px 11px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-weekdays,
+ .page-agenda.agenda-pro .agenda-pro-days {
+  margin-inline:9px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-day,
+ .page-agenda.agenda-pro .agenda-pro-blank {
+  min-height:34px;
+  height:34px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-note-list {
+  max-height:210px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-task-row {
+  flex-wrap:wrap;
+  align-items:flex-start;
+  gap:6px 10px;
+ }
+ .page-agenda.agenda-pro .agenda-pro-task-row time {
+  margin-left:27px;
+ }
+}
+
+/* ── RESULTADOS: menos recuadros, mismo contenido por cada informe. ── */
+.page-results-insights.ri-gsc {
+ --ri-border:#e3eaf0;
+ --ri-muted:#72899a;
+ --ri-foreground:#23445f;
+ max-width:1540px;
+ padding-top:20px;
+ background:transparent;
+}
+.page-results-insights.ri-gsc .ri-header {
+ margin-bottom:7px;
+ padding:0 1px;
+}
+.page-results-insights.ri-gsc .ri-header h1 {
+ font:750 24px/1.2 "Plus Jakarta Sans",Inter,sans-serif;
+ letter-spacing:-.02em;
+ color:#002d59;
+}
+.page-results-insights.ri-gsc .ri-header p {
+ margin:4px 0 0;
+ font:500 12px/1.45 Inter,sans-serif;
+ color:#72889a;
+}
+.page-results-insights.ri-gsc .ri-toolbar-workspace {
+ margin-bottom:7px;
+ padding:10px 0;
+ border-top:0;
+ border-bottom:1px solid #dce6ed;
+ gap:10px;
+}
+.page-results-insights.ri-gsc .ri-period-pills {
+ border-color:#d0dfe9;
+ box-shadow:none;
+}
+.page-results-insights.ri-gsc .ri-period-pills button {
+ min-height:35px;
+ padding:7px 11px;
+ font-size:11.7px;
+ border-color:#e0e9ef;
+}
+.page-results-insights.ri-gsc .ri-period-pills button.is-active {
+ color:#01488e;
+ background:#edf5fb;
+}
+.page-results-insights.ri-gsc .ri-report-selector {
+ color:#6a8192;
+ font-size:11.5px;
+}
+.page-results-insights.ri-gsc .ri-report-selector select {
+ min-height:35px;
+ color:#315872;
+ border-color:#d6e2eb;
+ font-size:12px;
+}
+.page-results-insights.ri-gsc .ri-data-context {
+ gap:7px;
+ margin-bottom:10px;
+ color:#7d91a0;
+ font-size:11px;
+}
+.page-results-insights.ri-gsc .ri-view-section-label {
+ padding:8px 1px 9px;
+}
+.page-results-insights.ri-gsc .ri-view-section-label h2 {
+ color:#254864;
+ font:750 15px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-view-section-label p {
+ font-size:11.5px;
+ line-height:1.5;
+}
+/* Conservar la agrupación de datos; retirar sombras, radios exagerados y fondos duplicados. */
+.page-results-insights.ri-gsc :is(
+ .ri-focus-overview,.ri-geo-card,.ri-study-section,.ri-trend-report,
+ .ri-integration-panel,.ri-panel,.ri-product-card,.ri-distribution-card,
+ .ri-activity-board,.ri-digital-source-panel
+) {
+ border:1px solid var(--ri-border);
+ border-radius:7px;
+ background:#fff;
+ box-shadow:none!important;
+}
+.page-results-insights.ri-gsc .ri-active-content {
+ gap:0;
+}
+.page-results-insights.ri-gsc :is(
+ .ri-focus-overview,.ri-study-section,.ri-trend-report,.ri-geo-card,
+ .ri-integration-panel,.ri-product-card,.ri-distribution-card,.ri-panel
+) {
+ margin-bottom:10px;
+}
+.page-results-insights.ri-gsc :is(.ri-grid-two,.ri-product-secondary,.ri-product-card-grid,
+ .ri-acquisition-grid,.ri-gsc-location-grid,.ri-grid-three) {
+ gap:10px;
+}
+.page-results-insights.ri-gsc .ri-overview-signals {
+ gap:7px 17px;
+ padding:9px 2px;
+ margin-bottom:10px;
+ border:0;
+ border-bottom:1px solid #e4edf3;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ font-size:11.8px;
+}
+.page-results-insights.ri-gsc .ri-focus-head {
+ padding:12px 15px 9px;
+}
+.page-results-insights.ri-gsc .ri-focus-head h2 {
+ font:750 15px/1.3 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-focus-head p,
+.page-results-insights.ri-gsc .ri-study-head p {
+ color:#8194a3;
+ font-size:11.5px;
+}
+.page-results-insights.ri-gsc .ri-focus-stat {
+ gap:5px;
+ padding:12px 15px;
+}
+.page-results-insights.ri-gsc .ri-focus-stat strong {
+ font:750 clamp(22px,2vw,28px)/1.2 Inter,sans-serif;
+ color:#234e70;
+ margin:3px 0;
+}
+.page-results-insights.ri-gsc .ri-focus-stat:first-child strong {
+ color:#01488e;
+}
+.page-results-insights.ri-gsc .ri-focus-stat:nth-child(2) strong {
+ color:#315e84;
+}
+.page-results-insights.ri-gsc .ri-focus-stat>span,
+.page-results-insights.ri-gsc .ri-focus-stat small {
+ font-size:11.3px;
+ line-height:1.4;
+}
+.page-results-insights.ri-gsc .ri-focus-signal {
+ padding:10px 15px;
+ background:#fbfcfd;
+}
+.page-results-insights.ri-gsc .ri-focus-priority,
+.page-results-insights.ri-gsc .ri-focus-conversion {
+ padding:14px 16px;
+}
+.page-results-insights.ri-gsc .ri-focus-details-static>h3 {
+ padding:12px 15px 2px;
+ font-size:13px;
+}
+.page-results-insights.ri-gsc .ri-focus-details-static .ri-command-values {
+ padding:7px 9px 10px;
+ gap:0;
+}
+.page-results-insights.ri-gsc .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value {
+ min-height:74px;
+ padding:9px 11px;
+ background:transparent;
+ border:0;
+ border-right:1px solid #e8eef3;
+ border-bottom:1px solid #e8eef3;
+ border-radius:0;
+ box-shadow:none;
+}
+.page-results-insights.ri-gsc .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value strong {
+ font-size:20px;
+}
+.page-results-insights.ri-gsc .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value small {
+ font-size:11px;
+ line-height:1.4;
+}
+/* Tablas: más legibles que unas microetiquetas y menos altura por fila. */
+.page-results-insights.ri-gsc .ri-study-head {
+ padding:12px 15px 10px;
+}
+.page-results-insights.ri-gsc .ri-study-head h2 {
+ font:750 15px/1.35 "Plus Jakarta Sans",Inter,sans-serif;
+}
+.page-results-insights.ri-gsc .ri-study-strip>div {
+ padding:10px 13px;
+ gap:4px;
+}
+.page-results-insights.ri-gsc .ri-study-strip strong {
+ font-size:clamp(19px,1.8vw,24px);
+ color:#254d6d;
+}
+.page-results-insights.ri-gsc .ri-study-strip span {
+ font-size:11px;
+}
+.page-results-insights.ri-gsc .ri-study-controls {
+ padding:9px 14px;
+ gap:8px;
+}
+.page-results-insights.ri-gsc .ri-study-search input,
+.page-results-insights.ri-gsc .ri-study-sort select {
+ min-height:34px;
+ font-size:12px;
+}
+.page-results-insights.ri-gsc .ri-study-table th,
+.page-results-insights.ri-gsc .ri-study-table td {
+ padding:10px 13px;
+ font-size:11.8px;
+ line-height:1.4;
+}
+.page-results-insights.ri-gsc .ri-study-table thead th {
+ background:#fbfcfd;
+ color:#698196;
+ font-size:11px;
+}
+.page-results-insights.ri-gsc .ri-study-inline-facts {
+ padding:9px 14px;
+ font-size:11.5px;
+}
+.page-results-insights.ri-gsc .ri-study-footnote {
+ padding:10px 14px;
+ font-size:11px;
+ line-height:1.5;
+}
+.page-results-insights.ri-gsc .ri-study-duo h3 {
+ padding:10px 14px;
+ font-size:12.7px;
+}
+.page-results-insights.ri-gsc .ri-study-table tbody tr:hover:not(.ri-study-total) {
+ background:#f8fbfd;
+}
+/* Gráficos y ranking: líneas sencillas y espacio uniforme. */
+.page-results-insights.ri-gsc .ri-rich-head,
+.page-results-insights.ri-gsc .ri-panel-head,
+.page-results-insights.ri-gsc .ri-activity-head {
+ padding:12px 15px 10px;
+}
+.page-results-insights.ri-gsc .ri-rich-head h3,
+.page-results-insights.ri-gsc .ri-panel-head h2,
+.page-results-insights.ri-gsc .ri-activity-head h2 {
+ color:#294b66;
+ font-size:14px;
+}
+.page-results-insights.ri-gsc .ri-rich-head p,
+.page-results-insights.ri-gsc .ri-panel-head p,
+.page-results-insights.ri-gsc .ri-activity-head p {
+ color:#8295a3;
+ font-size:11.3px;
+}
+.page-results-insights.ri-gsc .ri-trend-metrics {
+ gap:0;
+ border-bottom:1px solid #e7edf2;
+}
+.page-results-insights.ri-gsc .ri-trend-metric {
+ flex:1 1 160px;
+ min-height:69px;
+ padding:10px 13px;
+ border:0;
+ border-right:1px solid #e4ecf2;
+ border-radius:0;
+ background:#fff;
+ box-shadow:none!important;
+}
+.page-results-insights.ri-gsc .ri-trend-metric.is-on.ri-trend-blue,
+.page-results-insights.ri-gsc .ri-trend-metric.is-on.ri-trend-purple {
+ background:#f0f6fb;
+ color:#01488e;
+ box-shadow:inset 0 -2px 0 #01488e!important;
+}
+.page-results-insights.ri-gsc .ri-trend-metric strong {
+ font-size:24px;
+ line-height:1.2;
+}
+.page-results-insights.ri-gsc .ri-trend-metric span {
+ font-size:11.5px;
+}
+.page-results-insights.ri-gsc .ri-trend-chart-scroll {
+ padding:10px 12px 2px;
+}
+.page-results-insights.ri-gsc .ri-trend-chart {
+ width:min(100%,790px);
+ min-width:620px;
+ margin-inline:auto;
+}
+.page-results-insights.ri-gsc .ri-activity-plotwrap {
+ padding:11px 13px;
+}
+.page-results-insights.ri-gsc .ri-activity-plot {
+ height:205px;
+}
+.page-results-insights.ri-gsc .ri-activity-inspector {
+ padding:10px 13px;
+}
+.page-results-insights.ri-gsc .ri-inline-note {
+ font-size:11px;
+ line-height:1.5;
+ color:#718899;
+}
+.page-results-insights.ri-gsc .ri-product-hero {
+ background:#fff;
+}
+.page-results-insights.ri-gsc .ri-distribution-content {
+ padding:12px 14px;
+}
+/* Mapa mantiene interacciones, polígonos, enlaces y zonas. Se controla la escala. */
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {
+ padding:12px 15px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-title h2 {
+ color:#2b506d;
+ font-size:14.5px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro-strip>div {
+ padding:9px 14px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro-strip strong {
+ font-size:20px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-svg {
+ max-height:430px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-sidebar {
+ background:#fff;
+}
+.page-results-insights.ri-gsc .ri-map-selection {
+ background:#fbfcfd;
+ padding:12px 14px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-zones {
+ padding:12px 13px 6px;
+}
+.page-results-insights.ri-gsc .ri-map-zones-table {
+ max-height:235px;
+}
+.page-results-insights.ri-gsc .ri-map-zones-table>button {
+ min-height:36px;
+ padding:8px 5px;
+}
+.page-results-insights.ri-gsc .ri-geo-pro .ri-geo-foot {
+ padding:9px 13px;
+ font-size:11px;
+}
+/* Fuentes digitales: datos por proveedor intactos pero sin mosaico recargado. */
+.page-results-insights.ri-gsc .ri-digital-source-nav button {
+ padding:10px 14px;
+}
+.page-results-insights.ri-gsc .ri-digital-head {
+ padding:12px 15px 10px;
+}
+.page-results-insights.ri-gsc .ri-digital-metrics>div {
+ min-height:71px;
+ padding:11px 14px;
+ gap:4px;
+}
+.page-results-insights.ri-gsc .ri-digital-metrics strong {
+ font-size:24px;
+}
+.page-results-insights.ri-gsc .ri-digital-dimensions button {
+ min-height:38px;
+ padding:8px 12px;
+}
+.page-results-insights.ri-gsc .ri-integration-note {
+ padding:10px 13px;
+}
+.page-results-insights.ri-gsc .ri-sources {
+ background:#fff;
+}
+.page-results-insights.ri-gsc .ri-workspace-footer {
+ margin-top:9px;
+ padding-top:8px;
+ font-size:11px;
+ line-height:1.5;
+}
+/* Conservar controles táctiles, todos los informes y scroll de tablas. */
+@container crm-content (max-width:900px) {
+ .page-results-insights.ri-gsc .ri-study-strip>div {
+  padding:10px 11px;
+ }
+ .page-results-insights.ri-gsc .ri-trend-metric {
+  flex:1 1 135px;
+ }
+ .page-results-insights.ri-gsc .ri-focus-overview-detail .ri-focus-details-static .ri-cmd-value {
+  border-right:0;
+ }
+}
+@container crm-content (max-width:600px) {
+ .page-results-insights.ri-gsc {
+  padding-top:57px;
+ }
+ .page-results-insights.ri-gsc .ri-header h1 {
+  font-size:22px;
+ }
+ .page-results-insights.ri-gsc .ri-toolbar-workspace {
+  flex-wrap:wrap;
+  align-items:stretch;
+ }
+ .page-results-insights.ri-gsc .ri-overview-signals {
+  padding:9px 0;
+ }
+ .page-results-insights.ri-gsc .ri-study-head,
+ .page-results-insights.ri-gsc .ri-activity-head,
+ .page-results-insights.ri-gsc .ri-rich-head {
+  padding:12px;
+ }
+ .page-results-insights.ri-gsc .ri-study-table th,
+ .page-results-insights.ri-gsc .ri-study-table td {
+  padding:10px;
+ }
+ .page-results-insights.ri-gsc .ri-trend-chart-scroll {
+  overflow-x:auto;
+ }
+ .page-results-insights.ri-gsc .ri-trend-metric {
+  min-height:68px;
+ }
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-head {
+  padding:12px;
+ }
+ .page-results-insights.ri-gsc .ri-geo-pro .ri-geo-svg {
+  max-height:none;
+ }
+}
+@media (prefers-reduced-motion:reduce) {
+ .page-agenda.agenda-pro .agenda-pro-day,
+ .page-results-insights.ri-gsc .ri-trend-metric {
+  transition:none;
+ }
+}
