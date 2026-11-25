@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, ChevronLeft, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, Truck, Database, ArrowRight, Bell, Clock3, Pin, Pencil, Trash2, BookOpen, Mail, MessageCircle } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, ChevronLeft, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, Truck, Database, ArrowRight, Bell, Clock3, Pin, Pencil, Trash2, BookOpen, Mail, MessageCircle, Download } from 'lucide-react';
 import { useCrm } from '../store';
 import { CHANNELS, type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { Button, Empty, Field, Modal, Panel } from '../ui';
@@ -287,13 +287,37 @@ function TariffsEditor(){
 }
 
 export function Configuration(){
-  const {role,setRole,resetDemo}=useCrm();
+  const {data,role,setRole,resetDemo}=useCrm();
   const location=useLocation();
   const section=location.pathname.split('/')[2]||'perfil';
   const admin=role==='direccion';
   const [profile,setProfile]=useState<DemoProfile>(()=>readDemoProfile(role));
   const [saved,setSaved]=useState(false);
   const [error,setError]=useState('');
+  const [backupSaved,setBackupSaved]=useState(false);
+  const exportFullBackup=()=>{
+    setBackupSaved(false);setError('');
+    if(!window.confirm('Esta copia contiene datos internos y personales (clientes, pedidos, notas y precios). ¿Descargarla para conservarla en un lugar privado y seguro?'))return;
+    try{
+      const payload={
+        schema:'depofibra-crm-backup-local-v1',
+        exportedAt:new Date().toISOString(),
+        source:'Navegador local; NO es base de datos de producción',
+        warning:'Archivo confidencial. No compartir, publicar ni subir sin control de accesos.',
+        data
+      };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;
+      link.download='depofibra-crm-copia-local-'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.append(link);link.click();link.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+      setBackupSaved(true);
+    }catch{
+      setError('No se ha podido descargar la copia. Comprueba el almacenamiento y permisos del navegador.');
+    }
+  };
   useEffect(()=>{setProfile(readDemoProfile(role));setSaved(false);setError('')},[role]);
 
   const sections=[
@@ -433,11 +457,20 @@ export function Configuration(){
       </section>}
       {allowed&&section==='transporte'&&<TariffsEditor/>}
       {allowed&&section==='datos'&&<section className="settings-panel">
-        <div className="settings-panel-head"><h2>Datos locales</h2>
-          <p>Opciones de almacenamiento local. No afectan a bases de datos reales ni a otras personas.</p></div>
-        <div className="settings-feature-row"><div><strong>Restablecer datos de ejemplo</strong>
-          <p>Reinicia los registros de este navegador. Esta acción no se puede deshacer.</p></div>
-          <Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de ejemplo del navegador?'))resetDemo()}}>Reiniciar datos locales</Button></div>
+        <div className="settings-panel-head"><h2>Datos locales y copia de seguridad</h2>
+          <p>Tu CRM aún guarda registros por navegador. Antes de migrar al VPS necesitas una copia completa, privada y verificable.</p></div>
+        <div className="settings-feature-row"><div><strong>Descargar copia íntegra del CRM</strong>
+          <p>Incluye oportunidades, presupuestos y partidas, clientes, pedidos, pagos anotados, comisiones, tareas, notas, catálogo, tarifas y avisos locales. No incluye contraseñas, fotos de perfil ni claves de Google Maps.</p></div>
+          <Button onClick={exportFullBackup}><Download size={16}/>Descargar copia JSON</Button></div>
+        {backupSaved&&<p className="settings-success" role="status">Descarga iniciada. Guarda este archivo confidencial fuera de ubicaciones públicas y verifica su contenido antes de migrar.</p>}
+        {error&&<p className="settings-error" role="alert">{error}</p>}
+        <p className="settings-note"><CircleAlert size={17}/>No existe todavía importación al VPS ni copia en servidor. La descarga no garantiza recuperación hasta comprobarla. El archivo contiene datos personales y precios privados.</p>
+        <div className="settings-feature-row"><div><strong>Reiniciar datos locales</strong>
+          <p>Elimina los registros modificados de este navegador y vuelve a cargar ejemplos. Haz antes una copia: no se podrá deshacer.</p></div>
+          <Button variant="outline" onClick={()=>{
+             const confirm=window.prompt('Esta acción es irreversible. Escribe REINICIAR para continuar.');
+             if(confirm==='REINICIAR')resetDemo();
+          }}>Reiniciar datos locales</Button></div>
       </section>}
       </div>
     </div>

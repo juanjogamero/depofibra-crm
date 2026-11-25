@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, quoteItemsSubtotal, roundEuros, mockData, today, uid } from './domain';
+import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, quoteItemsSubtotal, roundEuros, validQuoteLines, validInitialPayment, commissionOutstanding, mockData, today, uid } from './domain';
 
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
   data: CrmState;
+  storageError:string;
   role: Role; setRole: (role: Role) => void;
   addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => void;
   updateOpportunity: (id: string, patch: Partial<Opportunity>) => void;
@@ -83,6 +84,12 @@ function normalizeCatalog(source: CrmState): CrmState {
     return {...p,categoryId:id};
   });
   return {...source,products,productCategories:categories,
+    quotes:Array.isArray(source.quotes)?source.quotes:[],
+    customers:Array.isArray(source.customers)?source.customers.map(customer=>({
+      ...customer,documentNames:Array.isArray(customer.documentNames)?customer.documentNames:[]
+    })):[],
+    orders:Array.isArray(source.orders)?source.orders:[],
+    tasks:Array.isArray(source.tasks)?source.tasks:[],
     opportunities:(source.opportunities||[]).map(o=>o.status==='Perdida'&&!o.deletedAt?{...o,deletedAt:today()}:o),
     internalNotes:Array.isArray(source.internalNotes)?source.internalNotes:[],
     orderAlerts:Array.isArray(source.orderAlerts)?source.orderAlerts:[]};
@@ -99,10 +106,28 @@ function initialData(): CrmState {
   return archiveExpiredQuotes(normalizeCatalog(mockData));
 }
 const Ctx = createContext<ContextValue | null>(null);
+const localReadFailure=():string=>{
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return '';
+    const value=JSON.parse(raw);
+    if(Array.isArray(value.opportunities)&&Array.isArray(value.orders)
+        &&Array.isArray(value.products)&&value.transport)return '';
+    return 'El archivo local del CRM no tiene una estructura reconocible. NO se sobrescribirán sus datos.';
+  }catch{
+    return 'No se ha podido leer el almacenamiento local. NO se sobrescribirán los datos existentes.';
+  }
+};
 export function CrmProvider({ children }: { children: ReactNode }) {
+  const [readError,setReadError]=useState(localReadFailure);
+  const [storageError,setStorageError]=useState(readError);
   const [data, setData] = useState<CrmState>(initialData);
   const [role, setRole] = useState<Role>('direccion');
-  useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* private browser */ } }, [data]);
+  useEffect(() => {
+    if(readError)return; // No destruir un archivo anterior que esté corrupto o sea ilegible.
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));setStorageError('');}
+    catch{setStorageError('No se han podido guardar los cambios en este navegador. Exporta lo que puedas y revisa el almacenamiento antes de seguir.');}
+  }, [data,readError]);
   useEffect(()=>{
     const review=()=>setData(old=>archiveExpiredQuotes(old));
     const timer=window.setInterval(review,3600000);
@@ -134,10 +159,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     addActivity: (id: string, text: string) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, activity: [{ at: today(), text, by: 'Dirección' }, ...o.activity] } : o) })),
     addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => setData(d => {
       const items=item.items;
-      const itemValid=Boolean(items?.length)&&items!.every(i=>i.description.trim()&&Number.isFinite(i.quantity)&&i.quantity>0
-        &&Number.isFinite(i.unitPrice)&&i.unitPrice>=0);
+      const itemValid=Boolean(items&&validQuoteLines(items));
       const total=itemValid?quoteItemsSubtotal(items!):item.amount;
-      if(!Number.isFinite(total)||total<=0||!Number.isFinite(item.commission)||item.commission<0
+      if(!d.opportunities.some(o=>o.id===item.opportunityId&&!o.deletedAt)
+        ||!Number.isFinite(total)||total<=0||!Number.isFinite(item.commission)||item.commission<0
+        ||!Number.isFinite(item.transport)||item.transport<0
         ||(items!==undefined&&!itemValid))return d;
       return {...d,
         quotes:[{...item,amount:roundEuros(total),id:uid('PRE'),createdAt:today()},...d.quotes],
@@ -155,7 +181,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     })),
     acceptQuote: (id: string) => setData(d => {
       const q = d.quotes.find(x => x.id === id);
-      if (!q || d.orders.some(o => o.quoteId === id)) return d;
+      if (!q || q.archivedAt || d.orders.some(o => o.quoteId === id)) return d;
       const lead = d.opportunities.find(x => x.id === q.opportunityId);
       const customerId=uid('CLI');
       const customer={
@@ -184,7 +210,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     verifyPayment: (id: string, mode: Order['paymentMode'], amount: number, by:'Dirección'|'Oficina'='Dirección') => setData(d => {
       const order=d.orders.find(o=>o.id===id);
-      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0)return d;
+      if(!order||mode==='Pendiente'||!validInitialPayment(order,amount))return d;
       const date=today(),timestamp=new Date().toISOString();
       const customerId=order.customerId||uid('CLI');
       const customerExists=d.customers.some(c=>c.id===customerId);
@@ -246,20 +272,23 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       const order=d.orders.find(o=>o.id===id);
       const requested=Number.isFinite(amount)?Math.max(0,amount):0;
       if(!order||order.factory!=='Entregado'||requested<=0)return d;
-      const previous=Math.max(0,order.commissionPaid);
-      const applied=Math.max(0,Math.min(Math.max(0,order.commission),previous+requested)-previous);
+      const previous=roundEuros(Math.max(0,order.commissionPaid));
+      const applied=roundEuros(Math.min(commissionOutstanding(order),requested));
       if(applied<=0)return d;
       const date=today();
       return {
         ...d,
         commissionPayments:[...(d.commissionPayments||[]),{id:uid('COB'),orderId:id,amount:applied,paidAt:date}],
         orders:d.orders.map(o=>o.id===id?{
-          ...o,commissionPaid:previous+applied,
+          ...o,commissionPaid:roundEuros(previous+applied),
           activity:[{at:date,text:'Pago de comisión registrado: '+applied.toFixed(2)+' € (demo)',by:'Dirección'},...o.activity]
         }:o)
       };
     }),
-    addTask: (title: string, due: string, context: string, schedule?: { atTime?: string; reminderMinutes?: number | null }) => setData(d => ({ ...d, tasks: [{ id: uid('TA'), title, due, context, done: false, ...schedule }, ...d.tasks] })),
+    addTask: (title: string, due: string, context: string, schedule?: { atTime?: string; reminderMinutes?: number | null }) => setData(d =>
+      !title.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(due)?d:{...d,tasks:[{
+        id:uid('TA'),title:title.trim(),due,context:context.trim(),done:false,...schedule
+      },...d.tasks]}),
     toggleTask: (id: string) => setData(d => ({ ...d, tasks: d.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) })),
     addInternalNote: (item: Pick<InternalNote,'title'|'body'|'category'>) => setData(d => ({ ...d,
       internalNotes:[{...item,id:uid('NOT'),pinned:false,updatedAt:new Date().toISOString()},...(d.internalNotes||[])]
@@ -291,9 +320,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       };
     }),
     updateTransport: (p: Partial<TransportSettings>) => setData(d => ({ ...d, transport: { ...d.transport, ...p } })),
-    addDocumentName: (customerId: string, name: string) => setData(d => ({ ...d, customers: d.customers.map(c => c.id === customerId ? { ...c, documentNames: [...c.documentNames, name] } : c) })),
-    resetDemo: () => setData(normalizeCatalog(structuredClone(mockData))),
+    addDocumentName: (customerId: string, name: string) => setData(d => ({
+      ...d, customers:d.customers.map(c=>c.id===customerId&&name.trim()&&!c.documentNames.includes(name.trim())
+        ?{...c,documentNames:[...c.documentNames,name.trim()]}:c)
+    })),
+    resetDemo: () => {
+      setReadError('');setStorageError('');
+      setData(normalizeCatalog(structuredClone(mockData)));
+    },
   }), []);
-  return <Ctx.Provider value={{ data, role, setRole, ...actions }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ data, storageError, role, setRole, ...actions }}>{children}</Ctx.Provider>;
 }
 export function useCrm(): ContextValue { const value = useContext(Ctx); if (!value) throw new Error('CrmProvider requerido'); return value; }

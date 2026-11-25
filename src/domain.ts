@@ -25,6 +25,23 @@ export const roundEuros = (value:number):number => Math.round((value+Number.EPSI
 export const quoteItemTotal = (item:QuoteLineItem):number => roundEuros(item.quantity*item.unitPrice);
 export const quoteItemsSubtotal = (items:QuoteLineItem[]):number =>
  roundEuros(items.reduce((sum,item)=>sum+quoteItemTotal(item),0));
+/** Validaciones compartidas por formularios y almacenamiento. */
+export const validQuoteLines=(items:QuoteLineItem[]):boolean=>{
+ if(!Array.isArray(items)||items.length===0||!items.some(i=>i.kind==='product'))return false;
+ const ids=new Set<string>();
+ return items.every(i=>{
+   if(!i||typeof i.id!=='string'||!i.id.trim()||ids.has(i.id))return false;
+   ids.add(i.id);
+   return ['product','shipping','service','other'].includes(i.kind)&&
+      typeof i.description==='string'&&Boolean(i.description.trim())&&
+      Number.isFinite(i.quantity)&&i.quantity>0&&
+      Number.isFinite(i.unitPrice)&&i.unitPrice>=0;
+ });
+};
+export const commissionOutstanding=(order:Order):number=>roundEuros(Math.max(0,order.commission-order.commissionPaid));
+export const commissionDue=(order:Order):number=>order.factory==='Entregado'?commissionOutstanding(order):0;
+export const validInitialPayment=(order:Order,amount:number):boolean=>
+ order.paymentMode==='Pendiente'&&Number.isFinite(amount)&&amount>0;
 export type Quote = {
   id: string; opportunityId: string; name: string; product: string; amount: number;
   commission: number; transport: number; status: QuoteStatus; createdAt: string; message: string;
@@ -122,15 +139,23 @@ export type CrmState = {
   internalNotes?: InternalNote[];
 };
 
+/** Fechas de negocio en horario del navegador (España/Portugal), no día UTC.
+ * Evita que cerca de medianoche un evento quede fechado en el día equivocado. */
 export const dt = (days = 0): string => {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 };
 export const today = () => dt(0);
-export const money = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+/** Nunca ocultar los céntimos de un presupuesto, pago o comisión. */
+export const money = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 export const decimal = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-export const dateText = (s?: string) => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Sin fecha';
+export const dateText = (s?: string) => {
+  const day = s?.slice(0,10);
+  if(!day||!/^\d{4}-\d{2}-\d{2}$/.test(day))return 'Sin fecha';
+  const d = new Date(day+'T12:00:00');
+  return Number.isNaN(d.getTime())?'Sin fecha':d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+};
 export const dayDiff = (s: string) => Math.round((new Date(today() + 'T12:00:00').getTime() - new Date(s + 'T12:00:00').getTime()) / 86400000);
 export const uid = (prefix: string) => prefix + '-' + (Date.now() % 1000000).toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase();
 

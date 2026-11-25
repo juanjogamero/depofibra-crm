@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check": "tsc -b --pretty false"
+    "check": "tsc -b --pretty false",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
