@@ -263,7 +263,7 @@ export function OpportunityDetail(){
    message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||''
  });setEditing(true)};
  const saveEdit=(event:FormEvent)=>{event.preventDefault();if(!o||!draft.name.trim()||!draft.product.trim())return;
-   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});setEditing(false);
+   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});addActivity(o.id,'Datos de oportunidad actualizados');setEditing(false);
  };
  if(!o)return <Missing to="/oportunidades"/>;
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
