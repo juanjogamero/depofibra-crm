@@ -97,49 +97,42 @@
  top:13px;
  right:16px;
 }
-/* 4. Pedidos: columnas en desktop; información íntegra a tamaño de lectura. */
+/* 4. Pedidos: resumen panorámico sin forzar scroll de página.
+   Se redistribuyen LOS MISMOS elementos, sin ocultar información, crear
+   duplicados ni reducir la tipografía. Las pantallas pequeñas desplazan
+   el contenido de forma natural cuando no cabe físicamente. */
 .page-crm-record.crm-order-office .crm-order-overview-grid {
  display:grid;
- grid-template-columns:minmax(0,1.6fr) minmax(320px,.9fr);
- gap:15px;
+ grid-template-columns:minmax(540px,1.6fr) minmax(305px,1fr) minmax(295px,.9fr);
+ gap:14px;
  align-items:start;
  min-width:0;
 }
 .page-crm-record.crm-order-office .crm-order-overview-primary {
- display:flex;
- flex-direction:column;
- gap:15px;
- min-width:0;
+ display:contents;
 }
-.page-crm-record.crm-order-office .crm-order-overview-primary>.panel,
-.page-crm-record.crm-order-office .crm-order-itemized-panel>.panel,
-.page-crm-record.crm-order-office .crm-order-overview-grid .right-stack>.panel {
+.page-crm-record.crm-order-office .crm-order-itemized-panel {
  margin:0;
  min-width:0;
 }
-.page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
- display:flex;
- flex-direction:column;
- gap:15px;
+.page-crm-record.crm-order-office .crm-order-overview-grid .panel {
  min-width:0;
-}
-.page-crm-record.crm-order-office .crm-order-overview-grid .info-grid {
- grid-template-columns:repeat(2,minmax(0,1fr));
- gap:13px 22px;
-}
-.page-crm-record.crm-order-office .record-hero {
- min-height:94px;
- padding:15px 20px;
- margin-bottom:9px;
-}
-.page-crm-record.crm-order-office .detail-tabs {
- margin-bottom:12px;
+ padding:17px 19px;
+ margin:0;
 }
 .page-crm-record.crm-order-office .crm-order-overview-grid .panel-head {
- margin-bottom:12px;
+ margin-bottom:13px;
 }
 .page-crm-record.crm-order-office .crm-order-overview-grid .panel h3 {
  font-size:14.5px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .info-grid {
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:14px 19px;
+ padding:2px 0 4px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .info-item {
+ gap:4px;
 }
 .page-crm-record.crm-order-office .crm-order-overview-grid .info-item strong {
  font-size:13px;
@@ -149,22 +142,83 @@
 .page-crm-record.crm-order-office .crm-order-overview-grid .note-area {
  font-size:12px;
 }
+.page-crm-record.crm-order-office .crm-order-overview-grid .minor-title {
+ margin:14px 0 8px;
+}
 .page-crm-record.crm-order-office .crm-order-overview-grid .note-area {
- margin-top:6px;
+ margin:0;
  padding:11px 13px;
 }
-@container crm-content (max-width:1100px) {
+.page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
+ display:flex;
+ flex-direction:column;
+ gap:14px;
+ min-width:0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .crm-office-summary-status {
+ margin-bottom:12px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .money-summary {
+ padding-bottom:12px;
+ margin-bottom:7px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .summary-line {
+ padding:9px 0;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .crm-quote-private-notice {
+ margin-top:10px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .crm-quote-breakdown th {
+ padding:9px 10px;
+}
+.page-crm-record.crm-order-office .crm-order-overview-grid .crm-quote-breakdown td {
+ padding:10px;
+}
+.page-crm-record.crm-order-office .record-hero {
+ min-height:91px;
+ padding:14px 20px;
+ margin-bottom:9px;
+}
+.page-crm-record.crm-order-office .detail-tabs {
+ margin-bottom:12px;
+}
+.page-crm-record.crm-order-office .detail-grid {
+ gap:14px;
+}
+
+/* En portátiles: desglose + información arriba, siguiente paso y
+   economía juntos debajo. Se aprovecha la anchura sin apretar el texto. */
+@container crm-content (max-width:1390px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid {
+  grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+ }
+}
+/* En tablet y móvil el contenido sigue accesible en su orden lógico:
+   desglose, datos generales y seguimiento, sin alturas ni scroll forzados. */
+@container crm-content (max-width:970px) {
  .page-crm-record.crm-order-office .crm-order-overview-grid {
   grid-template-columns:minmax(0,1fr);
  }
+ .page-crm-record.crm-order-office .crm-order-overview-primary {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+ }
  .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
-  display:grid;
+  grid-column:auto;
   grid-template-columns:repeat(2,minmax(0,1fr));
  }
 }
-@container crm-content (max-width:750px) {
+@container crm-content (max-width:680px) {
  .page-crm-record.crm-order-office .crm-order-overview-grid .right-stack {
-  grid-template-columns:minmax(0,1fr);
+  display:flex;
+  flex-direction:column;
  }
 }
 /* 5. Agenda: solo las celdas del calendario son pequeñas.
