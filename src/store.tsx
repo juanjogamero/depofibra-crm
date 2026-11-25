@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, mockData, today, uid } from './domain';
+import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, quoteItemsSubtotal, roundEuros, mockData, today, uid } from './domain';
 
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
@@ -132,11 +132,21 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       activity:[{at:today(),text:'Oportunidad recuperada para seguimiento',by:'Dirección'},...o.activity]
     }:o)})),
     addActivity: (id: string, text: string) => setData(d => ({ ...d, opportunities: d.opportunities.map(o => o.id === id ? { ...o, activity: [{ at: today(), text, by: 'Dirección' }, ...o.activity] } : o) })),
-    addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => setData(d => ({
-      ...d,
-      quotes: [{ ...item, id: uid('PRE'), createdAt: today() }, ...d.quotes],
-      opportunities: d.opportunities.map(o => o.id === item.opportunityId ? { ...o, status: item.status === 'Enviado' ? 'Presupuesto enviado' : 'Por presupuestar', activity: [{ at: today(), text: 'Presupuesto preparado (demo)', by: 'Dirección' }, ...o.activity] } : o)
-    })),
+    addQuote: (item: Omit<Quote, 'id' | 'createdAt'>) => setData(d => {
+      const items=item.items;
+      const itemValid=Boolean(items?.length)&&items!.every(i=>i.description.trim()&&Number.isFinite(i.quantity)&&i.quantity>0
+        &&Number.isFinite(i.unitPrice)&&i.unitPrice>=0);
+      const total=itemValid?quoteItemsSubtotal(items!):item.amount;
+      if(!Number.isFinite(total)||total<=0||!Number.isFinite(item.commission)||item.commission<0
+        ||(items!==undefined&&!itemValid))return d;
+      return {...d,
+        quotes:[{...item,amount:roundEuros(total),id:uid('PRE'),createdAt:today()},...d.quotes],
+        opportunities:d.opportunities.map(o=>o.id===item.opportunityId?{
+          ...o,status:item.status==='Enviado'?'Presupuesto enviado':'Por presupuestar',
+          activity:[{at:today(),text:'Presupuesto preparado con importes sin IVA',by:'Dirección'},...o.activity]
+        }:o)
+      };
+    }),
     archiveQuote: (id:string) => setData(d=>({...d,quotes:d.quotes.map(q=>q.id===id&&q.status!=='Aceptado'&&!d.orders.some(o=>o.quoteId===q.id)?{...q,archivedAt:today()}:q)})),
     restoreQuote: (id:string) => setData(d=>({...d,quotes:d.quotes.map(q=>q.id===id?{...q,archivedAt:undefined,retainedUntil:addDays(today(),QUOTE_ARCHIVE_DAYS)}:q)})),
     updateQuote: (id: string, patch: Partial<Quote>) => setData(d => ({
@@ -156,7 +166,10 @@ export function CrmProvider({ children }: { children: ReactNode }) {
       };
       const order: Order = {
         id: uid('PED'), quoteId: id, customerId, buyerName: q.name, product: q.product,
-        capacity: lead?.capacity ?? 'Por confirmar', amount: q.amount, commission: q.commission, commissionPaid: 0,
+        capacity:q.items?.filter(x=>x.kind==='product').length&&q.items.filter(x=>x.kind==='product').length>1
+          ?'Varios productos':lead?.capacity??'Por confirmar',
+        items:q.items?.map(x=>({...x})),
+        amount: q.amount, commission: q.commission, commissionPaid: 0,
         advanceReceived: 0, paymentMode: 'Pendiente', factory: 'Pendiente', createdAt: today(),
         deliveryDate: '', notes: 'Esperando ingreso verificado y documentación de la oficina.', color: 'Por confirmar',
         connections: 'Fábrica confirmará con el comprador',
