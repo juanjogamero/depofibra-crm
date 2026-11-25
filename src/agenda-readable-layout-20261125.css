@@ -27,7 +27,7 @@
   grid-template-columns:minmax(305px,345px) minmax(0,1fr);
   align-items:start;
   gap:16px;
-  margin-bottom:16px;
+  margin-bottom:12px;
   flex:none;
 }
 .page-agenda.agenda-pro .agenda-pro-workspace {
@@ -39,6 +39,10 @@
 }
 .page-agenda.agenda-pro .agenda-pro-notes {
   align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  max-height:355px;
+  overflow:hidden;
 }
 .page-agenda.agenda-pro .agenda-pro-heading,
 .page-agenda.agenda-pro .agenda-pro-tasks-heading {
@@ -77,7 +81,10 @@
 }
 .page-agenda.agenda-pro .agenda-pro-note-list {
   padding:0 19px 7px;
-  max-height:280px;
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
 }
 .page-agenda.agenda-pro .agenda-pro-note {
   padding:14px 1px;
@@ -99,6 +106,7 @@
   height:36px;
 }
 .page-agenda.agenda-pro .agenda-pro-local-hint {
+  flex:0 0 auto;
   padding:12px 19px;
   font-size:12.5px;
   line-height:1.5;
@@ -239,8 +247,13 @@
   .page-agenda.agenda-pro .agenda-pro-notes-search {
     margin:12px 14px 8px;
   }
+  .page-agenda.agenda-pro .agenda-pro-notes {
+    max-height:none;
+    overflow:visible;
+  }
   .page-agenda.agenda-pro .agenda-pro-note-list {
     padding:0 14px 6px;
+    flex:none;
     max-height:250px;
   }
   .page-agenda.agenda-pro .agenda-pro-local-hint {
