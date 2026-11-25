@@ -84,7 +84,24 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
  const result=!validKm?'—':tooFar?'Consultar porte':!validRate?'Sin tarifa':canEstimate?decimal(estimate):'Por confirmar';
  const link=googleRouteUrl(target||'España');
 
- return <section className="transport-fast" aria-label="Calculadora rápida de portes">
+ return <>
+ <section className="transport-maps-standalone" aria-label="Configuración de Google Maps">
+  <div className="transport-fast-bottom">
+   <button type="button" className="transport-fast-key-trigger" aria-expanded={showApiKey} aria-controls="transport-maps-api-panel"
+    onClick={()=>setShowApiKey(v=>!v)}>Configurar Google Maps <ChevronDown size={15} className={showApiKey?'turned':''}/></button>
+  </div>
+  {showApiKey&&<div className="transport-fast-key-panel" id="transport-maps-api-panel">
+   <label className="transport-fast-field" htmlFor="transport-fast-key"><span>Clave API de Google Maps para navegador</span>
+    <input id="transport-fast-key" type="password" autoComplete="off" value={apiKey}
+     placeholder="Clave restringida al dominio del CRM" onChange={e=>{invalidate(Boolean(route));setApiKey(e.target.value);saveKey(e.target.value)}}/>
+   </label>
+   <p>Se guarda únicamente en la sesión de esta pestaña. Para rutas automáticas se requieren Maps JavaScript API y Routes API, facturación habilitada y clave restringida por dominio. Google puede aplicar cargos.</p>
+   <a href="https://developers.google.com/maps/documentation/javascript/routes/start" target="_blank" rel="noopener noreferrer">Documentación oficial <ExternalLink size={13}/></a>
+   <p className="transport-fast-key-info">Casariche es únicamente la referencia comercial; la ruta por carretera no garantiza acceso a camiones.</p>
+   <p className="transport-fast-attribution">Las distancias automáticas se consultan con <span translate="no">Google Maps</span> solo al pulsar «Obtener kilómetros».</p>
+  </div>}
+ </section>
+ <section className="transport-fast" aria-label="Calculadora rápida de portes">
   <div className="transport-fast-main">
    <form className="transport-fast-form" onSubmit={calculate}>
     <div className="transport-fast-step-label"><span>01</span><strong>Ruta de transporte</strong></div>
@@ -162,19 +179,6 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
     <p className="transport-fast-caution">Uso interno · Sin IVA ni descarga. Confirmar porte real, accesos y origen de carga antes de ofertar.</p>
    </aside>
   </div>
-  <div className="transport-fast-bottom">
-   <button type="button" className="transport-fast-key-trigger" aria-expanded={showApiKey}
-    onClick={()=>setShowApiKey(v=>!v)}>Configurar Google Maps <ChevronDown size={15} className={showApiKey?'turned':''}/></button>
-  </div>
-  {showApiKey&&<div className="transport-fast-key-panel">
-   <label className="transport-fast-field" htmlFor="transport-fast-key"><span>Clave API de Google Maps para navegador</span>
-    <input id="transport-fast-key" type="password" autoComplete="off" value={apiKey}
-     placeholder="Clave restringida al dominio del CRM" onChange={e=>{invalidate(Boolean(route));setApiKey(e.target.value);saveKey(e.target.value)}}/>
-   </label>
-   <p>Se guarda únicamente en la sesión de esta pestaña. Para rutas automáticas se requieren Maps JavaScript API y Routes API, facturación habilitada y clave restringida por dominio. Google puede aplicar cargos.</p>
-   <a href="https://developers.google.com/maps/documentation/javascript/routes/start" target="_blank" rel="noopener noreferrer">Documentación oficial <ExternalLink size={13}/></a>
-   <p className="transport-fast-key-info">Casariche es únicamente la referencia comercial; la ruta por carretera no garantiza acceso a camiones.</p>
-   <p className="transport-fast-attribution">Las distancias automáticas se consultan con <span translate="no">Google Maps</span> solo al pulsar «Obtener kilómetros».</p>
-  </div>}
- </section>;
+ </section>
+ </>;
 }
