@@ -8,6 +8,7 @@ import {
   UserRound, LogOut, ShieldCheck
 } from 'lucide-react';
 import { useCrm } from './store';
+import { today } from './domain';
 import { AppRoutes } from './views';
 
 type IconType = typeof LayoutDashboard;
@@ -205,7 +206,7 @@ function Header({ onMenu }: { onMenu: () => void }) {
   const [q,setQ]=useState('');
   const [searchOpen,setSearchOpen]=useState(false);
   const [noticeOpen,setNoticeOpen]=useState(false);
-  const urgent=data.tasks.filter(t=>!t.done && t.due<=new Date().toISOString().slice(0,10)).length;
+  const urgent=data.tasks.filter(t=>!t.done && t.due<=today()).length;
   const results=useMemo(()=>{
     const term=q.toLocaleLowerCase('es').trim();
     if(!term) return [];
@@ -264,6 +265,7 @@ function BottomBar() {
   return <nav className="bottom-bar">{items.map(x=><NavLink to={x.to} end={x.to==='/'} key={x.to} className={({isActive})=>isActive?'bottom-active':''}><x.icon size={20}/><span>{x.label}</span></NavLink>)}</nav>;
 }
 export default function App() {
+  const {storageError}=useCrm();
   const [open,setOpen]=useState(false);
   const [collapsed,setCollapsed]=useState(false);
   const [viewExited,setViewExited]=useState(()=>{try{return sessionStorage.getItem(PREVIEW_EXIT_KEY)==='1'}catch{return false}});
@@ -305,7 +307,13 @@ export default function App() {
     <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onTransport ? ' is-transport' : '') + (onFactory ? ' is-factory' : '')}>
       {!onDashboard && !isCompactList && <Header onMenu={()=>setOpen(true)}/>}
       {(onDashboard || isCompactList) && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
-      <main className="app-main" id="main-content"><AppRoutes/></main>
+      <main className="app-main" id="main-content">
+        {storageError&&<div className="crm-storage-alert" role="alert">
+          <strong>Atención: almacenamiento del CRM</strong>
+          <span>{storageError} No introduzcas datos reales hasta resolverlo.</span>
+        </div>}
+        <AppRoutes/>
+      </main>
     </div>
     <BottomBar/>
     <div className="help-chip" title="Ayuda de la plataforma · Conexiones de servidor pendientes"><HelpCircle size={16}/></div>
