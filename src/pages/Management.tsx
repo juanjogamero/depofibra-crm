@@ -126,8 +126,8 @@ export function Agenda(){
             const date=dayKey(n);
             const count=data.tasks.filter(t=>t.due===date&&!t.done).length;
             return <button key={date} type="button" onClick={()=>selectDay(date)}
-              className={'agenda-pro-day'+(date===today()?' is-today':'')+(date===selectedDay&&requestedDay?' is-selected':'')}
-              aria-pressed={date===selectedDay&&Boolean(requestedDay)}
+              className={'agenda-pro-day'+(date===today()?' is-today':'')+(date===selectedDay?' is-selected':'')}
+              aria-pressed={date===selectedDay}
               aria-label={dateText(date)+', '+count+' tareas pendientes'}>
               <span>{n}</span>{count>0&&<small>{count}</small>}
             </button>;
