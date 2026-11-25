@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowRight, ChevronLeft, ChevronRight, BarChart3, CalendarDays, CheckCircle2, CircleAlert,
@@ -188,6 +188,11 @@ export default function ResultsInsights(){
   const route=useParams()['*']||'overview';
   const allowed=['overview','activity','products','channels','zones','quotes','orders','conversion','sources'];
   const view=allowed.includes(route)?route:'overview';
+  const reportContentRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    // Evitar que el informe siguiente herede el scroll interno del anterior.
+    if(reportContentRef.current)reportContentRef.current.scrollTop=0;
+  },[view]);
   const insights=useMemo(()=>{
     const leads=data.opportunities.filter(o=>!o.deletedAt&&dateWithin(o.createdAt,period));
     const quotes=data.quotes.filter(q=>dateWithin(q.createdAt,period));
@@ -288,7 +293,7 @@ export default function ResultsInsights(){
           onClick={()=>goToReport(sections[Math.min(sections.length-1,currentReportIndex+1)].id)}>Siguiente <ChevronRight size={17}/></button>
       </div>
     </div>
-    <div className="ri-active-content">
+    <div className="ri-active-content" ref={reportContentRef}>
 
     {view==='overview'&&<>
       <ResultsExecutiveOverview data={data} period={period} summary={insights} mode="summary"/>
