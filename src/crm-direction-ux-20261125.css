@@ -569,7 +569,7 @@
 @container crm-content (max-width:480px) {
   .page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore),
   .page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
-    left:-7px;
+    left:-20px;
     min-width:30px;
     min-height:32px;
   }
