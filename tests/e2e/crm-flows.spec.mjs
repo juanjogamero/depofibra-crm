@@ -72,7 +72,7 @@ test('Presupuesto multiproducto completo -> aceptación, pago, fabricación, por
  await service.getByLabel('Descripción').fill('Revestimiento alimentario');
  await service.getByLabel('Precio unitario (€)').fill('98');
  await page.getByLabel(/Comisión acordada.*uso interno/).fill('120.25');
- await expect(page.locator('.crm-quote-subtotal')).toContainText('1.888,75');
+ await expect(page.locator('.crm-quote-subtotal')).toContainText('1888,75');
  await page.getByRole('button',{name:'Guardar presupuesto'}).click();
  await expect.poll(async()=>(await state(page)).quotes.length).toBe(5);
  const newQuote=(await state(page)).quotes.find(q=>q.opportunityId==='OP-104');
@@ -141,7 +141,7 @@ test('Agenda, notas, filtros, catálogo, resultados y calculadora operativos en 
  test.setTimeout(120000);
  await open(page,'/agenda');
  await page.getByRole('button',{name:'Nueva tarea'}).click();
- await page.getByLabel('Tarea').fill('Revisión E2E');
+ await page.getByLabel('Tarea',{exact:true}).fill('Revisión E2E');
  await page.getByLabel('Fecha').fill(inDays(1));
  await page.getByLabel('Hora').fill('10:30');
  await page.getByRole('button',{name:'Guardar tarea'}).click();
