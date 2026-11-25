@@ -4,7 +4,8 @@ import {
   LayoutDashboard, Inbox, FileText, UsersRound, PackageCheck, Wallet,
   CalendarDays, BarChart3, ChartPie, Boxes, Settings2, Truck, Search, Bell,
   ChevronDown, Menu, X, ArrowRight, Plus, Factory,
-  Command, HelpCircle, CheckCheck, BellRing, ChevronsLeft, ChevronsRight
+  Command, HelpCircle, CheckCheck, BellRing, ChevronsLeft, ChevronsRight,
+  UserRound, LogOut, ShieldCheck
 } from 'lucide-react';
 import { useCrm } from './store';
 import { AppRoutes } from './views';
@@ -13,19 +14,43 @@ type IconType = typeof LayoutDashboard;
 type NavItem = { label: string; path: string; icon: IconType; badge?: number };
 type Group = { caption: string; links: NavItem[] };
 
+type SidebarProfile = { displayName: string; photo: string };
+const PROFILE_UPDATE_EVENT = 'depofibra-crm-profile-updated';
+const PREVIEW_EXIT_KEY = 'depofibra-crm-preview-closed-v1';
+function sidebarProfile(role: 'direccion' | 'fabrica'): SidebarProfile {
+  const fallback = role === 'direccion' ? 'Dirección' : 'Oficina de Fábrica';
+  try {
+    const value = JSON.parse(localStorage.getItem('depofibra-crm-profile-demo-v1-' + role) || 'null');
+    return {
+      displayName: typeof value?.displayName === 'string' && value.displayName.trim() ? value.displayName.trim() : fallback,
+      photo: typeof value?.photo === 'string' && value.photo.startsWith('data:image/') ? value.photo : ''
+    };
+  } catch { return { displayName: fallback, photo: '' }; }
+}
+
 function Brand() {
   return <NavLink className="brand" to="/" aria-label="Depofibra CRM — Ir al inicio">
     <img className="brand-logo" src="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal.png?v=20261113" srcSet="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal@2x.png?v=20261113 2x" width={512} height={84} alt="Depofibra" decoding="async" />
     <img className="brand-compact-logo" src="https://depofibra.com/images/depofibra_brand_assets/favicon-depofibra-humo-v6-192.png" alt="" width={36} height={36} decoding="async" />
   </NavLink>;
 }
-function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void }) {
+function Sidebar({ mobileOpen, onClose, collapsed, onToggle, onSignOut }: { mobileOpen: boolean; onClose: () => void; collapsed: boolean; onToggle: () => void; onSignOut: () => void }) {
   const { role, data } = useCrm();
   const location = useLocation();
   const navRef = useRef<HTMLDivElement>(null);
   const [activePosition, setActivePosition] = useState<{ y: number; height: number; x: number; width: number; nested: boolean } | null>(null);
   const [resultsExpanded,setResultsExpanded] = useState(location.pathname.startsWith('/resultados'));
+  const [accountOpen,setAccountOpen] = useState(false);
+  const [profile,setProfile] = useState<SidebarProfile>(()=>sidebarProfile(role));
   useEffect(()=>{if(location.pathname.startsWith('/resultados'))setResultsExpanded(true)},[location.pathname]);
+  useEffect(()=>{
+    const update=()=>setProfile(sidebarProfile(role));
+    update();
+    window.addEventListener(PROFILE_UPDATE_EVENT,update);
+    window.addEventListener('storage',update);
+    return ()=>{window.removeEventListener(PROFILE_UPDATE_EVENT,update);window.removeEventListener('storage',update)};
+  },[role]);
+  useEffect(()=>setAccountOpen(false),[location.pathname]);
 
   // Medimos la opción seleccionada y movemos una única pastilla entre enlaces.
   // Esto evita el parpadeo de dos fondos al cambiar de página.
@@ -128,13 +153,25 @@ function Sidebar({ mobileOpen, onClose, collapsed, onToggle }: { mobileOpen: boo
           </NavLink>)}
         </div>)}
       </div>
-      <div className="sidebar-bottom">
-        <NavLink to="/configuracion/perfil" title="Cuenta y configuración" aria-label="Cuenta y configuración" onClick={onClose}
-          className={({isActive})=>'nav-link settings-footer-link'+(isActive||location.pathname.startsWith('/configuracion')?' active':'')}>
-          <Settings2 size={18}/><span>Cuenta y configuración</span>
-        </NavLink>
-        <div className="sidebar-note"><span className="status-light"/><div><strong>En desarrollo</strong><small>Datos locales · VPS pendiente</small></div></div>
-        
+      <div className="sidebar-bottom sidebar-account-bottom">
+        {accountOpen&&<nav id="sidebar-account-menu" className="sidebar-account-menu" aria-label="Opciones de la cuenta">
+          <NavLink to="/configuracion/perfil" onClick={()=>{setAccountOpen(false);onClose()}}><UserRound size={17}/> Mi perfil</NavLink>
+          <NavLink to="/configuracion/seguridad" onClick={()=>{setAccountOpen(false);onClose()}}><ShieldCheck size={17}/> Acceso y seguridad</NavLink>
+          <NavLink to="/configuracion/perfil" onClick={()=>{setAccountOpen(false);onClose()}}><Settings2 size={17}/> Configuración</NavLink>
+        </nav>}
+        <div className="sidebar-account-row">
+          <button type="button" className="sidebar-account-trigger" title="Abrir opciones de cuenta"
+            aria-label="Abrir opciones de cuenta" aria-expanded={accountOpen}
+            aria-controls="sidebar-account-menu" onClick={()=>setAccountOpen(v=>!v)}>
+            <span className="sidebar-account-avatar" aria-hidden="true">
+              {profile.photo?<img src={profile.photo} alt=""/>:<UserRound size={21}/>}</span>
+            <span className="sidebar-account-name"><strong>{profile.displayName}</strong>
+              <small>{role==='direccion'?'Administrador':'Colaborador'}</small></span>
+            <ChevronDown size={17} className={'sidebar-account-arrow'+(accountOpen?' is-open':'')}/>
+          </button>
+          <button type="button" className="sidebar-signout" title="Cerrar sesión" aria-label="Cerrar sesión"
+            onClick={onSignOut}><LogOut size={19}/></button>
+        </div>
       </div>
     </aside>
   </>;
@@ -212,6 +249,17 @@ function BottomBar() {
 export default function App() {
   const [open,setOpen]=useState(false);
   const [collapsed,setCollapsed]=useState(false);
+  const [viewExited,setViewExited]=useState(()=>{try{return sessionStorage.getItem(PREVIEW_EXIT_KEY)==='1'}catch{return false}});
+  const signOut=()=>{
+    // No existen sesiones autenticadas en esta versión. No afirmar su revocación.
+    if(!window.confirm('¿Salir de esta vista del CRM? No hay todavía inicio de sesión real; esta acción solo cierra la vista en este navegador, sin borrar tus datos.'))return;
+    try{sessionStorage.setItem(PREVIEW_EXIT_KEY,'1')}catch{/* Almacenamiento de sesión no disponible */}
+    setOpen(false);setViewExited(true);
+  };
+  const returnToCrm=()=>{
+    try{sessionStorage.removeItem(PREVIEW_EXIT_KEY)}catch{/* Almacenamiento de sesión no disponible */}
+    setViewExited(false);
+  };
   const location=useLocation();
   useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});document.querySelector('.app-main')?.scrollTo({top:0,behavior:'instant'});},[location.pathname]);
   useEffect(()=>{const listener=(e:KeyboardEvent)=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.querySelector<HTMLInputElement>('.global-search input')?.focus();}};window.addEventListener('keydown',listener);return()=>window.removeEventListener('keydown',listener)},[]);
@@ -229,8 +277,14 @@ export default function App() {
   const onTransport = location.pathname === '/transporte';
   const onFactory = location.pathname === '/fabrica';
   const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList || onResultsList || onFinance || onCatalog || onConfiguration || onTransport || onFactory;
+  if(viewExited)return <div className="crm-exit-screen"><main className="crm-exit-card">
+    <img className="crm-exit-brand" src="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal.png?v=20261113" alt="Depofibra"/>
+    <h1>Has salido de esta vista</h1>
+    <p>El CRM está oculto en esta pestaña. El cierre seguro de sesiones estará disponible cuando se active el acceso con usuarios y contraseñas.</p>
+    <button type="button" onClick={returnToCrm}>Volver al CRM</button>
+  </main></div>;
   return <div className="app-root">
-    <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)}/>
+    <Sidebar mobileOpen={open} onClose={()=>setOpen(false)} collapsed={collapsed} onToggle={()=>setCollapsed(x=>!x)} onSignOut={signOut}/>
     <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onTransport ? ' is-transport' : '') + (onFactory ? ' is-factory' : '')}>
       {!onDashboard && !isCompactList && <Header onMenu={()=>setOpen(true)}/>}
       {(onDashboard || isCompactList) && <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>}
