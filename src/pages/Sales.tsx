@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, MessageCircle, Package, Plus, Search, Shield, Sparkles, Truck, ExternalLink, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleAlert, Download, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, ExternalLink, X, Pencil, Trash2, RotateCcw, Archive, ClipboardCheck } from 'lucide-react';
 import { useCrm } from '../store';
 import OpportunityAttributeFields from './OpportunityAttributeFields';
 import { CHANNELS, sourceChannel, type OpportunityStatus, type Channel, type QuoteStatus, decimal, money, dateText, today } from '../domain';
-import { ActionLink, Back, Button, CopyButton, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
+import { ActionLink, Back, Button, Empty, Field, Info, Initials, Modal, NoteDemo, PageHeader, Panel, Pill, Status, Timeline } from '../ui';
 
 const statuses: OpportunityStatus[]=['Nueva','Cualificación','Por presupuestar','Presupuesto enviado','Seguimiento','Aceptada','Perdida'];
 const channels: Channel[]=CHANNELS;
@@ -15,7 +15,7 @@ type OpportunitySort = 'Recientes'|'Antiguas'|'Próximo seguimiento';
 const formatRangeDate=(iso:string)=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T12:00:00'));
 
 export function Opportunities(){
- const {data,addOpportunity}=useCrm();
+ const {data,addOpportunity,restoreOpportunity}=useCrm();
  const nav=useNavigate();
  const [search,setSearch]=useState('');
  const [quick,setQuick]=useState<OpportunityQuickFilter>('Todas');
@@ -28,6 +28,7 @@ export function Opportunities(){
  const [filtersOpen,setFiltersOpen]=useState(false);
  const [datesOpen,setDatesOpen]=useState(false);
  const [modal,setModal]=useState(false);
+ const [showDeleted,setShowDeleted]=useState(false);
  const [form,setForm]=useState({name:'',channel:'WhatsApp' as Channel,originChannel:'' as Channel|'',contact:'',alias:'',conversation:'',product:'Depósito vertical base plana',capacity:'',destination:'',message:'',nextDate:today()});
  const [quickCategoryId,setQuickCategoryId]=useState('');
  const [quickAnswers,setQuickAnswers]=useState<Record<string,string>>({});
@@ -45,7 +46,7 @@ export function Opportunities(){
  ];
  const query=search.trim().toLocaleLowerCase('es-ES');
  const list=data.opportunities.filter(o=>
-   quickMatch(o.status,quick)
+   Boolean(o.deletedAt)===showDeleted && quickMatch(o.status,quick)
    &&(status==='Todos los estados'||o.status===status)
    &&(channel==='Todos los canales'||sourceChannel(o)===channel)
    &&(!overdueOnly||isOverdue(o))
@@ -95,13 +96,14 @@ export function Opportunities(){
        <button type="button" className="op-new-button" onClick={()=>setModal(true)}><Plus size={17}/>Nueva solicitud</button>
      </div>
    </div>
+   {showDeleted&&<div className="crm-trash-notice"><Archive size={16}/> Oportunidades apartadas: puedes recuperarlas sin afectar sus presupuestos.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar oportunidades por estado">
      {groups.map(g=><button type="button" key={g.id}
        className={'op-phase-tab op-phase-'+g.tone+(quick===g.id?' is-active':'')}
        aria-pressed={quick===g.id}
        onClick={()=>{setQuick(g.id);setStatus('Todos los estados')}}>
        <span>{g.label}</span>
-       <strong>{data.opportunities.filter(o=>quickMatch(o.status,g.id)).length}</strong>
+       <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted&&quickMatch(o.status,g.id)).length}</strong>
      </button>)}
    </nav>
    <div className="op-searchbar">
@@ -176,13 +178,14 @@ export function Opportunities(){
              <td className="op-col-city"><span className="op-location" title={o.destination}>{o.destination||'Por concretar'}</span></td>
              <td className="op-col-date"><time dateTime={received}>{dateText(received)}</time></td>
              <td className="op-col-status"><span className={'op-status-pill is-'+tone} title={o.status}>{badge}</span></td>
-             <td className="op-col-open"><Link className="op-row-open" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+o.name}><ChevronRight size={17}/></Link></td>
+             <td className="op-col-open">{showDeleted?<button type="button" className="crm-trash-restore" title="Recuperar oportunidad" aria-label={'Recuperar '+o.name} onClick={e=>{e.stopPropagation();restoreOpportunity(o.id)}}><RotateCcw size={17}/></button>:<Link className="op-row-open" to={'/oportunidades/'+o.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir ficha de '+o.name}><ChevronRight size={17}/></Link>}</td>
            </tr>;
          })}</tbody>
        </table>
        {!list.length&&<Empty title="No hay solicitudes" body="Prueba otra búsqueda o cambia los filtros."/>}
      </div>
-     <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.length}</strong> solicitudes</footer>
+     <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted).length}</strong> solicitudes
+      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters()}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Se guarda en este navegador; no introduzcas información sensible" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
    <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Empresa o referencia de consulta"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
