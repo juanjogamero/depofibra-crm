@@ -26,15 +26,12 @@
   display:grid;
   grid-template-columns:minmax(305px,345px) minmax(0,1fr);
   align-items:start;
-  gap:17px;
-  margin-bottom:0;
+  gap:16px;
+  margin-bottom:16px;
   flex:none;
 }
 .page-agenda.agenda-pro .agenda-pro-workspace {
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  gap:16px;
+  display:none;
 }
 .page-agenda.agenda-pro :is(.agenda-pro-calendar,.agenda-pro-notes,.agenda-pro-tasks) {
   border-radius:11px;
@@ -130,8 +127,8 @@
   overscroll-behavior:contain;
 }
 .page-agenda.agenda-pro .agenda-pro-task-row {
-  min-height:65px;
-  padding:12px 19px;
+  min-height:58px;
+  padding:9px 19px;
   gap:12px;
   align-items:center;
 }
@@ -154,13 +151,21 @@
 .page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-heading {
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:5px;
   align-items:stretch;
   min-height:0;
-  padding:15px 17px 13px;
+  padding:10px 15px 9px;
 }
 .page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-month {
   justify-content:flex-start;
+}
+.page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-month button {
+  min-height:29px;
+  min-width:29px;
+}
+.page-agenda.agenda-pro .agenda-pro-calendar .agenda-pro-heading p {
+  font-size:12px;
+  line-height:1.35;
 }
 .page-agenda.agenda-pro .agenda-pro-weekdays,
 .page-agenda.agenda-pro .agenda-pro-days {
@@ -168,8 +173,8 @@
   gap:2px;
 }
 .page-agenda.agenda-pro :is(.agenda-pro-day,.agenda-pro-blank) {
-  min-height:30px;
-  height:30px;
+  min-height:28px;
+  height:28px;
   font-size:12px;
   padding:0 2px;
 }
@@ -181,7 +186,7 @@
   font-size:12.5px;
 }
 .page-agenda.agenda-pro .agenda-pro-day-details {
-  padding:12px 15px 13px;
+  padding:10px 15px 10px;
 }
 @container crm-content (max-width:930px) {
   .page-agenda.agenda-pro .agenda-pro-layout {
@@ -192,10 +197,7 @@
     width:min(100%,345px);
     max-width:345px;
   }
-  .page-agenda.agenda-pro .agenda-pro-workspace {
-    gap:15px;
-  }
-  .page-agenda.agenda-pro .agenda-pro-note-list {
+   .page-agenda.agenda-pro .agenda-pro-note-list {
     max-height:300px;
   }
 }
@@ -231,8 +233,8 @@
     padding:10px 14px;
   }
   .page-agenda.agenda-pro .agenda-pro-task-row {
-    min-height:65px;
-    padding:12px 14px;
+    min-height:61px;
+    padding:10px 14px;
   }
   .page-agenda.agenda-pro .agenda-pro-task-row time {
     margin-left:0;
