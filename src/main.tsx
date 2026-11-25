@@ -40,6 +40,7 @@ import './quote-items-layout.css';
 import './qa-hardening.css';
 import './topbar-removal.css';
 import './agenda-results-minimal.css';
+import './catalog-navigation.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
