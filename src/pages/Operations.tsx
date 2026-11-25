@@ -573,28 +573,135 @@ function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
 }
 
 export function OrderDetail(){
- const {id}=useParams();const [params]=useSearchParams();const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
- const o=data.orders.find(x=>x.id===id);const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));const [payment,setPayment]=useState(''),[payMode,setPayMode]=useState(''),[commission,setCommission]=useState(''),[note,setNote]=useState('');
+ const {id}=useParams();
+ const [params]=useSearchParams();
+ const {data,role,verifyPayment,updateOrder,addCommissionPayment}=useCrm();
+ const o=data.orders.find(x=>x.id===id);
+ const [tab,setTab]=useState(params.get('tab')||(role==='fabrica'?'Fabricación':'Resumen'));
+ const [payment,setPayment]=useState('');
+ const [payMode,setPayMode]=useState<Order['paymentMode']>('Anticipo verificado');
+ const [paymentChecked,setPaymentChecked]=useState(false);
+ const [commission,setCommission]=useState('');
+ const [note,setNote]=useState('');
+ const [paymentError,setPaymentError]=useState('');
  if(!o)return <div className="page"><Back to="/pedidos" label="Volver a pedidos"/><Empty title="Pedido no encontrado" body="Consulta el listado de pedidos."/></div>;
+ const paid=o.paymentMode!=='Pendiente'&&o.advanceReceived>0;
  const balance=Math.max(0,o.commission-o.commissionPaid);
- const tabs=role==='fabrica'?['Resumen','Fabricación','Actividad','Comisión (consulta)']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
+ const payable=o.factory==='Entregado';
+ const paymentAmount=Number(payment);
+ const canVerify=!paid&&paymentChecked&&payment.trim()!==''&&Number.isFinite(paymentAmount)
+   &&paymentAmount>0&&paymentAmount<=o.amount
+   &&(payMode!=='Pago completo verificado'||Math.abs(paymentAmount-o.amount)<0.01);
+ const tabs=role==='fabrica'?['Resumen','Formalización','Fabricación','Actividad']:['Resumen','Formalización','Fabricación','Comisiones','Actividad'];
  const selected=tabs.includes(tab)?tab:'Resumen';
- return <div className="page page-crm-record"><Back to="/pedidos" label="Volver a pedidos"/><div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div><h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p><div className="record-meta"><Status value={o.factory}/><span>·</span><Status value={o.paymentMode}/></div></div><Pill>{role==='fabrica'?'Gestión técnica':'Ficha de pedido'}</Pill></div>
- <div className="order-progress">{stages.slice(1).map((s,i)=><div key={s} className={'progress-step '+(stages.indexOf(o.factory)>=i+1?'is-done':'')}><span>{i+1}</span><small>{s}</small></div>)}</div>
- <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} onClick={()=>setTab(t)}>{t}</button>)}</div>
- {selected==='Resumen'&&<div className="detail-grid"><Panel title="Información general"><div className="info-grid"><Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/><Info label="Capacidad" value={o.capacity}/><Info label="Fabricación" value={o.factory}/><Info label="Cliente" value={o.buyerName}/><Info label="Entrega" value={dateText(o.deliveryDate)}/></div><h4 className="minor-title">Notas de seguimiento</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
- <div className="right-stack"><Panel title="Estado operativo"><div className="stage-hero"><span className="stage-symbol"><Factory size={25}/></span><div><span>Situación en Fábrica</span><strong>{o.factory}</strong></div></div><div className="summary-line"><span>Formalización</span><Status value={o.paymentMode}/></div><div className="summary-line"><span>Fecha de entrega</span><strong>{dateText(o.deliveryDate)}</strong></div><div className="inline-tip"><Truck size={16}/> Fábrica coordina las conexiones, color, medidas finales y entrega.</div></Panel>
- {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div><div className="summary-line"><span>Ingreso inicial verificado</span><strong>{money(o.advanceReceived)}</strong></div><div className="summary-line"><span>Comisión pendiente</span><strong>{money(balance)}</strong></div></Panel>}</div></div>}
- {selected==='Formalización'&&role==='direccion'&&<div className="detail-grid"><Panel title="Comprobación del ingreso"><p className="muted">El documento oficial lo emite Fábrica. Registra únicamente pagos ya comprobados; no hay verificación bancaria integrada.</p><div className="form-grid"><Field label="Forma de pago"><select value={payMode||o.paymentMode} onChange={e=>setPayMode(e.target.value)}><option>Pendiente</option><option>Anticipo verificado</option><option>Pago completo verificado</option></select></Field><Field label="Importe comprobado (€)"><input type="number" min="0" step=".01" value={payment} onChange={e=>setPayment(e.target.value)} placeholder={String(o.advanceReceived)}/></Field></div><Button onClick={()=>{const mode=(payMode||o.paymentMode) as Order['paymentMode'];const amount=Number(payment||o.advanceReceived);if(mode!=='Pendiente'&&amount>0)verifyPayment(o.id,mode,amount)}}><CheckCircle2 size={16}/>Anotar verificación</Button><div className="inline-tip"><Check size={16}/> Solo tras verificar el anticipo/pago se crea el cliente comprador.</div></Panel>
- <Panel title="Documentación preparada por oficina"><div className="info-grid"><Info label="Presupuesto" value={o.quoteId||'Operación de ejemplo'}/><Info label="Proforma" value="Oficina del fabricante"/><Info label="Factura" value="Oficina del fabricante"/><Info label="Archivos PDF" value="Pendiente de almacenamiento privado"/></div><NoteDemo/></Panel></div>}
- {selected==='Fabricación'&&<div className="detail-grid"><Panel title="Gestión técnica y producción"><div className="form-stack"><FactoryWorkflow order={o} updateOrder={updateOrder}/>
- <div className="crm-factory-edit-heading">Datos técnicos y de entrega</div><Field label="Fecha de entrega"><input type="date" value={o.deliveryDate} onChange={e=>updateOrder(o.id,{deliveryDate:e.target.value},'Fecha de entrega actualizada')}/></Field><Field label="Color"><input value={o.color} onChange={e=>updateOrder(o.id,{color:e.target.value})}/></Field><Field label="Conexiones / tomas"><textarea rows={3} value={o.connections} onChange={e=>updateOrder(o.id,{connections:e.target.value})}/></Field></div><div className="hint-row"><Factory size={17}/> La oficina de Fábrica confirma estos detalles con el comprador.</div></Panel>
- <Panel title="Registrar avance o incidencia"><form onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){updateOrder(o.id,{notes:note},note.trim());setNote('')}}} className="form-stack"><Field label="Observación"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)} placeholder="Ej. Confirmadas las bocas; entrega coordinada..."/></Field><Button type="submit"><Plus size={16}/>Guardar nota técnica</Button></form><div className="inline-tip"><CheckCircle2 size={16}/> Los avances se añaden al historial.</div></Panel></div>}
- {(selected==='Comisiones'||selected==='Comisión (consulta)')&&<div className="detail-grid"><Panel title="Liquidación comercial"><div className="big-balance">{money(balance)}<span>pendiente de abonar</span></div><div className="summary-line"><span>Comisión acordada</span><strong>{money(o.commission)}</strong></div><div className="summary-line"><span>Comisión abonada</span><strong>{money(o.commissionPaid)}</strong></div><div className="commission-meter"><span style={{width:(o.commission?100*o.commissionPaid/o.commission:0)+'%'}}/></div><Pill tone={balance?'amber':'green'}>{balance?'Pendiente / parcial':'Pagada'}</Pill></Panel>
- <Panel title={role==='direccion'?'Registrar cobro parcial o total':'Acceso de consulta'}>{role==='direccion'?<div className="form-stack"><p className="muted">Cada ingreso actualiza el saldo sin modificar el importe total acordado.</p><Field label="Importe recibido (€)"><input type="number" min=".01" step=".01" max={balance} value={commission} onChange={e=>setCommission(e.target.value)}/></Field><Button disabled={!(Number(commission)>0&&Number(commission)<=balance)} onClick={()=>{addCommissionPayment(o.id,Number(commission));setCommission('')}}><CreditCard size={16}/>Registrar cobro</Button></div>:<div className="inline-tip"><Shield size={18}/> Fábrica ve esta liquidación, pero no puede editarla ni marcarla como pagada.</div>}</Panel></div>}
- {selected==='Actividad'&&<div className="detail-grid"><Panel title="Cronología del pedido"><Timeline items={o.activity}/></Panel><Panel title="Seguimiento posventa"><div className="note-area">Después de la entrega seguiremos teniendo el historial y podremos planificar una llamada posventa.</div><Link to="/agenda" className="btn btn-outline"><CalendarPlus size={16}/>Abrir agenda</Link></Panel></div>}
+ const confirmPayment=()=>{
+   if(!canVerify)return;
+   if(!window.confirm('¿Has comprobado realmente el ingreso de '+money(paymentAmount)+' y quieres dejar constancia?'))return;
+   verifyPayment(o.id,payMode,paymentAmount,role==='fabrica'?'Oficina':'Dirección');
+   setPaymentError('');setPaymentChecked(false);setPayment('');
+ };
+ return <div className="page page-crm-record crm-order-office">
+  <Back to="/pedidos" label="Volver a pedidos"/>
+  <div className="record-hero"><div><div className="eyebrow">{o.id} · {dateText(o.createdAt)}</div>
+   <h1>{o.buyerName}</h1><p>{o.product} · {o.capacity}</p>
+   <div className="record-meta"><Status value={o.factory}/><span>·</span>
+     <span className={'crm-order-payment-chip'+(paid?' is-paid':'')}>{paid?<CheckCircle2 size={14}/>:<Clock3 size={14}/>} {paid?'Primer pago verificado':'Primer pago pendiente'}</span>
+   </div></div><Pill>{role==='fabrica'?'Gestión de oficina':'Ficha de pedido'}</Pill>
+  </div>
+  <div className="detail-tabs">{tabs.map(t=><button className={selected===t?'selected':''} key={t} type="button" onClick={()=>setTab(t)}>{t}</button>)}</div>
+  {selected==='Resumen'&&<div className="detail-grid">
+   <Panel title="Información general"><div className="info-grid">
+    <Info label="Referencia" value={o.id}/><Info label="Producto" value={o.product}/>
+    <Info label="Capacidad" value={o.capacity}/><Info label="Fase" value={o.factory}/>
+    <Info label="Cliente" value={o.buyerName}/><Info label="Entrega prevista" value={dateText(o.deliveryDate)}/>
+    <Info label="Primer pago" value={paid?'Verificado':'Pendiente'}/><Info label="Entrega efectiva" value={o.factory==='Entregado'?(o.deliveredAt?dateText(o.deliveredAt.slice(0,10)):'Fecha no registrada'):'Pendiente'}/>
+   </div><h4 className="minor-title">Anotaciones</h4><div className="note-area">{o.notes||'Sin observaciones registradas.'}</div></Panel>
+   <div className="right-stack"><Panel title="Siguiente paso">
+     <div className="crm-office-summary-status"><span className={paid?'is-paid':'is-pending'}>{paid?<CheckCircle2 size={18}/>:<Clock3 size={18}/>}</span>
+      <div><strong>{paid?'Primer pago comprobado':'Pendiente de comprobar pago'}</strong>
+       <p>{!paid?'La oficina o Dirección debe confirmar el ingreso antes de definir el depósito.'
+         :o.factory==='Entregado'?'Entrega completada. Revisar comisión pendiente.'
+         :o.factory==='En tránsito'?'Confirmar la entrega con el cliente o transportista.'
+         :o.factory==='Preparado'?'Coordinar y confirmar el transportista.'
+         :o.factory==='En fabricación'?'Esperar confirmación de fabricación terminada.'
+         :'Hablar con el cliente y fijar características y fecha estimada.'}</p></div></div>
+     <button type="button" className="crm-office-link" onClick={()=>setTab(!paid?'Formalización':'Fabricación')}>Abrir siguiente paso <ChevronRight size={16}/></button>
+   </Panel>
+   {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div>
+    <div className="summary-line"><span>Ingreso inicial comprobado</span><strong>{money(o.advanceReceived)}</strong></div>
+    <div className="summary-line"><span>Comisión</span><strong>{payable?money(balance)+' · pendiente de cobro':'No exigible hasta la entrega'}</strong></div>
+   </Panel>}</div>
+  </div>}
+  {selected==='Formalización'&&<div className="detail-grid">
+   <Panel title="Comprobación del primer pago">
+    {paid?<div className="crm-payment-success" role="status">
+      <CheckCircle2 size={24}/><div><strong>Primer pago verificado</strong>
+      <p>Ingreso anotado: <b>{money(o.advanceReceived)}</b> · {o.paymentMode}</p>
+      <small>{o.paymentVerifiedAt?'Registrado el '+dateText(o.paymentVerifiedAt.slice(0,10)):'Verificación histórica sin fecha exacta registrada'}{o.paymentVerifiedBy?' · '+o.paymentVerifiedBy:''}</small>
+      </div></div>:
+     <div className="crm-payment-form">
+      <p className="muted">Confirma aquí únicamente un ingreso realmente comprobado. No se verifica con el banco automáticamente.</p>
+      <div className="form-grid">
+       <Field label="Tipo de pago"><select value={payMode} onChange={e=>{setPayMode(e.target.value as Order['paymentMode']);setPaymentError('')}}>
+         <option value="Anticipo verificado">Anticipo verificado</option><option value="Pago completo verificado">Pago completo verificado</option>
+       </select></Field>
+       <Field label="Importe realmente comprobado (€)"><input type="number" required inputMode="decimal" min=".01" max={o.amount} step=".01" value={payment}
+        onChange={e=>{setPayment(e.target.value);setPaymentError('')}} placeholder="Introduce el importe confirmado"/></Field>
+      </div>
+      <label className="crm-payment-assertion"><input type="checkbox" checked={paymentChecked} onChange={e=>setPaymentChecked(e.target.checked)}/>
+       He comprobado el ingreso con el medio de pago correspondiente.</label>
+      {paymentError&&<p role="alert" className="crm-office-error">{paymentError}</p>}
+      <button type="button" className="crm-office-primary" disabled={!canVerify} onClick={confirmPayment}><CheckCircle2 size={16}/>Confirmar primer pago</button>
+      <p className="crm-inline-help">Al guardar, se desbloqueará la preparación del depósito. No se volverá a registrar el mismo primer pago.</p>
+     </div>}
+   </Panel>
+   <Panel title="Documentación gestionada por oficina"><div className="info-grid">
+     <Info label="Presupuesto" value={o.quoteId||'Sin presupuesto vinculado'}/>
+     <Info label="Proforma" value="Oficina del fabricante"/>
+     <Info label="Factura" value="Oficina del fabricante"/>
+     <Info label="PDF" value="Almacenamiento privado pendiente"/>
+   </div><p className="crm-inline-help">Los documentos oficiales son externos al CRM y sus archivos aún no están almacenados aquí.</p>
+   </Panel>
+  </div>}
+  {selected==='Fabricación'&&<div className="detail-grid crm-order-factory-grid">
+   <Panel title="Seguimiento de fabricación y entrega">
+     <FactoryWorkflow key={o.id} order={o} updateOrder={updateOrder} onPayment={()=>setTab('Formalización')}/>
+   </Panel>
+   <Panel title="Anotaciones e incidencias de oficina">
+     <form className="form-stack" onSubmit={(e:FormEvent)=>{e.preventDefault();if(note.trim()){
+       updateOrder(o.id,{notes:note.trim()},'Nueva anotación de oficina: '+note.trim());setNote('');
+     }}}>
+      <Field label="Comentario de seguimiento"><textarea rows={5} value={note} onChange={e=>setNote(e.target.value)}
+        placeholder="Incidencias, detalles acordados o cambios comunicados por fábrica..."/></Field>
+      <Button type="submit" disabled={!note.trim()}><Plus size={16}/>Guardar anotación</Button>
+     </form>
+     <div className="crm-office-lastnotes"><strong>Última anotación</strong><p>{o.notes||'No hay anotaciones.'}</p></div>
+     <div className="crm-office-disclaimer">El histórico identifica cambios hechos en la interfaz, pero no constituye auditoría de usuarios autenticados.</div>
+   </Panel>
+  </div>}
+  {selected==='Comisiones'&&role==='direccion'&&<div className="detail-grid">
+   <Panel title="Liquidación comercial"><div className="big-balance">{money(balance)}
+     <span>{payable?'pendiente de liquidar tras la entrega':'no exigible hasta la entrega'}</span></div>
+     <div className="summary-line"><span>Comisión acordada</span><strong>{money(o.commission)}</strong></div>
+     <div className="summary-line"><span>Comisión registrada como cobrada</span><strong>{money(o.commissionPaid)}</strong></div>
+     <div className="commission-meter"><span style={{width:(o.commission?100*o.commissionPaid/o.commission:0)+'%'}}/></div>
+     <Pill tone={balance<=0?'green':payable?'amber':'neutral'}>{balance<=0?'Pagada':payable?'Pendiente de cobro':'Esperando entrega'}</Pill>
+   </Panel>
+   <Panel title="Registrar cobro de comisión">
+    {payable?<div className="form-stack"><p className="muted">Registra únicamente comisiones cobradas después de confirmar la entrega.</p>
+      <Field label="Importe recibido (€)"><input type="number" min=".01" step=".01" max={balance} value={commission} onChange={e=>setCommission(e.target.value)}/></Field>
+      <Button disabled={!(Number(commission)>0&&Number(commission)<=balance)} onClick={()=>{addCommissionPayment(o.id,Number(commission));setCommission('')}}><CreditCard size={16}/>Registrar cobro</Button>
+    </div>:<div className="crm-office-gate"><Clock3 size={20}/><p>La comisión se cobrará cuando el pedido figure como entregado. Hasta entonces no se puede anotar un nuevo cobro.</p></div>}
+   </Panel>
+  </div>}
+  {selected==='Actividad'&&<div className="detail-grid">
+   <Panel title="Cronología del pedido"><Timeline items={o.activity}/></Panel>
+   <Panel title="Seguimiento posventa"><div className="note-area">Después de la entrega se conserva el historial para coordinar el cobro de la comisión y la atención posventa.</div>
+     <Link to="/agenda" className="btn btn-outline"><CalendarPlus size={16}/>Abrir agenda</Link></Panel>
+  </div>}
  </div>;
 }
+
 export function Commissions(){
  const {data,addCommissionPayment,updateOrder}=useCrm();
  const navigate=useNavigate();
