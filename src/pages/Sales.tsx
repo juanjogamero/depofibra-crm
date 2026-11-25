@@ -98,7 +98,7 @@ export function Opportunities(){
    </div>
    {showDeleted&&<div className="crm-trash-notice"><Archive size={16}/> Oportunidades apartadas: puedes recuperarlas sin afectar sus presupuestos.</div>}
    <nav className="op-phase-tabs" aria-label="Filtrar oportunidades por estado">
-     {groups.map(g=><button type="button" key={g.id}
+     {groups.filter(g=>showDeleted||g.id!=='Perdida').map(g=><button type="button" key={g.id}
        className={'op-phase-tab op-phase-'+g.tone+(quick===g.id?' is-active':'')}
        aria-pressed={quick===g.id}
        onClick={()=>{setQuick(g.id);setStatus('Todos los estados')}}>
@@ -185,7 +185,7 @@ export function Opportunities(){
        {!list.length&&<Empty title="No hay solicitudes" body="Prueba otra búsqueda o cambia los filtros."/>}
      </div>
      <footer className="op-table-footer">Mostrando <strong>{list.length}</strong> de <strong>{data.opportunities.filter(o=>Boolean(o.deletedAt)===showDeleted).length}</strong> solicitudes
-      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters()}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
+      <button className="crm-trash-link" type="button" onClick={()=>{setShowDeleted(!showDeleted);clearFilters();setQuick('Todas')}}>{showDeleted?'Volver a oportunidades':'Apartadas ('+data.opportunities.filter(o=>o.deletedAt).length+')'} <Archive size={15}/></button></footer>
    </section>
  {modal&&<Modal title="Registrar solicitud" subtitle="Se guarda en este navegador; no introduzcas información sensible" onClose={()=>setModal(false)}><form className="modal-form" onSubmit={save}>
    <div className="form-grid"><Field label="Nombre o identificador *"><input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Ej. Empresa o referencia de consulta"/></Field><Field label="Canal de contacto"><select value={form.channel} onChange={e=>setForm({...form,channel:e.target.value as Channel})}>{channels.map(c=><option key={c}>{c}</option>)}</select></Field><Field label="Origen de captación"><select value={form.originChannel} onChange={e=>setForm({...form,originChannel:e.target.value as Channel|''})}><option value="">No identificado · usar canal de contacto</option>{channels.map(c=><option key={c}>{c}</option>)}</select></Field>
@@ -255,15 +255,17 @@ export function OpportunityDetail(){
  const [draft,setDraft]=useState({
    name:'',contact:'',alias:'',channel:'Web' as Channel,originChannel:'' as Channel|'',
    destination:'',product:'',capacity:'',conversation:'',message:'',status:'Nueva' as OpportunityStatus,
-   nextAction:'',nextDate:''
+   nextAction:'',nextDate:'',lostReason:''
  });
  const beginEdit=()=>{if(!o)return;setDraft({
    name:o.name,contact:o.contact||'',alias:o.alias||'',channel:o.channel,originChannel:o.originChannel||'',
    destination:o.destination||'',product:o.product,capacity:o.capacity||'',conversation:o.conversation||'',
-   message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||''
+   message:o.message||'',status:o.status,nextAction:o.nextAction||'',nextDate:o.nextDate||'',lostReason:o.lostReason||''
  });setEditing(true)};
  const saveEdit=(event:FormEvent)=>{event.preventDefault();if(!o||!draft.name.trim()||!draft.product.trim())return;
-   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});addActivity(o.id,'Datos de oportunidad actualizados');setEditing(false);
+   updateOpportunity(o.id,{...draft,name:draft.name.trim(),product:draft.product.trim(),originChannel:draft.originChannel||undefined});
+   addActivity(o.id,draft.status==='Perdida'?'Oportunidad perdida · motivo: '+(draft.lostReason||'No indicado'):'Datos de oportunidad actualizados');
+   setEditing(false);if(draft.status==='Perdida')nav('/oportunidades');
  };
  if(!o)return <Missing to="/oportunidades"/>;
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
@@ -283,7 +285,16 @@ export function OpportunityDetail(){
   <div className="info-grid">{o.attributeAnswers.map(a=><Info key={a.attributeId} label={a.label} value={a.value}/>)}</div>
  </>}
  <h4 className="minor-title">Necesidad del comprador</h4><div className="note-area">{o.message||'No hay notas todavía.'}</div>{o.conversation&&/^https?:\/\//.test(o.conversation)&&<a className="link-action" target="_blank" rel="noopener noreferrer" href={o.conversation}>Abrir conversación <ExternalLink size={14}/></a>}</Panel>
- <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select value={o.status} onChange={e=>updateOpportunity(o.id,{status:e.target.value as OpportunityStatus})}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
+ <div className="right-stack"><Panel title="Seguimiento comercial"><div className="form-stack"><Field label="Estado comercial"><select disabled={Boolean(o.deletedAt)} value={o.status} onChange={e=>{
+     const next=e.target.value as OpportunityStatus;
+     if(next==='Perdida'){
+       if(!window.confirm('¿Marcar esta oportunidad como perdida y enviarla directamente a la papelera recuperable?'))return;
+       const reason=window.prompt('Motivo de pérdida (opcional):',o.lostReason||'');
+       if(reason===null)return;
+       updateOpportunity(o.id,{status:'Perdida',lostReason:reason.trim()||'No indicado'});
+       nav('/oportunidades');
+     }else updateOpportunity(o.id,{status:next});
+    }}>{statuses.map(s=><option key={s}>{s}</option>)}</select></Field>{o.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={o.lostReason||''} onChange={e=>updateOpportunity(o.id,{lostReason:e.target.value})}><option value="">Seleccionar motivo</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(s=><option key={s}>{s}</option>)}</select></Field>}<Field label="Próxima acción"><input value={o.nextAction} onChange={e=>updateOpportunity(o.id,{nextAction:e.target.value})}/></Field><Field label="Fecha"><input type="date" value={o.nextDate} onChange={e=>updateOpportunity(o.id,{nextDate:e.target.value})}/></Field></div></Panel><Panel title="Actividad reciente" extra={<button type="button" className="crm-text-link" onClick={()=>setTab('Actividad')}>Ver todo <ArrowRight size={15}/></button>}><Timeline items={o.activity.slice(0,3)}/></Panel></div></div>}
  {tab==='Presupuestos'&&<Panel title="Presupuestos asociados" extra={<ActionLink to={'/presupuestos/nuevo?op='+o.id}>Nuevo presupuesto</ActionLink>}><div className="simple-list">{quotes.map(q=><Link className="simple-item" to={'/presupuestos/'+q.id} key={q.id}><FileText size={20}/><div><strong>{q.product}</strong><small>{q.id} · {dateText(q.createdAt)}</small></div><b>{money(q.amount)}</b><Status value={q.status}/><ChevronRight size={16}/></Link>)}{!quotes.length&&<Empty title="Sin presupuestos" body="Prepara el primer presupuesto para esta consulta."/>}</div></Panel>}
  {tab==='Actividad'&&<div className="detail-grid"><Panel title="Historial de interacciones"><Timeline items={o.activity}/></Panel><Panel title="Registrar seguimiento"><form onSubmit={e=>{e.preventDefault();if(note.trim()){addActivity(o.id,note.trim());setNote('')}}} className="form-stack"><Field label="Nota de la conversación"><textarea value={note} onChange={e=>setNote(e.target.value)} rows={5} placeholder="Llamada, respuesta, comentario..."/></Field><Button type="submit"><Plus size={16}/>Añadir nota</Button></form></Panel></div>}
  {editing&&<Modal title="Editar oportunidad" subtitle={'Ficha '+o.id} onClose={()=>setEditing(false)}>
@@ -298,6 +309,8 @@ export function OpportunityDetail(){
    <Field label="Capacidad"><input value={draft.capacity} onChange={e=>setDraft({...draft,capacity:e.target.value})}/></Field>
    <Field label="Localidad"><input value={draft.destination} onChange={e=>setDraft({...draft,destination:e.target.value})}/></Field>
    <Field label="Estado"><select value={draft.status} onChange={e=>setDraft({...draft,status:e.target.value as OpportunityStatus})}>{statuses.map(st=><option key={st}>{st}</option>)}</select></Field>
+   {draft.status==='Perdida'&&<Field label="Motivo de pérdida"><select value={draft.lostReason} onChange={e=>setDraft({...draft,lostReason:e.target.value})}>
+    <option value="">Sin indicar</option>{['Precio','Transporte','Plazo','Competencia','Producto no adecuado','Sin respuesta','Otro'].map(x=><option key={x} value={x}>{x}</option>)}</select></Field>}
    <Field label="Seguimiento"><input type="date" value={draft.nextDate} onChange={e=>setDraft({...draft,nextDate:e.target.value})}/></Field>
   </div>
   <Field label="Próxima acción"><input value={draft.nextAction} onChange={e=>setDraft({...draft,nextAction:e.target.value})}/></Field>
