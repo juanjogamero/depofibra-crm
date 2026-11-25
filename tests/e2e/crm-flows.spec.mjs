@@ -463,3 +463,45 @@ test('Tablas: cabecera y franja inferior minimalistas, sin cambiar datos',async(
   }
  }
 });
+
+test('Detalle de pedidos: resumen panorámico legible y sin scroll en escritorio habitual',async({page})=>{
+ test.setTimeout(90000);
+ for(const {width,height} of [{width:1664,height:900},{width:1440,height:900},{width:1366,height:900}]){
+  await page.setViewportSize({width,height});
+  await open(page,'/pedidos/PED-203');
+  const overview=page.locator('.crm-order-overview-grid');
+  await expect(overview).toBeVisible();
+  for(const name of ['Productos y conceptos incluidos · presupuesto aceptado','Información general','Siguiente paso','Control económico privado']){
+   await expect(overview.getByRole('heading',{name})).toBeVisible();
+  }
+  const v=await page.evaluate(()=>{
+   const root=document.querySelector('.app-main');
+   const grid=document.querySelector('.crm-order-overview-grid');
+   const quote=grid?.querySelector('.crm-order-itemized-panel');
+   const info=grid?.querySelector('.crm-order-overview-primary>.panel');
+   const side=grid?.querySelector('.right-stack');
+   if(!root||!grid||!quote||!info||!side)return null;
+   const rect=x=>{const r=x.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom}};
+   return {mainWidth:root.clientWidth,overflow:root.scrollHeight-root.clientHeight,
+    scrollAreaHeight:root.clientHeight,scrollContentHeight:root.scrollHeight,
+    quote:rect(quote),info:rect(info),side:rect(side),infoFont:parseFloat(getComputedStyle(info.querySelector('.info-item strong')).fontSize)};
+  });
+  expect(v,'La estructura debe mantener todas las secciones').not.toBeNull();
+  expect(v.infoFont,'No encoger valores para hacerlos caber').toBeGreaterThanOrEqual(12.5);
+  expect(v.overflow,'El resumen debe caber a '+width+'x'+height+' si no hay texto extenso').toBeLessThanOrEqual(3);
+  expect(Math.abs(v.quote.y-v.info.y),'El desglose y la información deben ir en paralelo').toBeLessThanOrEqual(2);
+  if(v.mainWidth>1390){
+   expect(Math.abs(v.quote.y-v.side.y),'En escritorio ancho deben verse los tres grupos juntos').toBeLessThanOrEqual(2);
+   expect(v.quote.x).toBeLessThan(v.info.x);
+   expect(v.info.x).toBeLessThan(v.side.x);
+  }else{
+   expect(v.side.y).toBeGreaterThanOrEqual(v.quote.y+v.quote.height-2);
+  }
+ }
+ await page.setViewportSize({width:390,height:750});
+ await open(page,'/pedidos/PED-203');
+ for(const name of ['Productos y conceptos incluidos · presupuesto aceptado','Información general','Siguiente paso','Control económico privado']){
+  await expect(page.locator('.crm-order-overview-grid').getByRole('heading',{name})).toBeVisible();
+ }
+ expect(await page.locator('.crm-order-overview-grid').evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(1);
+});
