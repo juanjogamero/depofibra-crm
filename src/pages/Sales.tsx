@@ -463,16 +463,16 @@ export function Quotes(){
              <td className="quote-col-amount"><strong className="quote-amount">{decimal(q.amount)}</strong></td>
              <td className="op-col-date"><time dateTime={q.createdAt}>{dateText(q.createdAt)}</time></td>
              <td className="op-col-status"><span className={'op-status-pill is-'+tone}>{q.status}</span></td>
-             <td className="op-col-open"><Link className="op-row-open" to={'/presupuestos/'+q.id}
-               onClick={e=>e.stopPropagation()} aria-label={'Abrir presupuesto '+q.id}><ChevronRight size={17}/></Link></td>
+             <td className="op-col-open">{showTrash?<button type="button" className="crm-trash-restore" aria-label={'Recuperar presupuesto '+q.id} title="Recuperar presupuesto" onClick={e=>{e.stopPropagation();restoreQuote(q.id)}}><RotateCcw size={17}/></button>:<Link className="op-row-open" to={'/presupuestos/'+q.id} onClick={e=>e.stopPropagation()} aria-label={'Abrir presupuesto '+q.id}><ChevronRight size={17}/></Link>}</td>
            </tr>;
          })}</tbody>
        </table>
        {!quotes.length&&<Empty title="No hay presupuestos" body="Prueba otra búsqueda o modifica los filtros."/>}
      </div>
      <footer className="op-table-footer">
-       Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.length}</strong> presupuestos
-       <span className="quote-footer-note">Importes y estados anotados en este navegador</span>
+       Mostrando <strong>{quotes.length}</strong> de <strong>{data.quotes.filter(q=>Boolean(q.archivedAt)===showTrash).length}</strong> presupuestos
+       <button type="button" className="crm-trash-link" onClick={()=>{setShowTrash(v=>!v);clearFilters()}}>{showTrash?'Volver a activos':'Papelera ('+data.quotes.filter(q=>q.archivedAt).length+')'} <Archive size={15}/></button>
+       <span className="quote-footer-note">Los registros archivados se conservan íntegros</span>
      </footer>
    </section>
  </div>;
@@ -485,7 +485,7 @@ export function QuoteNew(){
  const leadProduct=(o:typeof lead)=>o?(o.product+(o.capacity?' · '+o.capacity:'')):'';
  const [product,setProduct]=useState(leadProduct(lead));
  const [catalogId,setCatalogId]=useState('');
- const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[text,setText]=useState(''),[sent,setSent]=useState(false);
+ const [amount,setAmount]=useState(''),[transport,setTransport]=useState('0'),[commission,setCommission]=useState('0'),[details,setDetails]=useState(''),[sent,setSent]=useState(false);
  const available=data.products.filter(p=>p.active).slice().sort((a,b)=>a.family.localeCompare(b.family,'es')||a.name.localeCompare(b.name,'es')||
   (Number(a.capacity.replace(/[^\d]/g,''))||0)-(Number(b.capacity.replace(/[^\d]/g,''))||0));
  const categories=(data.productCategories||[]).filter(c=>available.some(p=>p.categoryId===c.id));
@@ -494,7 +494,7 @@ export function QuoteNew(){
  const attributes=selectedCategory?.attributes.filter(a=>a.value.trim())||[];
  const chooseCatalog=(id:string)=>{
   if(id==='manual'){
-   setCatalogId('');setAmount('');setText('');
+   setCatalogId('');setAmount('');
    return;
   }
   const p=data.products.find(x=>x.id===id&&x.active);
@@ -502,12 +502,9 @@ export function QuoteNew(){
   setCatalogId(p.id);
   setProduct(p.name+' · '+p.capacity);
   setAmount(p.salePriceConfigured&&Number.isFinite(p.price)&&p.price>0?String(p.price):'');
-  setText('');
+  
  };
- const generated=()=>{
-  const greeting=(lead?.name||'').split(' ·')[0];
-  return '¡Buenas tardes'+(greeting?', '+greeting:'')+'! 😊 Soy Juan, de Depofibra.\n\nYa tengo preparado el precio de la opción que nos consultaste:\n\n💧 '+(product||'Producto por definir')+'\n✅ PRECIO: '+decimal(Number(amount)||0)+'\n\n'+(details||'Podemos confirmar las características técnicas del modelo y las condiciones de entrega para dejarlo todo preparado.')+'\n\nSi te encaja, concretamos con la oficina las conexiones, el color y el resto de detalles.\n\n¿Qué te parece el presupuesto? ¡Muchas gracias! Un saludo.';
- };
+
  const save=(e:FormEvent)=>{
   e.preventDefault();
   const value=Number(amount);
@@ -516,7 +513,7 @@ export function QuoteNew(){
    opportunityId:opId,name:lead?.name||'Contacto ficticio',product,
    productId:catalogId||undefined,amount:value,
    commission:Number(commission)||0,transport:Number(transport)||0,
-   status:sent?'Enviado':'Borrador',message:text||generated()
+   status:sent?'Enviado':'Borrador',message:''
   });
   nav('/presupuestos');
  };
@@ -528,7 +525,7 @@ export function QuoteNew(){
     <div className="form-grid">
      <Field label="Solicitud asociada"><select value={opId} required onChange={e=>{
        setOpId(e.target.value);const o=data.opportunities.find(x=>x.id===e.target.value);
-       setProduct(leadProduct(o));setCatalogId('');setAmount('');setText('');
+       setProduct(leadProduct(o));setCatalogId('');setAmount('');
      }}><option value="">Elegir solicitud</option>{data.opportunities.filter(o=>o.status!=='Perdida').map(o=><option key={o.id} value={o.id}>{o.name} · {o.id}</option>)}</select></Field>
      <Field label="Producto del catálogo o manual">
       <select aria-label="Seleccionar producto del catálogo o escribir manualmente" value={catalogId||'manual'} onChange={e=>chooseCatalog(e.target.value)}>
@@ -558,12 +555,9 @@ export function QuoteNew(){
      </div>}
     </div>}
     <Field label="Características y condiciones verificadas"><textarea rows={3} value={details} onChange={e=>setDetails(e.target.value)} placeholder="Solo información técnica y logística confirmada..."/></Field>
-    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/configuracion">Configuración</Link> antes de comunicar condiciones.</div>
+    <div className="inline-tip"><Truck size={17}/> El precio de catálogo es una referencia comercial interna. Revisa impuestos, transporte y descarga. Calcula los portes en <Link to="/transporte">Calculadora de transporte</Link> antes de comunicar condiciones.</div>
    </Panel>
-   <Panel title="Mensaje comercial" extra={<Button variant="subtle" onClick={()=>setText(generated())}><Sparkles size={16}/>Generar borrador</Button>}>
-    <Field label="Edita y revisa antes de copiar"><textarea rows={12} className="message-editor" value={text} onChange={e=>setText(e.target.value)} placeholder="Pulsa «Generar borrador» o escribe un mensaje personalizado."/></Field>
-    <div className="hint-row"><MessageCircle size={16}/> El CRM no genera proformas ni facturas oficiales. Seleccionar un producto no envía el presupuesto.</div>
-   </Panel>
+
   </div>
   <div className="builder-side">
    <Panel title="Resumen privado"><div className="money-summary"><span>Precio al comprador</span><strong>{decimal(Number(amount)||0)}</strong></div>
@@ -573,7 +567,7 @@ export function QuoteNew(){
     <div className="private-callout"><Shield size={17}/> La comisión nunca se incluye en el mensaje del cliente.</div>
    </Panel>
    <Panel title="Guardar propuesta"><label className="radio-like"><input type="checkbox" checked={sent} onChange={e=>setSent(e.target.checked)}/>
-     <span><strong>Marcar como enviada</strong><small>Solo si ya has comunicado el precio (simulación).</small></span></label>
+     <span><strong>Marcar como enviada</strong><small>Solo si ya has enviado el presupuesto al cliente.</small></span></label>
     <Button type="submit" className="full-width"><Check size={16}/>Guardar presupuesto</Button><NoteDemo/>
    </Panel>
   </div>
