@@ -374,6 +374,7 @@ test('Acciones al final de tablas: separación del borde en cinco áreas y papel
  test.setTimeout(120000);
  const checkSpacing=async(route,minimumGap)=>{
   await open(page,route);
+  if(route==='/comisiones')await page.getByRole('navigation',{name:'Filtrar por estado de comisión'}).getByRole('button',{name:/Todas/}).click();
   const panel=page.locator('.op-table-panel').first();
   await expect(panel).toBeVisible();
   const action=panel.locator('tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore), tbody td.commission-col-open > .op-row-open').first();
