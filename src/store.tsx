@@ -171,7 +171,7 @@ export function CrmProvider({ children }: { children: ReactNode }) {
     }),
     verifyPayment: (id: string, mode: Order['paymentMode'], amount: number, by:'Dirección'|'Oficina'='Dirección') => setData(d => {
       const order=d.orders.find(o=>o.id===id);
-      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0||amount>order.amount)return d;
+      if(!order||order.paymentMode!=='Pendiente'||mode==='Pendiente'||!Number.isFinite(amount)||amount<=0||amount>order.amount||(mode==='Pago completo verificado'&&Math.abs(amount-order.amount)>=0.01))return d;
       const date=today(),timestamp=new Date().toISOString();
       const customerId=order.customerId||uid('CLI');
       const customerExists=d.customers.some(c=>c.id===customerId);
@@ -195,9 +195,15 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         const from=stages.indexOf(current.factory),to=stages.indexOf(target);
         if(to!==from+1)return d;
         if(target==='Confirmando detalles'&&current.paymentMode==='Pendiente')return d;
-        if(target==='En fabricación'&&(!patch.configurationConfirmedAt||current.paymentMode==='Pendiente'))return d;
-        if(target==='En tránsito'&&(!patch.transportConfirmedAt||!patch.transportCompany?.trim()))return d;
-        if(target==='Entregado'&&!patch.deliveredAt)return d;
+        if(target==='En fabricación'){
+          const qtyOk=(value?:string)=>value!==undefined&&value.trim()!==''&&Number.isInteger(Number(value))&&Number(value)>=0;
+          const diamOk=(qty?:string,diam?:string)=>Number(qty)===0||(Boolean(diam&&Number(diam)>0));
+          if(current.paymentMode==='Pendiente'||!patch.configurationConfirmedAt||!patch.color?.trim()
+              ||!patch.deliveryDate||!qtyOk(patch.inletCount)||!qtyOk(patch.outletCount)
+              ||!diamOk(patch.inletCount,patch.inletDiameterMm)||!diamOk(patch.outletCount,patch.outletDiameterMm))return d;
+        }
+        if(target==='En tránsito'&&(!patch.transportConfirmedAt||!patch.transportCompany?.trim()||!patch.departureDate))return d;
+        if(target==='Entregado'&&(!patch.deliveredAt||patch.deliveredAt.slice(0,10)>today()))return d;
       }
       const kind=target&&target!==current.factory
         ?target==='En fabricación'?'fabricacion':target==='En tránsito'?'envio':target==='Entregado'?'entrega':null
