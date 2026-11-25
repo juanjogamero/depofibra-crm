@@ -425,3 +425,41 @@ test('Fondo Depofibra: degradado tenue sin alterar módulos ni legibilidad',asyn
     }
   }
 });
+
+test('Tablas: cabecera y franja inferior minimalistas, sin cambiar datos',async({page})=>{
+ test.setTimeout(120000);
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:900});
+  for(const route of ['/oportunidades','/presupuestos','/clientes','/pedidos','/comisiones']){
+   await open(page,route);
+   const panel=page.locator('.op-table-panel').first();
+   const th=panel.locator('.op-data-table thead th').first();
+   const footer=panel.locator('.op-table-footer');
+   await expect(th,route+' conserva su cabecera').toBeVisible();
+   await expect(footer,route+' conserva el resumen').toBeVisible();
+   await expect(footer).toContainText('Mostrando');
+   const visual=await page.evaluate(()=>{
+    const panel=document.querySelector('.op-table-panel');
+    const th=panel?.querySelector('.op-data-table thead th');
+    const footer=panel?.querySelector('.op-table-footer');
+    if(!th||!footer)return null;
+    return {
+     headerGradient:getComputedStyle(th).backgroundImage,
+     footerGradient:getComputedStyle(footer).backgroundImage,
+     footerFontSize:parseFloat(getComputedStyle(footer).fontSize),
+     footerMinHeight:parseFloat(getComputedStyle(footer).minHeight)
+    };
+   });
+   expect(visual,route).not.toBeNull();
+   expect(visual.headerGradient).toContain('linear-gradient');
+   expect(visual.footerGradient).toContain('linear-gradient');
+   expect(visual.footerFontSize).toBeGreaterThanOrEqual(10);
+   expect(visual.footerMinHeight).toBeGreaterThanOrEqual(36);
+   if(route==='/oportunidades'||route==='/presupuestos'){
+    const archiveButton=footer.locator('.crm-trash-link');
+    await expect(archiveButton).toBeVisible();
+    expect(await archiveButton.evaluate(e=>getComputedStyle(e).borderRadius)).toBe('7px');
+   }
+  }
+ }
+});
