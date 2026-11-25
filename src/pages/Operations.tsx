@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
 import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
-import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo } from '../ui';
+import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
 
@@ -402,10 +402,32 @@ export function OrderDetail(){
  </div>;
 }
 export function Commissions(){
- const {data}=useCrm();
+ const {data,addCommissionPayment,updateOrder}=useCrm();
  const navigate=useNavigate();
  const [filter,setFilter]=useState('Pendientes');
  const [search,setSearch]=useState('');
+ const [quickModal,setQuickModal]=useState(false);
+ const [selectedOrder,setSelectedOrder]=useState('');
+ const [quickMode,setQuickMode]=useState<'payment'|'agreed'>('payment');
+ const [quickAmount,setQuickAmount]=useState('');
+ const [quickError,setQuickError]=useState('');
+ const openQuick=()=>{
+   const first=data.orders.find(o=>o.commission>o.commissionPaid);
+   setQuickMode(first?'payment':'agreed');setSelectedOrder(first?.id||data.orders[0]?.id||'');
+   setQuickAmount('');setQuickError('');setQuickModal(true);
+ };
+ const quickOrder=data.orders.find(o=>o.id===selectedOrder);
+ const quickBalance=quickOrder?Math.max(0,quickOrder.commission-quickOrder.commissionPaid):0;
+ const quickValue=Number(quickAmount);
+ const quickValid=Boolean(quickOrder&&quickAmount.trim()!==''&&Number.isFinite(quickValue)&&quickValue>=0&&
+   (quickMode==='payment'?(quickValue>0&&quickValue<=quickBalance):(quickValue>=quickOrder.commissionPaid)));
+ const saveQuick=(event:FormEvent)=>{
+   event.preventDefault();setQuickError('');
+   if(!quickOrder||!quickValid){setQuickError('Comprueba el pedido y el importe indicado.');return;}
+   if(quickMode==='payment')addCommissionPayment(quickOrder.id,quickValue);
+   else updateOrder(quickOrder.id,{commission:quickValue});
+   setQuickModal(false);setQuickAmount('');
+ };
  // Mantener exactamente la clasificación y los cálculos existentes del store.
  const matchesStatus=(o:Order,status:string)=>
    status==='Todas'
@@ -425,7 +447,8 @@ export function Commissions(){
        <p>Control privado de las comisiones acordadas, cobradas y pendientes de liquidar.</p>
      </div>
      <div className="op-heading-actions">
-       <Link to="/pedidos" className="op-new-button"><Package size={16}/>Ver pedidos</Link>
+       <button type="button" className="op-new-button" onClick={openQuick}><Plus size={17}/>Registrar comisión</button>
+       <Link to="/pedidos" className="op-export-button"><Package size={16}/>Ver pedidos</Link>
      </div>
    </div>
    <section className="commission-banners" aria-label="Resumen de comisiones">
@@ -500,9 +523,26 @@ export function Commissions(){
      </div>
      <footer className="op-table-footer">
        Mostrando <strong>{list.length}</strong> de <strong>{data.orders.length}</strong> pedidos
-       <span className="commission-footer-note">Datos locales de demostración · Acceso privado de Dirección</span>
+       <span className="commission-footer-note">Comisiones anotadas · Confirmar los cobros con sus justificantes</span>
      </footer>
    </section>
+   {quickModal&&<Modal title="Registrar comisión de un pedido" onClose={()=>setQuickModal(false)}>
+     <form className="modal-form commission-quick-form" onSubmit={saveQuick}>
+       <Field label="Operación"><select required value={selectedOrder} onChange={e=>{setSelectedOrder(e.target.value);setQuickAmount('');setQuickError('')}}>
+         <option value="">Selecciona un pedido</option>
+         {data.orders.map(o=><option key={o.id} value={o.id}>{o.id} · {o.buyerName} · {o.product}</option>)}
+       </select></Field>
+       <div className="commission-quick-modes" role="group" aria-label="Operación de comisión">
+         <button type="button" className={quickMode==='payment'?'active':''} aria-pressed={quickMode==='payment'} onClick={()=>{setQuickMode('payment');setQuickAmount('')}}>Registrar cobro</button>
+         <button type="button" className={quickMode==='agreed'?'active':''} aria-pressed={quickMode==='agreed'} onClick={()=>{setQuickMode('agreed');setQuickAmount('')}}>Comisión acordada</button>
+       </div>
+       {quickOrder&&<div className="commission-quick-facts"><div><span>Acordada</span><strong>{money(quickOrder.commission)}</strong></div><div><span>Registrada como cobrada</span><strong>{money(quickOrder.commissionPaid)}</strong></div><div><span>Pendiente</span><strong>{money(quickBalance)}</strong></div></div>}
+       <Field label={quickMode==='payment'?'Cobro recibido (€)':'Importe acordado total (€)'}><input type="number" required min={quickMode==='payment'?'0.01':String(quickOrder?.commissionPaid||0)} max={quickMode==='payment'?String(quickBalance):undefined} step="0.01" value={quickAmount} onChange={e=>setQuickAmount(e.target.value)} placeholder="0,00"/></Field>
+       <p className="commission-quick-hint">{quickMode==='payment'?'Registra únicamente importes realmente recibidos; el saldo se actualiza sin superar la comisión acordada.':'Edita la comisión pactada para este pedido. No se modifican cobros anteriores; el total no puede ser inferior a lo ya cobrado.'}</p>
+       {quickError&&<p className="commission-quick-error" role="alert">{quickError}</p>}
+       <div className="modal-actions"><Button variant="outline" onClick={()=>setQuickModal(false)}>Cancelar</Button><Button type="submit" disabled={!quickValid}><Check size={16}/>Guardar</Button></div>
+     </form>
+   </Modal>}
  </div>;
 }
 export function FactoryHome(){
