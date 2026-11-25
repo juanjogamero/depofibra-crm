@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, ChevronRight, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, Truck, Database, ArrowRight } from 'lucide-react';
+import { CalendarDays, Check, ChevronRight, ChevronLeft, CircleAlert, Plus, Search, X, UserRound, LockKeyhole, ClipboardList, Truck, Database, ArrowRight, Bell, Clock3, Pin, Pencil, Trash2, BookOpen, Mail, MessageCircle } from 'lucide-react';
 import { useCrm } from '../store';
 import { CHANNELS, type Channel, dt, money, decimal, dateText, today } from '../domain';
 import { Button, Empty, Field, Modal, Panel } from '../ui';
@@ -10,142 +10,210 @@ import CatalogManager from './CatalogManager';
 import TransportRouteCalculator from './TransportRouteCalculator';
 
 export function Agenda(){
-  const {data,addTask,toggleTask}=useCrm();
+  const {data,role,addTask,toggleTask,addInternalNote,updateInternalNote,deleteInternalNote}=useCrm();
   const [searchParams,setSearchParams]=useSearchParams();
   const requestedDay=searchParams.get('fecha');
-  const isValidDate=(value:string|null): value is string => {
-    if(!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-    const check=new Date(value+'T12:00:00');
-    return !Number.isNaN(check.getTime()) && check.getFullYear()===Number(value.slice(0,4))
-      && check.getMonth()+1===Number(value.slice(5,7)) && check.getDate()===Number(value.slice(8,10));
+  const validDate=(value:string|null):value is string=>{
+    if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+    const d=new Date(value+'T12:00:00');
+    return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===value;
   };
-  const selectedDay=isValidDate(requestedDay)?requestedDay:null;
-  const [modal,setModal]=useState(()=>searchParams.get('nueva')==='1' && Boolean(selectedDay));
+  const selectedDay=validDate(requestedDay)?requestedDay:today();
+  const [month,setMonth]=useState(()=>new Date(selectedDay+'T12:00:00'));
   const [filter,setFilter]=useState('Pendientes');
   const [search,setSearch]=useState('');
+  const [modal,setModal]=useState(()=>searchParams.get('nueva')==='1');
   const [title,setTitle]=useState('');
-  const [due,setDue]=useState(selectedDay||today());
+  const [due,setDue]=useState(selectedDay);
+  const [atTime,setAtTime]=useState('09:00');
+  const [reminder,setReminder]=useState('none');
   const [context,setContext]=useState('');
-  const tasksForDay=data.tasks.filter(t=>!selectedDay || t.due===selectedDay);
-  const tabs=['Pendientes','Hechas','Todas'];
+  const [noteSearch,setNoteSearch]=useState('');
+  const [noteModal,setNoteModal]=useState(false);
+  const [noteId,setNoteId]=useState('');
+  const [noteTitle,setNoteTitle]=useState('');
+  const [noteBody,setNoteBody]=useState('');
+  const [noteCategory,setNoteCategory]=useState('General');
+  const [now,setNow]=useState(()=>Date.now());
+  const notes=data.internalNotes||[];
+  useEffect(()=>{if(validDate(requestedDay))setMonth(new Date(requestedDay+'T12:00:00'))},[requestedDay]);
+  useEffect(()=>{
+    const refresh=()=>setNow(Date.now());
+    window.addEventListener('focus',refresh);
+    const timer=window.setInterval(refresh,60000);
+    return ()=>{window.removeEventListener('focus',refresh);window.clearInterval(timer)};
+  },[]);
+  const reminderTime=(task:{due:string;atTime?:string;reminderMinutes?:number|null})=>{
+    if(task.reminderMinutes===undefined||task.reminderMinutes===null)return null;
+    const at=new Date(task.due+'T'+(task.atTime||'09:00')+':00').getTime();
+    return Number.isFinite(at)?at-task.reminderMinutes*60000:null;
+  };
+  const dueReminders=data.tasks.filter(t=>!t.done&&reminderTime(t)!==null&&reminderTime(t)!<=now);
+  const dayTasks=data.tasks.filter(t=>t.due===selectedDay);
   const matchesTab=(done:boolean,tab:string)=>tab==='Todas'||(tab==='Pendientes'?!done:done);
   const query=search.trim().toLocaleLowerCase('es-ES');
-  const tasks=tasksForDay.filter(t=>
-    matchesTab(t.done,filter)
-    &&(t.title+' '+t.context+' '+t.due).toLocaleLowerCase('es-ES').includes(query)
-  );
-  const closeModal=()=>{
+  const tasks=data.tasks.filter(t=>(!requestedDay||t.due===selectedDay)
+    &&matchesTab(t.done,filter)
+    &&(t.title+' '+t.context+' '+t.due).toLocaleLowerCase('es-ES').includes(query))
+    .sort((a,b)=>a.due.localeCompare(b.due)||(a.atTime||'').localeCompare(b.atTime||''));
+  const start=new Date(month.getFullYear(),month.getMonth(),1);
+  const offset=(start.getDay()+6)%7;
+  const cells=Math.ceil((offset+new Date(month.getFullYear(),month.getMonth()+1,0).getDate())/7)*7;
+  const monthLabel=month.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+  const dayKey=(day:number)=>month.getFullYear()+'-'+String(month.getMonth()+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+  const moveMonth=(delta:number)=>setMonth(new Date(month.getFullYear(),month.getMonth()+delta,1));
+  const selectDay=(date:string)=>{setSearchParams({fecha:date});setDue(date)};
+  const openTask=()=>{setDue(selectedDay);setModal(true)};
+  const closeTask=()=>{
     setModal(false);
-    if(searchParams.get('nueva')==='1' && selectedDay) setSearchParams({fecha:selectedDay},{replace:true});
+    if(searchParams.get('nueva')==='1')setSearchParams({fecha:selectedDay},{replace:true});
   };
-  const save=(e:FormEvent)=>{
+  const saveTask=(e:FormEvent)=>{
     e.preventDefault();
-    if(title.trim()){
-      addTask(title.trim(),due,context);
-      closeModal();
-      setTitle('');
-      setContext('');
-    }
+    if(!title.trim()||!validDate(due))return;
+    addTask(title.trim(),due,context.trim(),{
+      atTime,
+      reminderMinutes:reminder==='none'?null:Number(reminder)
+    });
+    setTitle('');setContext('');setReminder('none');closeTask();
+    setSearchParams({fecha:due});
   };
-  return <div className="page page-opportunities page-agenda">
-    <div className="op-screen-heading">
+  const beginNote=(id?:string)=>{
+    const current=notes.find(n=>n.id===id);
+    setNoteId(current?.id||'');setNoteTitle(current?.title||'');
+    setNoteBody(current?.body||'');setNoteCategory(current?.category||'General');setNoteModal(true);
+  };
+  const saveNote=(e:FormEvent)=>{
+    e.preventDefault();
+    if(!noteTitle.trim()||!noteBody.trim())return;
+    const item={title:noteTitle.trim(),body:noteBody.trim(),category:noteCategory};
+    if(noteId)updateInternalNote(noteId,item);
+    else addInternalNote(item);
+    setNoteModal(false);
+  };
+  const shownNotes=notes.filter(n=>(n.title+' '+n.body+' '+n.category).toLocaleLowerCase('es-ES').includes(noteSearch.toLocaleLowerCase('es-ES')))
+    .sort((a,b)=>Number(b.pinned)-Number(a.pinned)||b.updatedAt.localeCompare(a.updatedAt));
+  const categories=['General','Técnica','Proveedores','Comercial','Logística'];
+  return <div className="page page-opportunities page-agenda agenda-pro">
+    <header className="op-screen-heading">
       <div className="op-heading-copy">
-        <h1 id="agenda-title">Agenda y notas</h1>
-        <p>Organiza llamadas, seguimientos, tareas y anotaciones comerciales.</p>
+        <h1>Agenda y notas</h1><p>Planifica tareas, consulta los avisos y conserva información de trabajo.</p>
       </div>
       <div className="op-heading-actions">
-        <button type="button" className="op-new-button"
-          onClick={()=>{setDue(selectedDay||today());setModal(true)}}>
-          <Plus size={17}/>Nueva tarea
-        </button>
+        <button type="button" className="op-new-button" onClick={openTask}><Plus size={17}/>Nueva tarea</button>
       </div>
-    </div>
-    {selectedDay&&<div className="agenda-selected-day agenda-active-date" role="status">
-      <div><CalendarDays size={17} aria-hidden="true"/><span>Mostrando tareas del <strong>{dateText(selectedDay)}</strong></span></div>
-      <button type="button" onClick={()=>setSearchParams({},{replace:true})}>Ver todas las fechas</button>
+    </header>
+    {dueReminders.length>0&&<div className="agenda-pro-alert" role="status">
+      <Bell size={17}/><span><strong>{dueReminders.length} {dueReminders.length===1?'aviso pendiente':'avisos pendientes'}</strong> · Se muestran al abrir el CRM. No se envían mensajes externos.</span>
+      <button type="button" onClick={()=>{setFilter('Pendientes');setSearch('')}}>Ver tareas</button>
     </div>}
-    <nav className="op-phase-tabs agenda-phase-tabs" aria-label="Filtrar tareas por estado">
-      {tabs.map(tab=><button key={tab} type="button" className={'op-phase-tab'+(filter===tab?' is-active':'')}
-        aria-pressed={filter===tab} onClick={()=>setFilter(tab)}>
-        <span>{tab}</span><strong>{tasksForDay.filter(t=>matchesTab(t.done,tab)).length}</strong>
-      </button>)}
-    </nav>
-    <div className="op-searchbar agenda-searchbar">
-      <label className="op-search">
-        <Search size={18} aria-hidden="true"/>
-        <input type="search" value={search} onChange={e=>setSearch(e.target.value)}
-          aria-label="Buscar tareas por título, contexto o fecha" placeholder="Buscar tarea, cliente o pedido"/>
-        {search&&<button type="button" aria-label="Borrar búsqueda" onClick={()=>setSearch('')}><X size={15}/></button>}
-      </label>
-      <span className="agenda-toolbar-meta">{tasks.length} {tasks.length===1?'tarea':'tareas'} en esta vista</span>
-    </div>
-    <div className="agenda-content-grid">
-      <section className="agenda-tasks-card" aria-labelledby="agenda-list-title">
-        <div className="agenda-card-heading">
-          <div><h2 id="agenda-list-title">{selectedDay?'Tareas del día':'Tareas de trabajo'}</h2>
-            <p>{selectedDay?'Seguimientos previstos para esta fecha':'Pendientes y seguimientos de tu actividad comercial'}</p></div>
-          <span className="agenda-task-counter">{tasksForDay.length} {tasksForDay.length===1?'registrada':'registradas'}</span>
-        </div>
-        <div className="agenda-list-columns" aria-hidden="true">
-          <span>TAREA / CONTEXTO</span><span>FECHA</span><span>ESTADO</span>
-        </div>
-        <div className="agenda-list-scroll" tabIndex={0} role="region" aria-label="Listado de tareas con desplazamiento vertical">
-          {tasks.map(t=>{
-            const overdue=!t.done&&t.due<today();
-            return <label className={'agenda-task-row'+(t.done?' is-complete':'')+(overdue?' is-overdue':'')} key={t.id}>
-              <input type="checkbox" checked={t.done} onChange={()=>toggleTask(t.id)}
-                aria-label={(t.done?'Marcar como pendiente: ':'Marcar como hecha: ')+t.title}/>
-              <span className="agenda-task-copy">
-                <strong title={t.title}>{t.title}</strong>
-                <small title={t.context}>{t.context||'Sin contexto adicional'}</small>
-              </span>
-              <time dateTime={t.due} className={overdue?'overdue':''}>{dateText(t.due)}</time>
-              <span className={'agenda-task-state'+(t.done?' is-done':overdue?' is-late':' is-pending')}>
-                {t.done?'Hecha':overdue?'Vencida':'Pendiente'}
-              </span>
-            </label>;
-          })}
-          {!tasks.length&&<Empty title="Sin tareas en esta vista"
-            body={search?'Prueba otra búsqueda o cambia el filtro.':selectedDay?'Este día no tiene tareas para el filtro seleccionado. Puedes crear una nueva.':'Registra una llamada o un seguimiento con fecha.'}/>}
-        </div>
-        <footer className="agenda-list-footer">Mostrando <strong>{tasks.length}</strong> de <strong>{tasksForDay.length}</strong> tareas</footer>
-      </section>
-      <aside className="agenda-side-stack" aria-label="Calendario y notas">
-        <section className="agenda-side-card agenda-week-card" aria-labelledby="agenda-week-title">
-          <div className="agenda-side-heading"><h2 id="agenda-week-title">Próximos siete días</h2><CalendarDays size={17} aria-hidden="true"/></div>
-          <div className="calendar-strip agenda-calendar-strip">
-            {Array.from({length:7},(_,i)=>{
-              const day=dt(i);
-              return <button type="button" className={'calendar-day agenda-strip-day'+(selectedDay===day?' is-selected':'')+(day===today()?' is-today':'')}
-                key={day} aria-pressed={selectedDay===day}
-                aria-label={'Ver tareas del '+dateText(day)}
-                onClick={()=>setSearchParams({fecha:day})}>
-                <small>{new Date(day+'T12:00:00').toLocaleDateString('es-ES',{weekday:'short'})}</small>
-                <strong>{new Date(day+'T12:00:00').getDate()}</strong>
-                <i className={data.tasks.some(t=>t.due===day&&!t.done)?'has-event':''}/>
-              </button>;
-            })}
+    <div className="agenda-pro-layout">
+      <section className="agenda-pro-calendar" aria-labelledby="agenda-pro-month-title">
+        <div className="agenda-pro-heading">
+          <div><h2 id="agenda-pro-month-title">Calendario</h2><p>Selecciona un día para ver las tareas debajo.</p></div>
+          <div className="agenda-pro-month">
+            <button type="button" onClick={()=>moveMonth(-1)} aria-label="Mes anterior"><ChevronLeft size={17}/></button>
+            <strong>{monthLabel}</strong>
+            <button type="button" onClick={()=>moveMonth(1)} aria-label="Mes siguiente"><ChevronRight size={17}/></button>
           </div>
-          <p className="agenda-week-help">Selecciona un día para consultar sus tareas. El punto azul indica tareas pendientes.</p>
-        </section>
-        <section className="agenda-side-card agenda-notes-card" aria-labelledby="agenda-notes-title">
-          <div className="agenda-side-heading"><h2 id="agenda-notes-title">Notas y condiciones</h2></div>
-          <div className="knowledge-note agenda-knowledge-note"><CircleAlert size={19}/><div>
-            <strong>Comprobaciones pendientes</strong>
-            <p>Suplementos, garantías, precios o accesorios comunicados verbalmente deben verificarse con proveedor antes de ofertar.</p>
-          </div></div>
-          <Link to="/oportunidades" className="link-action agenda-notes-link">Consultar oportunidades <ChevronRight size={15}/></Link>
-        </section>
-      </aside>
-    </div>
-    {modal&&<Modal title="Nueva tarea o llamada" onClose={closeModal}>
-      <form className="modal-form" onSubmit={save}>
-        <Field label="Qué tienes que hacer"><input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ej. Llamar para seguimiento"/></Field>
-        <div className="form-grid">
-          <Field label="Fecha"><input type="date" required value={due} onChange={e=>setDue(e.target.value)}/></Field>
-          <Field label="Cliente / operación asociada"><input value={context} onChange={e=>setContext(e.target.value)} placeholder="OP, cliente o pedido"/></Field>
         </div>
-        <div className="modal-actions"><Button variant="outline" onClick={closeModal}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar tarea</Button></div>
+        <div className="agenda-pro-weekdays">{['L','M','X','J','V','S','D'].map((name,i)=><span key={i}>{name}</span>)}</div>
+        <div className="agenda-pro-days">
+          {Array.from({length:cells},(_,i)=>{
+            const n=i-offset+1;
+            const max=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+            if(n<1||n>max)return <span key={'empty'+i} className="agenda-pro-blank"/>;
+            const date=dayKey(n);
+            const count=data.tasks.filter(t=>t.due===date&&!t.done).length;
+            return <button key={date} type="button" onClick={()=>selectDay(date)}
+              className={'agenda-pro-day'+(date===today()?' is-today':'')+(date===selectedDay&&requestedDay?' is-selected':'')}
+              aria-pressed={date===selectedDay&&Boolean(requestedDay)}
+              aria-label={dateText(date)+', '+count+' tareas pendientes'}>
+              <span>{n}</span>{count>0&&<small>{count}</small>}
+            </button>;
+          })}
+        </div>
+        <div className="agenda-pro-day-details">
+          <div className="agenda-pro-day-heading">
+            <div><strong>{dateText(selectedDay)}</strong><span>{dayTasks.length} {dayTasks.length===1?'tarea':'tareas'}</span></div>
+            <button type="button" onClick={openTask}><Plus size={15}/>Añadir</button>
+          </div>
+          {dayTasks.length?<ul className="agenda-pro-day-list">{dayTasks.slice(0,3).map(t=><li key={t.id}>
+            <span className={'agenda-pro-event-dot'+(t.done?' is-done':'')}/>
+            <span><strong>{t.title}</strong>{t.atTime&&<small>{t.atTime}</small>}</span>
+          </li>)}</ul>:<p className="agenda-pro-day-empty">Sin tareas para este día.</p>}
+          {dayTasks.length>3&&<p className="agenda-pro-day-more">Y {dayTasks.length-3} más en el listado</p>}
+          {requestedDay&&<button type="button" className="agenda-pro-all" onClick={()=>setSearchParams({})}>Mostrar todas las fechas</button>}
+        </div>
+      </section>
+      <section className="agenda-pro-notes" aria-labelledby="agenda-pro-notes-title">
+        <div className="agenda-pro-heading">
+          <div><h2 id="agenda-pro-notes-title">Notas internas</h2><p>Condiciones y referencias que necesitas consultar.</p></div>
+          <button type="button" className="agenda-pro-note-add" onClick={()=>beginNote()}><Plus size={16}/>Nueva nota</button>
+        </div>
+        <label className="agenda-pro-notes-search"><Search size={16}/>
+          <input aria-label="Buscar notas internas" value={noteSearch} onChange={e=>setNoteSearch(e.target.value)} placeholder="Buscar en tus notas"/>
+        </label>
+        <div className="agenda-pro-note-list">
+          {role==='direccion'?shownNotes.map(n=><article key={n.id} className="agenda-pro-note">
+            <div className="agenda-pro-note-top"><span>{n.category}</span>
+              <div><button type="button" aria-label={n.pinned?'Desfijar '+n.title:'Fijar '+n.title} title={n.pinned?'Desfijar':'Fijar arriba'} onClick={()=>updateInternalNote(n.id,{pinned:!n.pinned})}><Pin size={15} fill={n.pinned?'currentColor':'none'}/></button>
+                <button type="button" aria-label={'Editar '+n.title} onClick={()=>beginNote(n.id)}><Pencil size={15}/></button>
+                <button type="button" aria-label={'Eliminar '+n.title} onClick={()=>{if(window.confirm('¿Eliminar esta nota interna?'))deleteInternalNote(n.id)}}><Trash2 size={15}/></button>
+              </div>
+            </div>
+            <h3>{n.title}</h3><p>{n.body}</p>
+          </article>):role==='direccion'?<div className="agenda-pro-note-empty"><BookOpen size={23}/>
+            <strong>Tu espacio de consulta</strong><p>Anota aquí información técnica, condiciones comunicadas por proveedores o recordatorios comerciales. Comprueba su vigencia antes de aplicarlas.</p>
+            <button type="button" onClick={()=>beginNote()}>Crear primera nota</button>
+          </div>:<div className="agenda-pro-note-empty"><BookOpen size={23}/>
+            <p>Las notas de Dirección no están disponibles en esta vista.</p>
+          </div>}
+        </div>
+        <p className="agenda-pro-local-hint">Las notas se guardan en este navegador. La privacidad por usuario se activará con el acceso del servidor.</p>
+      </section>
+    </div>
+    <section className="agenda-pro-tasks" aria-label="Listado de tareas">
+      <div className="agenda-pro-heading agenda-pro-tasks-heading">
+        <div><h2>Tareas de trabajo</h2><p>Consulta lo pendiente y marca las tareas completadas.</p></div>
+        <span>{tasks.length} {tasks.length===1?'resultado':'resultados'}</span>
+      </div>
+      <div className="agenda-pro-tasks-tools">
+        <div className="agenda-pro-pills" role="group" aria-label="Estado de tareas">{['Pendientes','Hechas','Todas'].map(tab=><button key={tab} type="button" aria-pressed={filter===tab}
+          onClick={()=>setFilter(tab)} className={filter===tab?'is-active':''}>{tab}</button>)}</div>
+        <label className="agenda-pro-task-search"><Search size={16}/><input type="search" aria-label="Buscar tareas" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar tarea o contexto"/></label>
+      </div>
+      <div className="agenda-pro-task-rows">
+        {tasks.map(t=><label key={t.id} className={'agenda-pro-task-row'+(t.done?' is-done':'')}>
+          <input type="checkbox" checked={t.done} onChange={()=>toggleTask(t.id)} aria-label={(t.done?'Marcar pendiente ':'Completar ')+t.title}/>
+          <span className="agenda-pro-task-text"><strong>{t.title}</strong><small>{t.context||'Sin contexto'}</small></span>
+          <time dateTime={t.due}>{dateText(t.due)}{t.atTime?' · '+t.atTime:''}</time>
+          {reminderTime(t)!==null&&!t.done&&<span className={'agenda-pro-reminder'+(reminderTime(t)!<=now?' is-due':'')}><Bell size={13}/>{reminderTime(t)!<=now?'Aviso pendiente':'Aviso en CRM'}</span>}
+        </label>)}
+        {!tasks.length&&<p className="agenda-pro-empty">No hay tareas que coincidan con estos filtros.</p>}
+      </div>
+    </section>
+    {modal&&<Modal title="Nueva tarea" onClose={closeTask}>
+      <form className="modal-form agenda-pro-modal" onSubmit={saveTask}>
+        <Field label="Tarea"><input required value={title} onChange={e=>setTitle(e.target.value)} placeholder="Ej. Revisar presupuesto de un cliente"/></Field>
+        <div className="form-grid"><Field label="Fecha"><input type="date" required value={due} onChange={e=>setDue(e.target.value)}/></Field>
+          <Field label="Hora"><input type="time" required value={atTime} onChange={e=>setAtTime(e.target.value)}/></Field></div>
+        <Field label="Contexto / pedido / cliente"><input value={context} onChange={e=>setContext(e.target.value)} placeholder="Referencia y próxima acción"/></Field>
+        <Field label="Recordatorio dentro del CRM"><select value={reminder} onChange={e=>setReminder(e.target.value)}>
+          <option value="none">Sin aviso</option><option value="0">A la hora de la tarea</option>
+          <option value="15">15 minutos antes</option><option value="60">Una hora antes</option>
+          <option value="1440">Un día antes</option>
+        </select></Field>
+        <div className="agenda-pro-channel-status"><Bell size={15}/><span>El aviso se muestra al abrir el CRM. Los avisos por <Mail size={14}/>correo y <MessageCircle size={14}/>WhatsApp necesitan la conexión al servidor y todavía no se envían.</span></div>
+        <div className="modal-actions"><Button variant="outline" onClick={closeTask}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar tarea</Button></div>
+      </form>
+    </Modal>}
+    {noteModal&&<Modal title={noteId?'Editar nota':'Nueva nota interna'} onClose={()=>setNoteModal(false)}>
+      <form className="modal-form agenda-pro-modal" onSubmit={saveNote}>
+        <Field label="Título"><input autoFocus required maxLength={110} value={noteTitle} onChange={e=>setNoteTitle(e.target.value)} placeholder="Ej. Condiciones comunicadas por fábrica"/></Field>
+        <Field label="Categoría"><select value={noteCategory} onChange={e=>setNoteCategory(e.target.value)}>{categories.map(x=><option key={x}>{x}</option>)}</select></Field>
+        <Field label="Contenido"><textarea required rows={6} value={noteBody} onChange={e=>setNoteBody(e.target.value)} placeholder="Escribe la información y su fecha de confirmación, para poder comprobar su vigencia."/></Field>
+        <div className="modal-actions"><Button variant="outline" onClick={()=>setNoteModal(false)}>Cancelar</Button><Button type="submit"><Check size={16}/>Guardar nota</Button></div>
       </form>
     </Modal>}
   </div>;
