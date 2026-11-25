@@ -166,7 +166,6 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
    <button type="button" className="transport-fast-key-trigger" aria-expanded={showApiKey}
     onClick={()=>setShowApiKey(v=>!v)}><KeyRound size={15}/>
     {apiKey?'Google Maps configurado':'Configurar Google Maps'} <ChevronDown size={15} className={showApiKey?'turned':''}/></button>
-   <span>Casariche es solo la referencia comercial; la ruta para coche no garantiza acceso para camiones.</span>
   </div>
   {showApiKey&&<div className="transport-fast-key-panel">
    <label className="transport-fast-field" htmlFor="transport-fast-key"><span>Clave API de Google Maps para navegador</span>
@@ -175,7 +174,8 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
    </label>
    <p>Se guarda únicamente en la sesión de esta pestaña. Para rutas automáticas se requieren Maps JavaScript API y Routes API, facturación habilitada y clave restringida por dominio. Google puede aplicar cargos.</p>
    <a href="https://developers.google.com/maps/documentation/javascript/routes/start" target="_blank" rel="noopener noreferrer">Documentación oficial <ExternalLink size={13}/></a>
+   <p className="transport-fast-key-info">Casariche es únicamente la referencia comercial; la ruta por carretera no garantiza acceso a camiones.</p>
+   <p className="transport-fast-attribution">Las distancias automáticas se consultan con <span translate="no">Google Maps</span> solo al pulsar «Obtener kilómetros».</p>
   </div>}
-  <p className="transport-fast-attribution">Las distancias automáticas se consultan con <span translate="no">Google Maps</span> exclusivamente al pulsar «Obtener kilómetros».</p>
  </section>;
 }
