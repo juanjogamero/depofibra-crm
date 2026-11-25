@@ -34,11 +34,28 @@ export type Order = {
   paymentMode: 'Pendiente' | 'Anticipo verificado' | 'Pago completo verificado';
   factory: FactoryStatus; createdAt: string; deliveryDate: string; notes: string;
   color: string; connections: string; activity: TimelineItem[];
-  /** Verificaciones del flujo de coordinación con Fábrica; no equivalen a certificados. */
+  /** Campos opcionales: compatibles con pedidos históricos y sin alterar sus importes. */
+  paymentVerifiedAt?: string;
+  paymentVerifiedBy?: 'Dirección'|'Oficina';
+  inletCount?: string; outletCount?: string;
+  inletDiameterMm?: string; outletDiameterMm?: string;
+  configurationNotes?: string;
+  configurationConfirmedAt?: string;
+  productionStartedAt?: string;
+  transportCompany?: string; transportContact?: string;
+  departureDate?: string; transportNotes?: string;
+  transportConfirmedAt?: string;
+  deliveredAt?: string;
+  /** Verificaciones heredadas (no se utilizan en el nuevo proceso). */
   factoryChecklist?: Partial<Record<FactoryCheckKey,boolean>>;
 };
 export type FactoryCheckKey = 'product'|'dimensions'|'finish'|'connections'|'quality'|'documentation'|'access'|'transport'|'delivery';
 export type CommissionPayment = { id: string; orderId: string; amount: number; paidAt: string };
+/** Avisos registrados en esta instalación local. No representan correo o WhatsApp entregados. */
+export type OrderAlert = {
+ id:string; orderId:string; kind:'fabricacion'|'envio'|'entrega';
+ title:string; description:string; createdAt:string; readAt?:string;
+};
 /** Avisos dentro del CRM mientras la pantalla esté abierta; no suponen envío push/email. */
 export type Task = {
  id: string; title: string; due: string; context: string; done: boolean;
@@ -77,6 +94,7 @@ export type CrmState = {
   productCategories?: ProductCategory[];
   /** Fechas verificadas para nuevas liquidaciones. Opcional para datos locales anteriores. */
   commissionPayments?: CommissionPayment[];
+  orderAlerts?: OrderAlert[];
   /** Anotaciones internas del navegador actual; aún no existe control de acceso por servidor. */
   internalNotes?: InternalNote[];
 };
