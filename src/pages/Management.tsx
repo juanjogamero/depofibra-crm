@@ -165,19 +165,21 @@ export function Catalog(){
 /* Las dos vistas ('direccion' / 'fabrica') son una simulación local, no permisos
    ni identidades autentificadas. No almacenar contraseñas ni simular logs. */
 type DemoRole = 'direccion' | 'fabrica';
-type DemoProfile = { displayName: string; email: string; position: string };
+type DemoProfile = { displayName: string; email: string; position: string; photo: string };
 const profileKey = (role: DemoRole) => 'depofibra-crm-profile-demo-v1-' + role;
 const blankProfile = (role: DemoRole): DemoProfile => ({
   displayName: role === 'direccion' ? 'Dirección' : 'Oficina de Fábrica',
   email: '',
-  position: role === 'direccion' ? 'Administración (vista demo)' : 'Colaborador (vista demo)'
+  position: role === 'direccion' ? 'Administración (vista demo)' : 'Colaborador (vista demo)',
+  photo: ''
 });
 function readDemoProfile(role: DemoRole): DemoProfile {
   const blank=blankProfile(role);
   try {
     const parsed=JSON.parse(localStorage.getItem(profileKey(role)) || 'null');
     return parsed && typeof parsed.displayName==='string' && typeof parsed.email==='string'
-      ? {displayName:parsed.displayName,email:parsed.email,position:typeof parsed.position==='string'?parsed.position:blank.position}
+      ? {displayName:parsed.displayName,email:parsed.email,position:typeof parsed.position==='string'?parsed.position:blank.position,
+          photo:typeof parsed.photo==='string' && parsed.photo.startsWith('data:image/')?parsed.photo:''}
       : blank;
   } catch { return blank; }
 }
@@ -241,8 +243,9 @@ export function Configuration(){
     setSaved(false);setError('');
     try{
       localStorage.setItem(profileKey(role),JSON.stringify({
-        displayName:profile.displayName.trim(),email:profile.email.trim(),position:profile.position.trim()
+        displayName:profile.displayName.trim(),email:profile.email.trim(),position:profile.position.trim(),photo:profile.photo
       }));
+      window.dispatchEvent(new Event('depofibra-crm-profile-updated'));
       setSaved(true);
     }catch{setError('El navegador no permite guardar este perfil de demostración.')}
   };
@@ -272,6 +275,46 @@ export function Configuration(){
         <div className="settings-panel-head"><h2>Mi perfil</h2>
           <p>Datos identificativos para la interfaz. En esta versión son solo preferencias locales de demostración.</p></div>
         <form className="settings-profile-form" onSubmit={saveProfile}>
+          <div className="settings-avatar-editor">
+            <span className="settings-avatar-preview" aria-hidden="true">{profile.photo?<img src={profile.photo} alt=""/>:<UserRound size={34}/>}</span>
+            <div className="settings-avatar-controls">
+              <strong>Foto de perfil</strong>
+              <div className="settings-avatar-actions">
+                <label className="settings-avatar-pick">Elegir foto
+                  <input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Elegir foto de perfil"
+                    onChange={e=>{
+                      const file=e.currentTarget.files?.[0];
+                      e.currentTarget.value='';
+                      if(!file)return;
+                      setSaved(false);setError('');
+                      if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){
+                        setError('Elige una imagen JPG, PNG o WebP de hasta 8 MB.');return;
+                      }
+                      const url=URL.createObjectURL(file);
+                      const image=new Image();
+                      image.onload=()=>{
+                        try{
+                          const canvas=document.createElement('canvas');
+                          canvas.width=160;canvas.height=160;
+                          const ctx=canvas.getContext('2d');
+                          if(!ctx)throw new Error('Canvas no disponible');
+                          const edge=Math.min(image.naturalWidth,image.naturalHeight);
+                          if(!edge)throw new Error('Imagen vacía');
+                          ctx.drawImage(image,(image.naturalWidth-edge)/2,(image.naturalHeight-edge)/2,edge,edge,0,0,160,160);
+                          const photo=canvas.toDataURL('image/jpeg',0.78);
+                          setProfile(p=>({...p,photo}));
+                        }catch{setError('No se ha podido procesar esta foto. Prueba otra imagen.');}
+                        finally{URL.revokeObjectURL(url);}
+                      };
+                      image.onerror=()=>{URL.revokeObjectURL(url);setError('No se ha podido leer esta imagen.');};
+                      image.src=url;
+                    }}/>
+                </label>
+                {profile.photo&&<button type="button" className="settings-avatar-remove" onClick={()=>{setProfile(p=>({...p,photo:''}));setSaved(false)}}>Quitar foto</button>}
+              </div>
+              <small>La foto se muestra en el menú lateral al guardar. Se conserva solo en este navegador.</small>
+            </div>
+          </div>
           <div className="settings-form-grid">
             <Field label="Nombre visible"><input required maxLength={80} value={profile.displayName} autoComplete="off"
               onChange={e=>{setProfile({...profile,displayName:e.target.value});setSaved(false)}}/></Field>
