@@ -159,14 +159,14 @@ test('Agenda, notas, filtros, catálogo, resultados y calculadora operativos en 
  await expect(page.getByRole('heading',{name:'Catálogo'})).toBeVisible();
  await page.getByRole('button',{name:/Ver y editar atributos/}).click();
  await expect(page.getByRole('button',{name:/Añadir atributo/}).first()).toBeVisible();
- // Portes: parámetros simulados para no usar ni pagar APIs de rutas.
+ // Portes: guardar parámetros desde la interfaz sin consumir APIs ni inventar tarifas vigentes.
  await open(page,'/configuracion/transporte');
- const data=await state(page);
- await page.evaluate(s=>{
-   const d=JSON.parse(localStorage.getItem('depofibra-crm-demo-v1'));
-   d.transport={smallRate:2,largeRate:3,buffer:10,distanceLimit:500,specialExtra:60};
-   localStorage.setItem('depofibra-crm-demo-v1',JSON.stringify(d));
- },data);
+ await page.getByLabel('Hasta Ø 2,45 m · €/km').fill('2');
+ await page.getByLabel('Desde Ø 3,00 m · €/km').fill('3');
+ await page.getByLabel('Ajuste fijo · €').fill('10');
+ await page.getByLabel('Límite de kilómetros').fill('500');
+ await page.getByRole('button',{name:'Guardar parámetros locales'}).click();
+ await expect(page.getByRole('status')).toContainText('Tarifas guardadas localmente');
  await open(page,'/transporte');
  await page.getByLabel('Kilómetros de ida').fill('50');
  await expect(page.locator('.transport-fast-total')).toContainText('110,00');
