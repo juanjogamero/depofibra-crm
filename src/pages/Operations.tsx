@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CalendarDays, CalendarPlus, Check, CheckCircle2, ClipboardCheck, ChevronDown, ChevronRight, Clock3, CreditCard, Download, Factory, FileText, Filter, MapPin, Package, Plus, Search, Shield, Truck, UploadCloud, Wallet, X } from 'lucide-react';
 import { useCrm } from '../store';
-import { type FactoryStatus, type FactoryCheckKey, type Order, dateText, money, today } from '../domain';
+import { type FactoryStatus, type Order, dateText, money, today } from '../domain';
 import { ActionLink, Back, Button, Empty, Field, Info, Initials, PageHeader, Panel, Pill, Status, Timeline, NoteDemo, Modal } from '../ui';
 
 const stages:FactoryStatus[]=['Pendiente','Confirmando detalles','En fabricación','Preparado','En tránsito','Entregado'];
@@ -413,61 +413,163 @@ export function Orders(){
 }
 
 
-const factoryChecks:{key:FactoryCheckKey;label:string;hint:string}[]=[
- {key:'product',label:'Producto, capacidad y uso confirmados',hint:'Contrastar modelo y destino con el presupuesto.'},
- {key:'dimensions',label:'Medidas y características verificadas',hint:'Comprobar dimensiones, accesos y limitaciones.'},
- {key:'finish',label:'Color y acabado definidos',hint:'Confirmar opción acordada con la oficina.'},
- {key:'connections',label:'Bocas y conexiones verificadas',hint:'Ubicación y diámetro de tomas, tapas y accesorios.'},
- {key:'quality',label:'Revisión final de fabricación confirmada',hint:'Comprobación comunicada por la oficina de Fábrica.'},
- {key:'documentation',label:'Documentación necesaria comprobada',hint:'Verificar documentos aplicables al producto y uso.'},
- {key:'access',label:'Destino, acceso y descarga coordinados',hint:'Transporte externo sin descarga estándar; confirmar medios.'},
- {key:'transport',label:'Porte y fecha de salida confirmados',hint:'Validar dimensiones, coste y disponibilidad con transportista.'},
- {key:'delivery',label:'Entrega confirmada',hint:'Marcar solo tras confirmación del cliente o transportista.'}
-];
-const factoryRequirements:Partial<Record<FactoryStatus,FactoryCheckKey[]>>={
- 'En fabricación':['product','dimensions','finish','connections'],
- 'Preparado':['quality','documentation'],
- 'En tránsito':['access','transport'],
- 'Entregado':['delivery']
-};
-function FactoryWorkflow({order,updateOrder}:{order:Order;updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void}){
- const index=stages.indexOf(order.factory);
- const next=stages[index+1];
- const req=next?(factoryRequirements[next]||[]):[];
- const checks=order.factoryChecklist||{};
- const missing=req.filter(key=>!checks[key]);
- const checked=factoryChecks.filter(item=>checks[item.key]).length;
- const setCheck=(key:FactoryCheckKey,value:boolean)=>updateOrder(order.id,{
-  factoryChecklist:{...checks,[key]:value}
- },(value?'Comprobación registrada: ':'Comprobación pendiente de nuevo: ')+factoryChecks.find(x=>x.key===key)?.label);
- const progress=(index+1)+' de '+stages.length;
- return <section className="crm-factory-workflow" aria-label="Protocolo de preparación del pedido">
-  <header className="crm-factory-workflow-head">
-   <div><span className="crm-factory-eyebrow">COORDINACIÓN CON FÁBRICA · PASO {progress}</span>
-    <h3>{order.factory}</h3><p>Marca cada comprobación solo cuando esté confirmada. Avanza en orden para no olvidar detalles.</p></div>
-   <span className="crm-factory-check-count">{checked}/{factoryChecks.length} verificaciones</span>
-  </header>
-  <ol className="crm-factory-step-nav">{stages.map((stage,i)=><li key={stage} className={i===index?'is-current':i<index?'is-complete':''}>
-   <span>{i<index?<Check size={14}/>:i+1}</span><small>{stage}</small>
-  </li>)}</ol>
-  <div className="crm-factory-checks">
-    <h4>Lista de comprobación</h4>
-    {factoryChecks.map(x=><label key={x.key} className={'crm-factory-check'+(checks[x.key]?' is-checked':'')}>
-      <input type="checkbox" checked={Boolean(checks[x.key])} onChange={e=>setCheck(x.key,e.target.checked)}/>
-      <span><strong>{x.label}</strong><small>{x.hint}</small></span>
-    </label>)}
+/** Flujo de oficina: sin checklists genéricas ni mensajes externos simulados. */
+function FactoryWorkflow({order,updateOrder,onPayment}:{order:Order;
+ updateOrder:(id:string,patch:Partial<Order>,eventText?:string)=>void;onPayment:()=>void;}){
+ const paid=order.paymentMode!=='Pendiente'&&order.advanceReceived>0;
+ const [config,setConfig]=useState(()=>({
+   color:order.color==='Por confirmar'?'':order.color,
+   inletCount:order.inletCount||'',outletCount:order.outletCount||'',
+   inletDiameterMm:order.inletDiameterMm||'',outletDiameterMm:order.outletDiameterMm||'',
+   inletHeightMm:order.inletHeightMm||'',outletHeightMm:order.outletHeightMm||'',
+   configurationNotes:order.configurationNotes||'',
+   deliveryDate:order.deliveryDate||''
+ }));
+ const [spoken,setSpoken]=useState(false);
+ const [transport,setTransport]=useState(()=>({
+   transportCompany:order.transportCompany||'',transportContact:order.transportContact||'',
+   departureDate:order.departureDate||'',transportNotes:order.transportNotes||''
+ }));
+ const [carrierConfirmed,setCarrierConfirmed]=useState(false);
+ const [deliveredDate,setDeliveredDate]=useState(order.deliveredAt?.slice(0,10)||today());
+ const [deliveryConfirmed,setDeliveryConfirmed]=useState(false);
+ const [notice,setNotice]=useState('');
+ const numberOk=(s:string)=>s.trim()!==''&&Number.isInteger(Number(s))&&Number(s)>=0;
+ const mmOk=(s:string)=>s.trim()!==''&&Number.isFinite(Number(s))&&Number(s)>0;
+ const countAndSizesOk=numberOk(config.inletCount)&&numberOk(config.outletCount)
+  &&(Number(config.inletCount)===0||mmOk(config.inletDiameterMm))
+  &&(Number(config.outletCount)===0||mmOk(config.outletDiameterMm));
+ const configOk=paid&&config.color.trim()!==''&&config.color!=='Por confirmar'&&
+   countAndSizesOk&&Boolean(config.deliveryDate)&&spoken;
+ const transportOk=Boolean(transport.transportCompany.trim()&&transport.departureDate&&carrierConfirmed);
+ const patchConfig=()=>{
+   const connections='Entradas: '+config.inletCount+' · Ø '+(config.inletDiameterMm||'—')+
+   ' mm · posición '+(config.inletHeightMm||'por confirmar')+' mm. Salidas: '+
+   config.outletCount+' · Ø '+(config.outletDiameterMm||'—')+
+   ' mm · posición '+(config.outletHeightMm||'por confirmar')+' mm.';
+   return {...config,connections};
+ };
+ const saveConfig=()=>{
+   updateOrder(order.id,patchConfig(),'Ficha de configuración del depósito guardada por la oficina');
+   setNotice('Datos técnicos guardados en este navegador.');
+ };
+ const startProduction=()=>{
+   if(!configOk||order.factory!=='Confirmando detalles')return;
+   if(!window.confirm('¿Has hablado con el cliente y confirmado la configuración, medidas y fecha estimada? Se marcará el inicio de fabricación.'))return;
+   updateOrder(order.id,{...patchConfig(),configurationConfirmedAt:new Date().toISOString(),
+     productionStartedAt:new Date().toISOString(),factory:'En fabricación'},
+   'Configuración confirmada con el cliente. Fabricación iniciada; aviso a Dirección registrado localmente.');
+   setNotice('Fabricación iniciada. Aviso registrado en este CRM; el correo y WhatsApp aún no están conectados.');
+ };
+ const finishProduction=()=>{
+   if(!window.confirm('¿Fábrica ha confirmado que la fabricación ha terminado y el producto está preparado?'))return;
+   updateOrder(order.id,{factory:'Preparado'},'Fabricación terminada. Pedido preparado para coordinar transporte.');
+   setNotice('Pedido preparado. Ahora corresponde confirmar transporte y descarga.');
+ };
+ const startShipping=()=>{
+   if(!transportOk||order.factory!=='Preparado')return;
+   if(!window.confirm('¿Transportista, salida y condiciones de entrega están confirmados?'))return;
+   updateOrder(order.id,{...transport,transportConfirmedAt:new Date().toISOString(),factory:'En tránsito'},
+     'Transporte confirmado: '+transport.transportCompany+'. Salida prevista '+transport.departureDate+'. Aviso local para Dirección.');
+   setNotice('Transporte registrado. Aviso local a Dirección; correo/WhatsApp pendientes de activación.');
+ };
+ const confirmDelivered=()=>{
+   if(!deliveryConfirmed||!deliveredDate||order.factory!=='En tránsito')return;
+   if(!window.confirm('¿Está confirmada la entrega real del pedido? La comisión acordada pasará a pendiente de cobro.'))return;
+   updateOrder(order.id,{deliveredAt:deliveredDate+'T12:00:00',factory:'Entregado'},
+     'Entrega confirmada el '+deliveredDate+'. Comisión pendiente de liquidación al estar entregado.');
+   setNotice('Entrega registrada. La comisión pendiente ya figura como exigible para Dirección.');
+ };
+ const phase=order.factory;
+ return <div className="crm-office-flow">
+  <div className="crm-office-top">
+   <div><span>PROCESO DE OFICINA Y FÁBRICA</span><h3>{phase}</h3>
+    <p>Primero confirma el ingreso; después recoge los detalles con el cliente y registra cada avance.</p></div>
+   <span className={'crm-office-pay-status'+(paid?' is-paid':'')}>{paid?<><CheckCircle2 size={15}/>Primer pago verificado</>:<><Clock3 size={15}/>Primer pago pendiente</>}</span>
   </div>
-  <div className="crm-factory-next">
-    {next?<><div><strong>Próxima etapa: {next}</strong>
-     <p>{missing.length?'Antes de avanzar, faltan '+missing.length+' verificaciones necesarias para este paso.':'Puedes pasar a la siguiente etapa cuando se haya confirmado el avance con Fábrica.'}</p></div>
-     <button type="button" disabled={missing.length>0} onClick={()=>{
-       if(!window.confirm('¿Confirmas que el pedido pasa a «'+next+'»? Esta acción se anotará en su historial.'))return;
-       updateOrder(order.id,{factory:next},'Avance del protocolo de Fábrica: '+next);
-     }}>Marcar siguiente etapa <ChevronRight size={16}/></button></>
-    :<div><strong>Pedido en estado «Entregado»</strong><p>Conserva las comprobaciones para futuras consultas y posventa.</p></div>}
+  <div className="crm-office-timeline" aria-label="Fases de trabajo">
+    {stages.map((step,index)=><div key={step} className={'crm-office-step'+(index===stages.indexOf(phase)?' is-current':index<stages.indexOf(phase)?' is-complete':'')}>
+      <span>{index<stages.indexOf(phase)?<Check size={13}/>:index+1}</span><small>{step}</small>
+    </div>)}
   </div>
-  <p className="crm-inline-help">Esta lista registra verificaciones manuales; no sustituye certificados, documentación legal ni confirmación del fabricante o transportista.</p>
- </section>;
+  {!paid&&<div className="crm-office-gate">
+    <strong>1. Comprobar el primer pago</strong>
+    <p>El pedido está aceptado. La oficina o Dirección debe comprobar el ingreso antes de confirmar los detalles de fabricación.</p>
+    <button type="button" onClick={onPayment}>Ir a Formalización <ChevronRight size={16}/></button>
+  </div>}
+  {paid&&phase==='Pendiente'&&<div className="crm-office-gate">
+    <strong>Pago verificado. Continuar con los detalles</strong>
+    <p>El registro es anterior al nuevo flujo. Puedes abrir la preparación sin alterar el pago ya anotado.</p>
+    <button type="button" onClick={()=>updateOrder(order.id,{factory:'Confirmando detalles'},'Inicio de coordinación técnica tras comprobar ingreso')}>Continuar con el cliente <ChevronRight size={16}/></button>
+  </div>}
+  {paid&&phase!=='Pendiente'&&<div className="crm-office-config">
+    <div className="crm-office-section-heading"><div><span>PASO DE CONFIGURACIÓN</span>
+     <h4>Datos acordados con el cliente</h4><p>Color, entradas, salidas, medidas en mm y entrega estimada.</p></div>
+     {order.configurationConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
+    </div>
+    {phase==='Confirmando detalles'||phase==='En fabricación'?<div className="crm-office-fields">
+      <Field label="Color del depósito"><input value={config.color} placeholder="Ej. Blanco" onChange={e=>setConfig(v=>({...v,color:e.target.value}))}/></Field>
+      <Field label="Entrega estimada"><input type="date" value={config.deliveryDate} onChange={e=>setConfig(v=>({...v,deliveryDate:e.target.value}))}/></Field>
+      <Field label="Número de entradas"><input type="number" min="0" step="1" value={config.inletCount} placeholder="0" onChange={e=>setConfig(v=>({...v,inletCount:e.target.value}))}/></Field>
+      <Field label="Diámetro entradas (mm)"><input type="number" min="0" step="1" value={config.inletDiameterMm} placeholder="Ej. 63" onChange={e=>setConfig(v=>({...v,inletDiameterMm:e.target.value}))}/></Field>
+      <Field label="Altura/posición entradas (mm)"><input type="number" min="0" step="1" value={config.inletHeightMm} placeholder="Desde la base, si aplica" onChange={e=>setConfig(v=>({...v,inletHeightMm:e.target.value}))}/></Field>
+      <Field label="Número de salidas"><input type="number" min="0" step="1" value={config.outletCount} placeholder="0" onChange={e=>setConfig(v=>({...v,outletCount:e.target.value}))}/></Field>
+      <Field label="Diámetro salidas (mm)"><input type="number" min="0" step="1" value={config.outletDiameterMm} placeholder="Ej. 50" onChange={e=>setConfig(v=>({...v,outletDiameterMm:e.target.value}))}/></Field>
+      <Field label="Altura/posición salidas (mm)"><input type="number" min="0" step="1" value={config.outletHeightMm} placeholder="Desde la base, si aplica" onChange={e=>setConfig(v=>({...v,outletHeightMm:e.target.value}))}/></Field>
+      <div className="crm-office-field-wide"><Field label="Otras conexiones, ubicación y detalles de la llamada"><textarea rows={3} value={config.configurationNotes} onChange={e=>setConfig(v=>({...v,configurationNotes:e.target.value}))} placeholder="Tomas, accesorios, observaciones y condiciones confirmadas..."/></Field></div>
+    </div>:<div className="crm-office-summary">
+      <span><b>Color:</b> {order.color||'Pendiente'}</span>
+      <span><b>Entradas:</b> {order.inletCount||'No anotadas'} · diámetro {order.inletDiameterMm||'—'} mm</span>
+      <span><b>Salidas:</b> {order.outletCount||'No anotadas'} · diámetro {order.outletDiameterMm||'—'} mm</span>
+      <span><b>Entrega prevista:</b> {dateText(order.deliveryDate)}</span>
+      {order.configurationNotes&&<p>{order.configurationNotes}</p>}
+    </div>}
+    {phase==='Confirmando detalles'&&<div className="crm-office-actions">
+      <label className="crm-office-confirm"><input type="checkbox" checked={spoken} onChange={e=>setSpoken(e.target.checked)}/>He hablado con el cliente y ha confirmado estos datos</label>
+      <div><button type="button" className="crm-office-secondary" onClick={saveConfig}>Guardar anotaciones</button>
+      <button type="button" className="crm-office-primary" disabled={!configOk} onClick={startProduction}><Factory size={16}/>Confirmar e iniciar fabricación</button></div>
+    </div>}
+    {phase==='En fabricación'&&<div className="crm-office-actions">
+      <div><button type="button" className="crm-office-secondary" onClick={saveConfig}>Guardar cambios técnicos</button>
+      <button type="button" className="crm-office-primary" onClick={finishProduction}>Fabricación terminada <ChevronRight size={16}/></button></div>
+    </div>}
+  </div>}
+  {paid&&['Preparado','En tránsito','Entregado'].includes(phase)&&<div className="crm-office-transport">
+   <div className="crm-office-section-heading"><div><span>PASO DE TRANSPORTE</span><h4>Transportista y salida</h4>
+    <p>Comprobar previamente acceso, medios de descarga y condiciones del porte externo.</p></div>
+    {order.transportConfirmedAt&&<span className="crm-office-verified"><CheckCircle2 size={15}/>Confirmado</span>}
+   </div>
+   {phase==='Preparado'?<>
+     <div className="crm-office-fields">
+      <Field label="Transportista confirmado"><input value={transport.transportCompany} placeholder="Nombre o referencia" onChange={e=>setTransport(v=>({...v,transportCompany:e.target.value}))}/></Field>
+      <Field label="Teléfono o contacto transportista"><input value={transport.transportContact} onChange={e=>setTransport(v=>({...v,transportContact:e.target.value}))}/></Field>
+      <Field label="Fecha prevista de salida"><input type="date" value={transport.departureDate} onChange={e=>setTransport(v=>({...v,departureDate:e.target.value}))}/></Field>
+      <div className="crm-office-field-wide"><Field label="Acceso, descarga y observaciones de transporte"><textarea rows={3} value={transport.transportNotes} placeholder="¿Quién descarga? ¿Grúa/pluma? ¿Acceso apto?" onChange={e=>setTransport(v=>({...v,transportNotes:e.target.value}))}/></Field></div>
+     </div>
+     <div className="crm-office-actions"><label className="crm-office-confirm"><input type="checkbox" checked={carrierConfirmed} onChange={e=>setCarrierConfirmed(e.target.checked)}/>He hablado con el transportista y está confirmado</label>
+      <div><button type="button" className="crm-office-primary" disabled={!transportOk} onClick={startShipping}><Truck size={16}/>Confirmar transporte y marcar enviado</button></div>
+     </div>
+   </>:<div className="crm-office-summary">
+     <span><b>Transportista:</b> {order.transportCompany||'Sin especificar'}</span>
+     <span><b>Salida:</b> {dateText(order.departureDate)}</span>
+     {order.transportContact&&<span><b>Contacto:</b> {order.transportContact}</span>}
+     {order.transportNotes&&<p>{order.transportNotes}</p>}
+   </div>}
+  </div>}
+  {paid&&phase==='En tránsito'&&<div className="crm-office-delivery">
+    <div className="crm-office-section-heading"><div><span>PASO DE ENTREGA</span><h4>Confirmar entrega al cliente</h4>
+     <p>Al confirmar la entrega, la comisión pendiente quedará disponible para su cobro.</p></div></div>
+    <Field label="Fecha real de entrega"><input type="date" value={deliveredDate} max={today()} onChange={e=>setDeliveredDate(e.target.value)}/></Field>
+    <div className="crm-office-actions"><label className="crm-office-confirm"><input type="checkbox" checked={deliveryConfirmed} onChange={e=>setDeliveryConfirmed(e.target.checked)}/>Entrega confirmada por cliente o transportista</label>
+      <div><button type="button" className="crm-office-primary" disabled={!deliveredDate||deliveredDate>today()||!deliveryConfirmed} onClick={confirmDelivered}><CheckCircle2 size={16}/>Marcar entregado</button></div></div>
+  </div>}
+  {phase==='Entregado'&&<div className="crm-office-delivered" role="status"><CheckCircle2 size={19}/>
+   <div><strong>Pedido entregado{order.deliveredAt?' · '+dateText(order.deliveredAt.slice(0,10)):''}</strong>
+   <p>El saldo de comisión, si existe, está pendiente de liquidación. El cobro no se registra automáticamente.</p></div>
+  </div>}
+  {notice&&<div role="status" className="crm-office-notice"><CheckCircle2 size={16}/>{notice}</div>}
+  <p className="crm-office-disclaimer">Los avisos a Dirección quedan anotados en este navegador. No se envían WhatsApp o correos hasta que exista backend, usuarios autenticados y proveedor configurado.</p>
+ </div>;
 }
 
 export function OrderDetail(){
