@@ -238,7 +238,7 @@ const profileKey = (role: DemoRole) => 'depofibra-crm-profile-demo-v1-' + role;
 const blankProfile = (role: DemoRole): DemoProfile => ({
   displayName: role === 'direccion' ? 'Dirección' : 'Oficina de Fábrica',
   email: '',
-  position: role === 'direccion' ? 'Administración (vista demo)' : 'Colaborador (vista demo)',
+  position: role === 'direccion' ? 'Administración (vista local)' : 'Colaborador (vista local)',
   photo: ''
 });
 function readDemoProfile(role: DemoRole): DemoProfile {
@@ -280,7 +280,7 @@ function TariffsEditor(){
       <Field label="Recargo especial · €"><input type="number" min="0" step="1" value={edit.specialExtra} onChange={e=>{setSaved(false);setEdit({...edit,specialExtra:Number(e.target.value)})}}/></Field>
       <Field label="Límite de kilómetros"><input type="number" min="1" step="1" value={edit.distanceLimit} onChange={e=>{setSaved(false);setEdit({...edit,distanceLimit:Number(e.target.value)})}}/></Field>
     </div>
-    <div className="settings-actions"><Button disabled={!valid} onClick={()=>{updateTransport(edit);setSaved(true)}}><Check size={16}/>Guardar tarifas de la demo</Button>
+    <div className="settings-actions"><Button disabled={!valid} onClick={()=>{updateTransport(edit);setSaved(true)}}><Check size={16}/>Guardar parámetros locales</Button>
       <Link to="/transporte" className="settings-inline-link">Ir a la calculadora <ArrowRight size={15}/></Link></div>
     {saved&&<p className="settings-success" role="status">Tarifas guardadas localmente. No se ha consultado ni confirmado un transporte real.</p>}
   </section>;
@@ -302,7 +302,7 @@ export function Configuration(){
     ...(admin?[
       {id:'actividad',label:'Registro de actividad',icon:ClipboardList},
       {id:'transporte',label:'Tarifas de transporte',icon:Truck},
-      {id:'datos',label:'Datos de demostración',icon:Database}
+      {id:'datos',label:'Datos locales',icon:Database}
     ]:[])
   ];
   const allowed=sections.some(s=>s.id===section);
@@ -315,7 +315,7 @@ export function Configuration(){
       }));
       window.dispatchEvent(new Event('depofibra-crm-profile-updated'));
       setSaved(true);
-    }catch{setError('El navegador no permite guardar este perfil de demostración.')}
+    }catch{setError('El navegador no permite guardar este perfil en el navegador.')}
   };
 
   return <div className="page page-opportunities crm-workspace page-settings">
@@ -324,7 +324,7 @@ export function Configuration(){
         <h1>Cuenta y configuración</h1>
         <p>Datos de usuario, acceso y parámetros internos de la plataforma.</p>
       </div>
-      <span className="settings-demo-flag">Vista de prueba · sin autenticación real</span>
+      <span className="settings-demo-flag">Acceso local · cuentas sin activar</span>
     </header>
     <div className="settings-workspace">
       <nav className="settings-sections" aria-label="Secciones de la cuenta y configuración">
@@ -341,7 +341,7 @@ export function Configuration(){
       </section>}
       {allowed&&section==='perfil'&&<section className="settings-panel">
         <div className="settings-panel-head"><h2>Mi perfil</h2>
-          <p>Datos identificativos para la interfaz. En esta versión son solo preferencias locales de demostración.</p></div>
+          <p>Datos identificativos para la interfaz. En esta versión son solo preferencias guardadas únicamente en este navegador.</p></div>
         <form className="settings-profile-form" onSubmit={saveProfile}>
           <div className="settings-avatar-editor">
             <span className="settings-avatar-preview" aria-hidden="true">{profile.photo?<img src={profile.photo} alt=""/>:<UserRound size={34}/>}</span>
@@ -410,7 +410,7 @@ export function Configuration(){
           <p>La recuperación de contraseñas y la gestión de sesiones se habilitarán al conectar un sistema de cuentas seguro.</p></div>
         <div className="settings-feature-row"><div><strong>Restablecer contraseña</strong>
           <p>Pendiente de autenticación real, verificación de correo y envío seguro del enlace de recuperación.</p></div>
-          <button type="button" disabled className="settings-disabled-action">No disponible en demo</button></div>
+          <button type="button" disabled className="settings-disabled-action">Pendiente de activación</button></div>
         <div className="settings-feature-row"><div><strong>Sesiones y dispositivos</strong>
           <p>Se requiere gestionar las sesiones desde el servidor para poder cerrarlas o revocarlas.</p></div>
           <span className="settings-pending-label">Pendiente</span></div>
@@ -421,7 +421,7 @@ export function Configuration(){
           <p>Auditoría prevista para el perfil administrador. Todavía no existe un registro central fiable.</p></div>
         <div className="settings-audit-empty">
           <ClipboardList size={25}/><strong>Sin registros de auditoría del servidor</strong>
-          <p>El CRM actual guarda datos de demostración en cada navegador; no puede certificar quién ha realizado cada acción ni detectar manipulaciones.</p>
+          <p>El CRM actual guarda datos localmente en cada navegador; no puede certificar quién ha realizado cada acción ni detectar manipulaciones.</p>
         </div>
         <h3>Eventos que deberá registrar el sistema definitivo</h3>
         <div className="settings-audit-spec">
@@ -433,11 +433,11 @@ export function Configuration(){
       </section>}
       {allowed&&section==='transporte'&&<TariffsEditor/>}
       {allowed&&section==='datos'&&<section className="settings-panel">
-        <div className="settings-panel-head"><h2>Datos de demostración</h2>
-          <p>Opciones locales de pruebas. No afectan a bases de datos reales ni a otras personas.</p></div>
-        <div className="settings-feature-row"><div><strong>Restablecer datos ficticios</strong>
+        <div className="settings-panel-head"><h2>Datos locales</h2>
+          <p>Opciones de almacenamiento local. No afectan a bases de datos reales ni a otras personas.</p></div>
+        <div className="settings-feature-row"><div><strong>Restablecer datos de ejemplo</strong>
           <p>Reinicia los registros de este navegador. Esta acción no se puede deshacer.</p></div>
-          <Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de demostración?'))resetDemo()}}>Restablecer demo</Button></div>
+          <Button variant="outline" onClick={()=>{if(window.confirm('¿Reiniciar todos los datos de ejemplo del navegador?'))resetDemo()}}>Reiniciar datos locales</Button></div>
       </section>}
       </div>
     </div>
