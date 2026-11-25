@@ -97,6 +97,7 @@ test('Presupuesto multiproducto completo -> aceptación, pago, fabricación, por
  await page.getByLabel(/He comprobado el ingreso/).check();
  await page.getByRole('button',{name:'Confirmar primer pago'}).click();
  await expect(page.locator('.crm-payment-success')).toContainText('500,45');
+ await expect(page.getByRole('button',{name:'Confirmar primer pago'})).toHaveCount(0);
  await expect.poll(async()=>(await state(page)).orders.find(o=>o.id===accepted.id).factory).toBe('Confirmando detalles');
  await page.getByRole('button',{name:'Fabricación',exact:true}).click();
  await expect(page.locator('.crm-office-product')).toHaveCount(2);
@@ -143,7 +144,7 @@ test('Agenda, notas, filtros, catálogo, resultados y calculadora operativos en 
  await page.getByRole('button',{name:'Nueva tarea'}).click();
  await page.getByLabel('Tarea',{exact:true}).fill('Revisión E2E');
  await page.getByLabel('Fecha').fill(inDays(1));
- await page.getByLabel('Hora').fill('10:30');
+ await page.getByLabel('Hora',{exact:true}).fill('10:30');
  await page.getByRole('button',{name:'Guardar tarea'}).click();
  await expect.poll(async()=>(await state(page)).tasks.some(t=>t.title==='Revisión E2E')).toBe(true);
  await page.getByRole('button',{name:'Nueva nota'}).click();
@@ -191,4 +192,39 @@ test('Diseño responsive: rutas esenciales sin desbordamiento general ni JS fata
   }
  }
  expect(errors).toEqual([]);
+});
+
+test('Copia de seguridad íntegra, persistencia local y controles visibles de perfil',async({page})=>{
+ page.on('dialog',async dialog=>dialog.accept());
+ await open(page,'/configuracion/perfil');
+ await page.getByLabel('Nombre visible').fill('Dirección QA');
+ await page.getByRole('button',{name:/Guardar perfil/}).click();
+ await expect(page.getByText(/Perfil guardado en este navegador/)).toBeVisible();
+ await page.reload();
+ const name=await page.evaluate(()=>JSON.parse(localStorage.getItem('depofibra-crm-profile-demo-v1-direccion')||'{}').displayName);
+ expect(name).toBe('Dirección QA');
+ await open(page,'/configuracion/datos');
+ const requested=page.waitForEvent('download');
+ await page.getByRole('button',{name:'Descargar copia JSON'}).click();
+ const download=await requested;
+ expect(download.suggestedFilename()).toMatch(/depofibra-crm-copia-local-.*\.json/);
+ const backup=JSON.parse(await fs.readFile(await download.path(),'utf8'));
+ expect(backup.schema).toBe('depofibra-crm-backup-local-v1');
+ expect(backup.data).toHaveProperty('orders');
+ expect(backup.data).toHaveProperty('quotes');
+ expect(backup.data).toHaveProperty('internalNotes');
+ expect(backup.data).toHaveProperty('transport');
+ expect(backup).not.toHaveProperty('password');
+});
+test('Vista de oficina: rutas acotadas sin simular permisos de servidor',async({page})=>{
+ await open(page,'/configuracion/perfil');
+ await page.getByLabel('Cambiar vista simulada del CRM').selectOption('fabrica');
+ await open(page,'/fabrica');
+ await expect(page.locator('h1').first()).toBeVisible();
+ await open(page,'/comisiones');
+ await expect(page).toHaveURL(/#\/fabrica$/);
+ await open(page,'/configuracion/seguridad');
+ await expect(page.getByRole('heading',{name:'Acceso y seguridad'})).toBeVisible();
+ // Los roles de la interfaz NO equivalen a autenticación en servidor.
+ await expect(page.getByText(/sistema de cuentas seguro/)).toBeVisible();
 });
