@@ -87,6 +87,7 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
  return <section className="transport-fast" aria-label="Calculadora rápida de portes">
   <div className="transport-fast-main">
    <form className="transport-fast-form" onSubmit={calculate}>
+    <div className="transport-fast-step-label"><span>01</span><strong>Ruta de transporte</strong></div>
     <div className="transport-fast-origin"><MapPin size={16} aria-hidden="true"/> <span>Origen de referencia</span><strong>{ORIGIN}</strong></div>
     <div className="transport-fast-row transport-fast-destination">
      <label className="transport-fast-field">
@@ -110,6 +111,7 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
     </div>
     {error&&<p className="transport-fast-error" role="alert"><Info size={16}/>{error}</p>}
     <div className="transport-fast-divider"/>
+    <div className="transport-fast-step-label"><span>02</span><strong>Condiciones de la carga</strong></div>
     <div className="transport-fast-inputs">
      <label className="transport-fast-field transport-fast-km">
       <span>Kilómetros de ida</span>
@@ -137,7 +139,7 @@ export default function TransportRouteCalculator({tariffs}:{tariffs:TransportSet
    </form>
 
    <aside className="transport-fast-estimate" aria-label="Resultado del transporte" aria-live="polite">
-    <div className="transport-fast-estimate-header"><span>Estimación del porte</span><Truck size={19} aria-hidden="true"/></div>
+    <div className="transport-fast-estimate-header"><span>03 · Resultado orientativo</span><Truck size={19} aria-hidden="true"/></div>
     <strong className={'transport-fast-total'+(!canEstimate?' is-empty':'')}>{result}</strong>
     <p className="transport-fast-result-description">
      {!validKm?'Introduce un destino y obtén los kilómetros, o escríbelos manualmente.'
