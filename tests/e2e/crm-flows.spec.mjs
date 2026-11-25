@@ -590,6 +590,8 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
  await expect(page).toHaveURL(/#\/resultados\/zones/);
  await expect.poll(async()=>page.locator('.ri-active-content').evaluate(el=>el.scrollTop)).toBe(0);
  await expect(page.getByRole('heading',{name:'Mapa comercial · España y Portugal'})).toBeVisible();
+ const mapBox=await page.locator('.ri-geo-card').first().boundingBox();
+ expect(mapBox.height,'El mapa no debe colapsar por flex-shrink').toBeGreaterThan(320);
  await page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'}).click({timeout:6500});
  await expect(page.getByRole('group',{name:'Visualizar ubicaciones de'}).getByRole('button',{name:'Pedidos'})).toHaveAttribute('aria-pressed','true');
 
