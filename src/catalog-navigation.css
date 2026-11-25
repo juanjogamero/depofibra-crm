@@ -1,0 +1,152 @@
+/* Catálogo: jerarquía clara y navegación reversible entre categorías, productos y atributos. */
+.app-body.is-catalog .page.page-catalog.catalog3 {
+  background:#f6f8fb;
+}
+.page-catalog.catalog3 .catalog3-sidebar,
+.page-catalog.catalog3 .catalog3-workspace {
+  border:1px solid #dee7ef;
+  border-radius:12px;
+  box-shadow:none;
+}
+.page-catalog.catalog3 .catalog3-tabs {gap:8px;margin-bottom:14px;}
+.page-catalog.catalog3 .catalog3-tabs button {
+  min-height:43px;
+  padding:10px 17px 12px;
+  font-weight:700;
+}
+.page-catalog.catalog3 .catalog3-tabs button.is-active::after {
+  height:2px;
+  background:#01488e;
+}
+.page-catalog.catalog3 .catalog3-layout.is-category-overview {
+  display:block;
+}
+.page-catalog.catalog3 .catalog3-layout.is-category-overview .catalog3-workspace {
+  width:100%;
+  max-width:100%;
+}
+.page-catalog.catalog3 .catalog3-path {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:34px;
+  padding:14px 20px 0;
+  color:#7790a2;
+  font:600 11px/1.4 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-path button {
+  padding:4px 1px;
+  border:0;
+  background:transparent;
+  color:#01488e;
+  font:700 inherit;
+  cursor:pointer;
+}
+.page-catalog.catalog3 .catalog3-path button:hover {text-decoration:underline;}
+.page-catalog.catalog3 .catalog3-path>span:last-child {color:#3c5b70;}
+.page-catalog.catalog3 .catalog3-back-button {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.page-catalog.catalog3 .catalog3-overview-list {
+  display:flex;
+  flex-direction:column;
+  min-height:100px;
+  overflow:auto;
+  max-height:min(62vh,600px);
+  border-top:1px solid #e8eff5;
+}
+.page-catalog.catalog3 .catalog3-overview-row {
+  display:flex;
+  align-items:center;
+  gap:20px;
+  width:100%;
+  min-height:70px;
+  padding:14px 21px;
+  border:0;
+  border-bottom:1px solid #e8eef3;
+  background:#fff;
+  text-align:left;
+  cursor:pointer;
+  color:#668499;
+}
+.page-catalog.catalog3 .catalog3-overview-row:hover,
+.page-catalog.catalog3 .catalog3-overview-row:focus-visible {
+  background:#f5faff;
+  outline:2px solid #96c5e2;
+  outline-offset:-2px;
+}
+.page-catalog.catalog3 .catalog3-overview-name {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-width:0;
+  gap:5px;
+}
+.page-catalog.catalog3 .catalog3-overview-name strong {
+  color:#153f60;
+  font:750 12.5px/1.3 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-overview-name small {
+  color:#8498a9;
+  font:500 11px/1.3 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-overview-count {
+  flex:0 0 auto;
+  font:600 11.4px/1.35 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-attribute-summary {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:14px 28px;
+  padding:11px 20px 16px;
+  color:#688297;
+  font:600 11.5px/1.4 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-attribute-summary span {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+.page-catalog.catalog3 .catalog3-attribute-summary strong {
+  color:#01488e;
+  font-size:14px;
+}
+.page-catalog.catalog3 .catalog3-empty-attributes {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+  padding:33px 20px 28px;
+  border-top:1px solid #e9eff4;
+}
+.page-catalog.catalog3 .catalog3-empty-attributes strong {
+  color:#214763;
+  font:750 13px/1.4 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-empty-attributes p {
+  margin:0;
+  color:#748c9f;
+  font:500 11.6px/1.5 Inter,sans-serif;
+}
+.page-catalog.catalog3 .catalog3-attribute-foot {
+  margin-top:auto;
+  border-top:1px solid #edf1f5;
+  line-height:1.5;
+}
+@media(max-width:840px) {
+  .page-catalog.catalog3 .catalog3-path {padding:12px 15px 0;}
+  .page-catalog.catalog3 .catalog3-overview-row {padding:13px 15px;}
+  .page-catalog.catalog3 .catalog3-attribute-summary {padding:11px 15px 15px;}
+}
+@media(max-width:470px) {
+  .page-catalog.catalog3 .catalog3-tabs button {flex:1;justify-content:center;padding:11px 7px;}
+  .page-catalog.catalog3 .catalog3-overview-row {gap:9px;}
+  .page-catalog.catalog3 .catalog3-overview-count {max-width:92px;text-align:right;white-space:normal;}
+  .page-catalog.catalog3 .catalog3-overview-name strong {font-size:11.8px;}
+  .page-catalog.catalog3 .catalog3-attribute-summary {gap:8px 17px;}
+  .page-catalog.catalog3 .catalog3-back-button {width:100%;}
+}
