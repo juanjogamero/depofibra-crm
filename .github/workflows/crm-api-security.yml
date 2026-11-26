@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - 'server/**'
+      - 'secure/**'
+      - 'vite.secure.config.ts'
+      - 'tsconfig.json'
+      - 'package.json'
       - '.github/workflows/crm-api-security.yml'
   workflow_dispatch:
 jobs:
@@ -59,3 +63,25 @@ jobs:
         run: cd server && npm install --no-audit --no-fund
       - name: Pruebas SQL con permisos mínimos y sesiones reales
         run: cd server && npm test
+
+  secure-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Comprobar tipos de demo y entorno privado
+        run: npm run check
+      - name: Compilar interfaz privada independiente sin datos demo
+        run: npm run build:secure
+      - name: Verificar artefacto privado
+        run: |
+          test -s dist-secure/index.html
+          test -d dist-secure/assets
+          if grep -R -E 'depofibra-crm-demo-v1|Agro Sierra . ejemplo' dist-secure/assets; then
+            echo "ERROR: se ha importado código de demostración al build privado"
+            exit 1
+          fi
