@@ -31,7 +31,7 @@ jobs:
           chmod 600 .env.vps
           node scripts/vps-preflight.mjs .env.vps
           docker compose --env-file .env.vps -f compose.vps.yml config --quiet
-          docker run --rm --env-file .env.vps -v "$PWD/deploy/vps/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker compose --env-file .env.vps -f compose.vps.yml run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build the VPS preview without publishing
         run: docker compose --env-file .env.vps -f compose.vps.yml build preview
       - name: Static smoke test on loopback only
