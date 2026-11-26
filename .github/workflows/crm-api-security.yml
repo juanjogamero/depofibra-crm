@@ -1,0 +1,87 @@
+name: CRM API security checks
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - 'secure/**'
+      - 'vite.secure.config.ts'
+      - 'tsconfig.json'
+      - 'package.json'
+      - '.github/workflows/crm-api-security.yml'
+  workflow_dispatch:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Backend syntax
+        run: find server/src server/tests -name '*.mjs' -print0 | xargs -0 -n1 node --check
+      - name: Instalar dependencias del servidor
+        run: cd server && npm install --no-audit --no-fund
+      - name: Backend tests (sin PostgreSQL)
+        run: cd server && npm test
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: depofibra_crm_v2
+          POSTGRES_PASSWORD: ci_only_not_for_vps
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d depofibra_crm_v2"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      PGPASSWORD: ci_only_not_for_vps
+      TEST_ADMIN_DATABASE_URL: postgresql://postgres:ci_only_not_for_vps@127.0.0.1:5432/depofibra_crm_v2
+      NODE_ENV: test
+      CRM_INTEGRATION_TEST: '1'
+      CRM_DATABASE_URL: postgresql://depofibra_v2_api:ci_only_not_for_vps@127.0.0.1:5432/depofibra_crm_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar cliente PostgreSQL
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Migrar BD aislada con usuario propietario NOLOGIN
+        run: |
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -c "CREATE ROLE depofibra_v2_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE"
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -c "ALTER DATABASE depofibra_crm_v2 OWNER TO depofibra_v2_owner"
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/001_auth.sql
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -c "CREATE ROLE depofibra_v2_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'ci_only_not_for_vps'"
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/002_runtime_grants.sql
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/003_opportunities.sql
+      - name: Instalar dependencias del servidor
+        run: cd server && npm install --no-audit --no-fund
+      - name: Pruebas SQL con permisos mínimos y sesiones reales
+        run: cd server && npm test
+
+  secure-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias
+        run: npm install --no-audit --no-fund
+      - name: Comprobar tipos de demo y entorno privado
+        run: npm run check
+      - name: Compilar interfaz privada independiente sin datos demo
+        run: npm run build:secure
+      - name: Verificar artefacto privado
+        run: |
+          test -s dist-secure/index.html
+          test -d dist-secure/assets
+          if grep -R -E 'depofibra-crm-demo-v1|Agro Sierra . ejemplo' dist-secure/assets; then
+            echo "ERROR: se ha importado código de demostración al build privado"
+            exit 1
+          fi
