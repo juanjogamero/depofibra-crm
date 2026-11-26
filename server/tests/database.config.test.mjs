@@ -8,7 +8,7 @@ test('API usa únicamente socket local y base CRM nueva por defecto', async () =
     assert.equal(store.pool.options.host, '/var/run/postgresql');
     assert.equal(store.pool.options.database, 'depofibra_crm_v2');
     assert.equal(store.pool.options.user, 'depofibra_v2_api');
-    assert.equal(store.pool.options.password, null);
+    assert.ok(store.pool.options.password == null, 'No hay contraseña configurada');
   } finally { await store.close(); }
 });
 
