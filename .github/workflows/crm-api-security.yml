@@ -1,0 +1,19 @@
+name: CRM API security checks
+on:
+  pull_request:
+    paths:
+      - 'server/**'
+      - '.github/workflows/crm-api-security.yml'
+  workflow_dispatch:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Backend syntax
+        run: find server/src server/tests -name '*.mjs' -print0 | xargs -0 -n1 node --check
+      - name: Backend tests
+        run: cd server && npm test
