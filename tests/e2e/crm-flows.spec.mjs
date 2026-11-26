@@ -508,6 +508,7 @@ test('Pedido: siguiente paso prioritario, sin hueco inferior en portátil',async
  }
  await page.setViewportSize({width:390,height:750});
  await open(page,'/pedidos/PED-203');
+ await page.getByRole('button',{name:'Resumen',exact:true}).click();
  await expect(page.locator('.crm-order-overview-grid').getByRole('heading',{name:'Siguiente paso'})).toBeVisible();
  await page.getByRole('button',{name:'Continuar pedido'}).click();
  await expect(page.getByRole('button',{name:'Fabricación',exact:true})).toHaveClass(/selected/);
