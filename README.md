@@ -40,3 +40,9 @@ Inspiración visual proporcionada por Dirección: Aurex CRM (navegación y ficha
 ## Proceso
 
 Cambios mediante ramas y PR, revisión por Dirección y QA funcional antes de publicar.
+
+## Previsualización privada en VPS (26/11/2026)
+Se ha añadido un **paquete reproducible para PRUEBAS PRIVADAS** con Docker, Nginx y Caddy.
+No está aprobado para operar con clientes: sigue sin backend, sesiones por usuario o base de datos.
+Ver [deploy/vps/README.md](deploy/vps/README.md) y las comprobaciones de seguridad previas.
+La demo de GitHub Pages no cambia de ruta ni de comportamiento.

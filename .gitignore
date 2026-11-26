@@ -3,6 +3,14 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.vps.example
 .DS_Store
 coverage/
 *.local
+
+# Artefactos de infraestructura, nunca en Git.
+.env.vps
+*.sql.gz
+*.dump
+*.backup
+vps-private/
