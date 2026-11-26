@@ -46,6 +46,7 @@ import './soft-brand-background.css';
 import './table-chrome-minimal.css';
 import './agenda-readable-layout-20261125.css';
 import './results-clarity-nine-reports.css';
+import './crm-five-screen-layout-20261126.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

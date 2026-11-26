@@ -674,7 +674,7 @@ export function OrderDetail(){
          :o.factory==='Preparado'?'Coordinar y confirmar el transportista.'
          :o.factory==='En fabricación'?'Esperar confirmación de fabricación terminada.'
          :'Hablar con el cliente y fijar características y fecha estimada.'}</p></div></div>
-     <button type="button" className="crm-office-link" onClick={()=>setTab(!paid?'Formalización':'Fabricación')}>Abrir siguiente paso <ChevronRight size={16}/></button>
+     <button type="button" className="crm-office-link" onClick={()=>setTab(!paid?'Formalización':'Fabricación')}>Continuar pedido <ChevronRight size={16}/></button>
    </Panel>
    {role==='direccion'&&<Panel title="Control económico privado"><div className="money-summary"><span>Importe de operación</span><strong>{money(o.amount)}</strong></div>
     <div className="summary-line"><span>Ingreso inicial comprobado</span><strong>{money(o.advanceReceived)}</strong></div>

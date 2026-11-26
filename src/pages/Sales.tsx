@@ -270,7 +270,7 @@ export function OpportunityDetail(){
  };
  if(!o)return <Missing to="/oportunidades"/>;
  const quotes=data.quotes.filter(q=>q.opportunityId===o.id);
- return <div className="page page-crm-record"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><div className="crm-record-actions">
+ return <div className="page page-crm-record crm-opportunity-detail"><Back to="/oportunidades" label="Volver a oportunidades"/><div className="record-hero"><div className="record-identity"><Initials name={o.name}/><div><div className="eyebrow">{o.id} · {o.channel}</div><h1>{o.name}</h1><div className="record-meta"><MapPin size={14}/>{o.destination||'Por confirmar'}<span>·</span><Status value={o.status}/></div></div></div><div className="crm-record-actions">
  {o.deletedAt?<button type="button" className="crm-record-secondary" onClick={()=>restoreOpportunity(o.id)}><RotateCcw size={16}/>Recuperar</button>:
  <><button type="button" className="crm-record-secondary" onClick={beginEdit}><Pencil size={16}/>Editar datos</button>
  <button type="button" className="crm-record-danger" onClick={()=>{
