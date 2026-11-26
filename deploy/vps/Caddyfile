@@ -1,0 +1,25 @@
+# Acceso único de pruebas, NO equivale a usuarios/roles CRM.
+# Sustituir por autenticación de aplicación antes de producción.
+{
+    email {$CRM_ACME_EMAIL}
+}
+{$CRM_DOMAIN} {
+    encode zstd gzip
+
+    basic_auth {
+        {$CRM_GATE_USER} {$CRM_GATE_PASSWORD_HASH}
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        X-Robots-Tag "noindex, nofollow, noarchive"
+        Cache-Control "no-store"
+        -Server
+    }
+
+    reverse_proxy preview:8080
+}

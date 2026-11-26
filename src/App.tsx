@@ -209,6 +209,8 @@ function BottomBar() {
 }
 export default function App() {
   const {storageError}=useCrm();
+  // Aviso obligatorio en el artefacto de PRUEBAS para VPS; nunca equivale a login real.
+  const vpsPreview=import.meta.env.VITE_APP_MODE==='vps-preview';
   const [open,setOpen]=useState(false);
   const [collapsed,setCollapsed]=useState(false);
   const [viewExited,setViewExited]=useState(()=>{try{return sessionStorage.getItem(PREVIEW_EXIT_KEY)==='1'}catch{return false}});
@@ -249,6 +251,10 @@ export default function App() {
     <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onTransport ? ' is-transport' : '') + (onFactory ? ' is-factory' : '')}>
       <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>
       <main className="app-main" id="main-content">
+        {vpsPreview&&<div className="vps-preview-banner" role="status">
+          <strong>VPS · entorno de pruebas protegido</strong>
+          <span>Sin cuentas reales ni base de datos. Los cambios se guardan solo en este navegador. No introduzcas datos comerciales ni personales.</span>
+        </div>}
         {storageError&&<div className="crm-storage-alert" role="alert">
           <strong>Atención: almacenamiento del CRM</strong>
           <span>{storageError} No introduzcas datos reales hasta resolverlo.</span>

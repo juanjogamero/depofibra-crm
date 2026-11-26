@@ -1,0 +1,10 @@
+/* Solo se pinta cuando Docker compila VITE_APP_MODE=vps-preview. */
+.vps-preview-banner {
+ position:relative;z-index:5;display:flex;flex-wrap:wrap;gap:6px 12px;
+ align-items:center;padding:10px clamp(15px,2vw,28px);
+ border-bottom:1px solid #bdd4e8;
+ background:#eaf2fb;color:#002d59;
+ font:600 12.5px/1.5 Inter,Arial,sans-serif;
+}
+.vps-preview-banner strong {font-weight:800;color:#01488e;}
+.vps-preview-banner span {flex:1 1 420px;}

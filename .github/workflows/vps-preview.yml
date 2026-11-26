@@ -1,0 +1,53 @@
+name: Validate private VPS preview package
+
+on:
+  pull_request:
+    paths:
+      - 'deploy/vps/**'
+      - 'compose.vps.yml'
+      - '.dockerignore'
+      - '.env.vps.example'
+      - 'scripts/vps-preflight.mjs'
+      - 'src/App.tsx'
+      - 'src/vps-preview-banner.css'
+      - 'vite.config.ts'
+      - 'package.json'
+      - '.github/workflows/vps-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vps-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Config parse and safety invariants
+        run: |
+          cp .env.vps.example .env.vps
+          # Ci uses an explicitly fictitious staging domain; not a deploy.
+          sed -i 's/crm-pruebas.example.invalid/crm-preview.test.example.org/;s/admin@example.invalid/ci@preview.example.org/;s/cambiar_usuario/ci_operator_2026/;s@\$2a\$14\$REEMPLAZAR_POR_HASH_SEGURO_GENERADO_LOCALMENTE@\$2a\$14\$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG@' .env.vps
+          chmod 600 .env.vps
+          node scripts/vps-preflight.mjs .env.vps
+          docker compose --env-file .env.vps -f compose.vps.yml config --quiet
+          docker run --rm --env-file .env.vps -v "$PWD/deploy/vps/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Build the VPS preview without publishing
+        run: docker compose --env-file .env.vps -f compose.vps.yml build preview
+      - name: Static smoke test on loopback only
+        run: |
+          docker run --rm -d --name crm-vps-qa -p 127.0.0.1:18488:8080 depofibra-crm-preview:local
+          trap 'docker rm -f crm-vps-qa || true' EXIT
+          for n in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:18488/healthz | grep -q ok; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:18488/ | grep -q 'Depofibra CRM'
+          curl -fsSI http://127.0.0.1:18488/ | grep -qi 'x-robots-tag: noindex'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18488/api/)" = '503'
+          docker exec crm-vps-qa sh -c "grep -rl 'VPS · entorno de pruebas protegido' /usr/share/nginx/html/assets >/dev/null"
+      - name: Confirm no real deployment or secrets
+        run: |
+          test -z "$(git ls-files '.env.vps')"
+          test -z "$(git ls-files 'node_modules/*' 'dist/*')"
+          echo 'Preview package checks only; no server deployment.'

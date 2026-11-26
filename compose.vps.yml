@@ -1,0 +1,65 @@
+# Exclusivamente preview privado de frontend con registros de ejemplo.
+# El VPS no expone el contenedor de Nginx directamente.
+name: depofibra-crm-preview
+services:
+  preview:
+    build:
+      context: .
+      dockerfile: deploy/vps/Dockerfile
+      args:
+        VITE_APP_MODE: vps-preview
+        VITE_BASE_PATH: /
+    image: depofibra-crm-preview:local
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,nosuid,size=16m
+      - /var/run:rw,nosuid,size=2m
+      - /tmp:rw,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    mem_limit: 256m
+    networks:
+      - crm_internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      preview:
+        condition: service_healthy
+    env_file:
+      - .env.vps
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/vps/Caddyfile:/etc/caddy/Caddyfile:ro
+      - crm_caddy_data:/data
+      - crm_caddy_config:/config
+    networks:
+      - crm_internal
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+networks:
+  crm_internal:
+    driver: bridge
+
+volumes:
+  crm_caddy_data:
+  crm_caddy_config:
