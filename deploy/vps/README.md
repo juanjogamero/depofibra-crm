@@ -55,7 +55,8 @@ El comando solicitará la contraseña sin mostrarla. Pegar el hash devuelto entr
 Comprobar y arrancar:
 
 ```bash
-npm run vps:preflight           # o: node scripts/vps-preflight.mjs
+# Preflight sin instalar Node en el VPS: el contenedor solo lee el proyecto.
+docker run --rm -v "$PWD:/work:ro" -w /work node:22-alpine node scripts/vps-preflight.mjs .env.vps
 docker compose --env-file .env.vps -f compose.vps.yml config --quiet
 docker compose --env-file .env.vps -f compose.vps.yml build preview
 docker compose --env-file .env.vps -f compose.vps.yml up -d
@@ -117,3 +118,6 @@ No se modifica `depofibra.com` ni el flujo comercial público.
 Criterio de cierre: se puede declarar **PREVIEW VPS ARRANCADA** solo tras
 verificarlo en un servidor real. Se puede declarar **PRODUCCIÓN AUTORIZADA**
 solo al superar los nueve controles anteriores y con aprobación expresa.
+
+En una máquina de desarrollo que sí tenga Node.js 22 puede ejecutarse también
+`npm run vps:preflight`. El servidor solo necesita Docker/Compose y Git.
