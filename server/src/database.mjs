@@ -3,6 +3,16 @@ import pg from 'pg';
 export class Database {
   constructor(connectionString) {
     if (!connectionString) throw new Error('Falta CRM_DATABASE_URL');
+    // Defensa contra la confusión de la BD antigua con la del CRM v2.
+    let target;
+    try { target = new URL(connectionString); }
+    catch { throw new Error('CRM_DATABASE_URL inválida'); }
+    if (!['postgres:', 'postgresql:'].includes(target.protocol)
+        || !['127.0.0.1','localhost'].includes(target.hostname)
+        || target.pathname !== '/depofibra_crm_v2'
+        || decodeURIComponent(target.username) !== 'depofibra_v2_api') {
+      throw new Error('La API solo puede conectar a depofibra_crm_v2 como depofibra_v2_api en localhost');
+    }
     this.pool = new pg.Pool({
       connectionString,
       max: 4,
