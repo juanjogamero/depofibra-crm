@@ -51,3 +51,16 @@ jobs:
           test -z "$(git ls-files '.env.vps')"
           test -z "$(git ls-files 'node_modules/*' 'dist/*')"
           echo 'Preview package checks only; no server deployment.'
+      - name: Package reviewed source for manual VPS installation
+        run: |
+          git archive --format=tar.gz --output=depofibra-crm-vps-preview.tar.gz HEAD
+          tar -tzf depofibra-crm-vps-preview.tar.gz | grep -q '^compose.vps.yml
+          ! tar -tzf depofibra-crm-vps-preview.tar.gz | grep -q '^.env.vps
+          ! tar -tzf depofibra-crm-vps-preview.tar.gz | grep -q '^node_modules/'
+      - name: Preserve installation package for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: depofibra-crm-vps-preview-source
+          path: depofibra-crm-vps-preview.tar.gz
+          if-no-files-found: error
+          retention-days: 14
