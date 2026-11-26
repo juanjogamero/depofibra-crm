@@ -15,6 +15,8 @@ jobs:
           node-version: '22'
       - name: Backend syntax
         run: find server/src server/tests -name '*.mjs' -print0 | xargs -0 -n1 node --check
+      - name: Instalar dependencias del servidor
+        run: cd server && npm install --no-audit --no-fund
       - name: Backend tests (sin PostgreSQL)
         run: cd server && npm test
 
