@@ -1,0 +1,234 @@
+/* REG-0190 · Correcciones de cinco pantallas en portátil · 26/11/2026.
+   No reduce el tamaño de la letra, no oculta registros ni altera lógica/datos.
+   Solamente mejora orden de lectura, espacio vertical y scroll accesible. */
+
+/* 1 · Pedido: el siguiente paso es parte de la PRIMERA fila visible.
+   En ventanas anchas se conserva el resumen de tres columnas aprobado. */
+@container crm-content (min-width:780px) and (max-width:1390px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.95fr);
+  gap:12px 14px;
+  align-items:start;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-primary,
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack {
+  display:contents;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.crm-order-itemized-panel {
+  grid-column:1;
+  grid-row:1;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.panel {
+  grid-column:1;
+  grid-row:2;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:first-child {
+  grid-column:2;
+  grid-row:1;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:nth-child(2) {
+  grid-column:2;
+  grid-row:2;
+ }
+}
+/* Seguir pedido destaca sin suplantar los estados de cobro/fabricación. */
+.page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:first-child {
+ border-color:#c7dff0;
+ background:linear-gradient(155deg,#fff 75%,#f2f8fd 100%);
+}
+.page-crm-record.crm-order-office .crm-office-link {
+ min-height:37px;
+ padding:8px 12px;
+ border:1px solid #bbd4e8;
+ border-radius:7px;
+ color:#01488e;
+ font-weight:750;
+ background:#f6fafe;
+}
+.page-crm-record.crm-order-office .crm-office-link:hover,
+.page-crm-record.crm-order-office .crm-office-link:focus-visible {
+ color:#002d59;
+ background:#eaf2fb;
+ border-color:#8ab6da;
+}
+/* Móvil: leer importe, continuar, información y economía en ese orden. */
+@container crm-content (max-width:779px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+ }
+ .page-crm-record.crm-order-office .crm-order-overview-primary,
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack {display:contents;}
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.crm-order-itemized-panel {grid-column:1;grid-row:1;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:first-child {grid-column:1;grid-row:2;}
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.panel {grid-column:1;grid-row:3;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:nth-child(2) {grid-column:1;grid-row:4;}
+}
+@media(max-width:1000px) {
+ .page-crm-record.crm-order-office .crm-order-overview-grid {grid-template-columns:minmax(0,1fr);}
+ .page-crm-record.crm-order-office .crm-order-overview-primary,
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack {display:contents;}
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.crm-order-itemized-panel {grid-column:1;grid-row:1;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:first-child {grid-column:1;grid-row:2;}
+ .page-crm-record.crm-order-office .crm-order-overview-primary>.panel {grid-column:1;grid-row:3;}
+ .page-crm-record.crm-order-office .crm-order-overview-grid>.right-stack>.panel:nth-child(2) {grid-column:1;grid-row:4;}
+}
+
+/* 2 · Oportunidad: mantener toda la ficha sin alargar 9 datos en 5 filas.
+   El texto conserva su escala habitual y admite crecimiento del contenido. */
+.page-crm-record.crm-opportunity-detail .back-link {margin-bottom:8px;}
+.page-crm-record.crm-opportunity-detail .record-hero {
+ min-height:94px;
+ padding:13px 19px;
+ margin-bottom:9px;
+}
+.page-crm-record.crm-opportunity-detail .detail-tabs {
+ margin-bottom:11px;
+}
+.page-crm-record.crm-opportunity-detail .detail-grid {
+ gap:13px;
+ align-items:start;
+}
+.page-crm-record.crm-opportunity-detail .detail-grid>.panel:first-child,
+.page-crm-record.crm-opportunity-detail .detail-grid>.right-stack>.panel {padding:16px 18px;}
+.page-crm-record.crm-opportunity-detail .detail-grid .panel-head {margin-bottom:12px;}
+.page-crm-record.crm-opportunity-detail .detail-grid>.panel:first-child>.info-grid {
+ gap:12px 17px;
+}
+.page-crm-record.crm-opportunity-detail .detail-grid>.panel:first-child>.minor-title {
+ margin-top:14px;
+ margin-bottom:9px;
+}
+.page-crm-record.crm-opportunity-detail .detail-grid>.panel:first-child>.note-area {
+ padding:11px 13px;
+}
+.page-crm-record.crm-opportunity-detail .right-stack {gap:12px;}
+@container crm-content (min-width:1010px) {
+ .page-crm-record.crm-opportunity-detail .detail-grid>.panel:first-child>.info-grid {
+  grid-template-columns:repeat(3,minmax(0,1fr));
+ }
+}
+
+/* 3 · Presupuesto: cuatro campos claros en DOS filas en vez de cuatro.
+   Se mantienen importe, cliente, producto, fecha y desglose íntegros. */
+.page-crm-record.crm-quote-detail .back-link {margin-bottom:8px;}
+.page-crm-record.crm-quote-detail .record-hero {
+ min-height:91px;
+ padding:13px 19px;
+ margin-bottom:11px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-detail-grid {gap:13px;align-items:start;}
+.page-crm-record.crm-quote-detail .crm-quote-detail-grid .panel {padding:17px 18px;}
+.page-crm-record.crm-quote-detail .crm-quote-detail-grid .panel-head {margin-bottom:12px;}
+.page-crm-record.crm-quote-detail .crm-quote-summary {
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:0 17px;
+ margin-bottom:11px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-summary>div {
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ justify-content:center;
+ gap:5px;
+ min-width:0;
+ padding:9px 0;
+}
+.page-crm-record.crm-quote-detail .crm-quote-summary strong {
+ width:100%;
+ text-align:left;
+}
+.page-crm-record.crm-quote-detail .crm-quote-detail-heading {
+ margin:15px 0 8px;
+ padding-top:11px;
+}
+.page-crm-record.crm-quote-detail .crm-quote-status-control {
+ margin-top:13px;
+ padding-top:13px;
+}
+@container crm-content (max-width:730px) {
+ .page-crm-record.crm-quote-detail .crm-quote-summary {
+  grid-template-columns:minmax(0,1fr);
+ }
+ .page-crm-record.crm-quote-detail .crm-quote-summary>div {
+  flex-direction:row;
+  justify-content:space-between;
+  align-items:baseline;
+ }
+}
+
+/* 4 · Agenda: un único scroll de página accesible con ratón, touchpad,
+   teclado o táctil. Quitar alturas rígidas y recortes del módulo Tareas.
+   La lista de notas puede tener scroll propio únicamente si es muy larga. */
+.app-body.is-agenda .app-main {
+ min-height:0;
+ overflow-y:auto!important;
+ overflow-x:hidden;
+ overscroll-behavior-y:auto;
+}
+.app-body.is-agenda .app-main>.page.page-agenda.agenda-pro {
+ display:block!important;
+ height:auto!important;
+ max-height:none!important;
+ min-height:100%!important;
+ overflow:visible!important;
+ padding-bottom:24px;
+}
+.page-agenda.agenda-pro .agenda-pro-layout {flex:none!important;}
+.page-agenda.agenda-pro .agenda-pro-tasks {
+ display:block!important;
+ flex:none!important;
+ height:auto!important;
+ max-height:none!important;
+ min-height:0!important;
+ overflow:visible!important;
+}
+.page-agenda.agenda-pro .agenda-pro-task-rows {
+ display:block;
+ flex:none!important;
+ height:auto!important;
+ max-height:none!important;
+ min-height:0!important;
+ overflow:visible!important;
+}
+@media(max-width:600px) {
+ .app-body.is-agenda .app-main>.page.page-agenda.agenda-pro {
+  padding-bottom:calc(79px + env(safe-area-inset-bottom));
+ }
+}
+
+/* 5 · Registro de actividad: disminuir SOLO el exceso de aire vertical,
+   respetando información, 13px de texto y eventos de auditoría previstos. */
+.app-body.is-configuration .app-main {
+ min-height:0;
+ overflow-y:auto;
+ overflow-x:hidden;
+}
+.app-body.is-configuration .app-main>.page.page-settings.crm-workspace {
+ display:block;
+ height:auto;
+ max-height:none;
+ min-height:100%;
+ overflow:visible;
+ padding-top:15px;
+ padding-bottom:18px;
+}
+.page-settings .op-screen-heading {min-height:0;margin-bottom:12px;}
+.page-settings .settings-workspace {gap:14px;}
+.page-settings .settings-panel {padding:18px 21px;}
+.page-settings .settings-panel-head {margin-bottom:13px;padding-bottom:11px;}
+.page-settings .settings-panel h3 {margin:13px 0 7px;}
+.page-settings .settings-audit-empty {padding:18px 16px;gap:6px;}
+.page-settings .settings-audit-spec {gap:5px 16px;}
+.page-settings .settings-audit-spec span {padding:7px 0;}
+.page-settings .settings-note {margin-top:13px!important;padding:10px 12px;}
+@container crm-content (max-width:550px) {
+ .page-settings .settings-panel {padding:15px;}
+}
+/* Respeto a usuarios que prefieren menos animación. */
+@media(prefers-reduced-motion:reduce) {
+ .page-crm-record.crm-order-office .crm-office-link {transition:none;}
+}
