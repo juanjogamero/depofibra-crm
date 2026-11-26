@@ -27,7 +27,7 @@ jobs:
         run: |
           cp .env.vps.example .env.vps
           # Ci uses an explicitly fictitious staging domain; not a deploy.
-          sed -i 's/crm-pruebas.example.invalid/crm-preview.test.example.org/;s/admin@example.invalid/ci@preview.example.org/;s/cambiar_usuario/ci_operator_2026/;s@\$2a\$14\$REEMPLAZAR_POR_HASH_SEGURO_GENERADO_LOCALMENTE@\$2a\$14\$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG@' .env.vps
+          sed -i 's/crm-pruebas.example.invalid/crm-ci.depofibra.com/;s/admin@example.invalid/ci@depofibra.com/;s/cambiar_usuario/ci_operator_2026/;s@\$2a\$14\$REEMPLAZAR_POR_HASH_SEGURO_GENERADO_LOCALMENTE@\$2a\$14\$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG@' .env.vps
           chmod 600 .env.vps
           node scripts/vps-preflight.mjs .env.vps
           docker compose --env-file .env.vps -f compose.vps.yml config --quiet
