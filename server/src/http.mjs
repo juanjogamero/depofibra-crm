@@ -1,4 +1,6 @@
 import { createServer } from 'node:http';
+import { validateOpportunity, validateChange } from './opportunities.mjs';
+import { listOpportunities, createOpportunity, updateOpportunity, isUuid } from './opportunities-store.mjs';
 import { makeSession, verifyPassword, wasteLoginWork, tokenHash, readSessionCookie, sessionCookie, clearSessionCookie, validOrigin, SESSION_SECONDS } from './security.mjs';
 
 const HEADERS = {
@@ -35,7 +37,8 @@ export function createApiServer(store, origin) {
     try {
       const path = new URL(req.url || '/', 'http://localhost').pathname;
       const isPost = req.method === 'POST';
-      if (isPost && !validOrigin(req.headers.origin, origin)) {
+      const isWrite = ['POST','PATCH','PUT','DELETE'].includes(req.method);
+      if (isWrite && !validOrigin(req.headers.origin, origin)) {
         return reply(res, 403, { error: 'origen_no_permitido' });
       }
       if (req.method === 'GET' && path === '/api/health') {
@@ -82,6 +85,33 @@ export function createApiServer(store, origin) {
       if (isPost && path === '/api/logout') {
         if (hash) await store.logout(hash);
         return reply(res, 200, { ok: true }, { 'Set-Cookie': clearSessionCookie() });
+      }
+      // Los recursos comerciales nunca son públicos. El rol viene de la sesión
+      // validada contra PostgreSQL, nunca de una cabecera del navegador.
+      if (path === '/api/opportunities' || path.startsWith('/api/opportunities/')) {
+        if (!hash) return reply(res, 401, { error: 'sin_sesion' });
+        const principal = await store.session(hash);
+        if (!principal) return reply(res, 401, { error: 'sin_sesion' });
+        if (!['direccion','oficina'].includes(principal.role)) {
+          return reply(res, 403, { error: 'sin_permiso' });
+        }
+        if (req.method==='GET' && path==='/api/opportunities') {
+          return reply(res, 200, { items: await listOpportunities(store.pool) });
+        }
+        if (isPost && path==='/api/opportunities') {
+          const data=validateOpportunity(await jsonBody(req));
+          const item=await createOpportunity(store.pool,principal.id,data);
+          return reply(res, 201, { item });
+        }
+        if (req.method==='PATCH' && path.startsWith('/api/opportunities/')) {
+          const id=path.slice('/api/opportunities/'.length);
+          if (!isUuid(id)) return reply(res, 404, { error: 'no_encontrado' });
+          const {version,patch}=validateChange(await jsonBody(req));
+          const result=await updateOpportunity(store.pool,principal.id,id,version,patch);
+          if (result.error==='conflicto_version') return reply(res,409,{error:result.error});
+          if (result.error==='no_encontrada')return reply(res,404,{error:result.error});
+          return reply(res,200,result);
+        }
       }
       return reply(res, 404, { error: 'no_encontrado' });
     } catch (error) {
