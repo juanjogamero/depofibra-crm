@@ -464,7 +464,7 @@ test('Tablas: cabecera y franja inferior minimalistas, sin cambiar datos',async(
  }
 });
 
-test('Detalle de pedidos: resumen panorámico legible y sin scroll en escritorio habitual',async({page})=>{
+test('Pedido: siguiente paso prioritario, sin hueco inferior en portátil',async({page})=>{
  test.setTimeout(90000);
  for(const {width,height} of [{width:1664,height:900},{width:1440,height:900},{width:1366,height:900}]){
   await page.setViewportSize({width,height});
@@ -479,31 +479,35 @@ test('Detalle de pedidos: resumen panorámico legible y sin scroll en escritorio
    const grid=document.querySelector('.crm-order-overview-grid');
    const quote=grid?.querySelector('.crm-order-itemized-panel');
    const info=grid?.querySelector('.crm-order-overview-primary>.panel');
-   const side=grid?.querySelector('.right-stack');
-   if(!root||!grid||!quote||!info||!side)return null;
+   const step=grid?.querySelector('.right-stack>.panel:first-child');
+   const economic=grid?.querySelector('.right-stack>.panel:nth-child(2)');
+   if(!root||!grid||!quote||!info||!step||!economic)return null;
    const rect=x=>{const r=x.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom}};
    return {mainWidth:root.clientWidth,overflow:root.scrollHeight-root.clientHeight,
-    scrollAreaHeight:root.clientHeight,scrollContentHeight:root.scrollHeight,
-    quote:rect(quote),info:rect(info),side:rect(side),infoFont:parseFloat(getComputedStyle(info.querySelector('.info-item strong')).fontSize)};
+    quote:rect(quote),info:rect(info),step:rect(step),economic:rect(economic),
+    font:parseFloat(getComputedStyle(info.querySelector('.info-item strong')).fontSize)};
   });
-  expect(v,'La estructura debe mantener todas las secciones').not.toBeNull();
-  expect(v.infoFont,'No encoger valores para hacerlos caber').toBeGreaterThanOrEqual(12.5);
-  expect(v.overflow,'El resumen debe caber a '+width+'x'+height+' si no hay texto extenso').toBeLessThanOrEqual(3);
-  expect(Math.abs(v.quote.y-v.info.y),'El desglose y la información deben ir en paralelo').toBeLessThanOrEqual(2);
+  expect(v,'La estructura del resumen existe').not.toBeNull();
+  expect(v.font,'No encoger datos').toBeGreaterThanOrEqual(12.5);
+  expect(v.overflow,'El resumen del ejemplo cabe en '+width+'x'+height).toBeLessThanOrEqual(3);
+  expect(v.step.y,'Siguiente paso a la altura del desglose').toBeLessThanOrEqual(v.quote.y+3);
+  expect(v.step.bottom,'Siguiente paso en la primera pantalla').toBeLessThan(height-15);
   if(v.mainWidth>1390){
-   expect(Math.abs(v.quote.y-v.side.y),'En escritorio ancho deben verse los tres grupos juntos').toBeLessThanOrEqual(2);
+   expect(Math.abs(v.quote.y-v.info.y)).toBeLessThanOrEqual(2);
    expect(v.quote.x).toBeLessThan(v.info.x);
-   expect(v.info.x).toBeLessThan(v.side.x);
+   expect(v.info.x).toBeLessThan(v.step.x);
   }else{
-   expect(v.side.y).toBeGreaterThanOrEqual(v.quote.y+v.quote.height-2);
+   expect(v.step.x,'Continuar pedido a la derecha').toBeGreaterThan(v.quote.x);
+   expect(v.info.y,'Información bajo conceptos').toBeGreaterThanOrEqual(v.quote.bottom-3);
   }
+  await overview.getByRole('button',{name:'Continuar pedido'}).click();
+  await expect(page.getByRole('button',{name:'Fabricación',exact:true})).toHaveClass(/selected/);
  }
  await page.setViewportSize({width:390,height:750});
  await open(page,'/pedidos/PED-203');
- for(const name of ['Productos y conceptos incluidos · presupuesto aceptado','Información general','Siguiente paso','Control económico privado']){
-  await expect(page.locator('.crm-order-overview-grid').getByRole('heading',{name})).toBeVisible();
- }
- expect(await page.locator('.crm-order-overview-grid').evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(1);
+ await expect(page.locator('.crm-order-overview-grid').getByRole('heading',{name:'Siguiente paso'})).toBeVisible();
+ await page.getByRole('button',{name:'Continuar pedido'}).click();
+ await expect(page.getByRole('button',{name:'Fabricación',exact:true})).toHaveClass(/selected/);
 });
 
 test('Agenda: solo calendario compacto, notas y tareas legibles en pantalla',async({page})=>{
@@ -606,4 +610,60 @@ test('Resultados: navegación intuitiva y lectura uniforme en los nueve informes
  }
  await page.getByLabel('Seleccionar subapartado de Resultados').selectOption('products');
  await expect(page).toHaveURL(/#\/resultados\/products/);
+});
+
+test('Portátil: oportunidades y presupuestos completos sin scroll innecesario, cuenta compacta',async({page})=>{
+ test.setTimeout(80000);
+ for(const {width,height} of [{width:1440,height:900},{width:1366,height:768}]){
+  await page.setViewportSize({width,height});
+  for(const entry of [
+   {route:'/oportunidades/OP-104',selector:'.crm-opportunity-detail .detail-grid'},
+   {route:'/presupuestos/PRE-022',selector:'.crm-quote-detail .crm-quote-detail-grid'},
+   {route:'/configuracion/actividad',selector:'.page-settings .settings-panel'}
+  ]){
+   await open(page,entry.route);
+   await expect(page.locator(entry.selector)).toBeVisible();
+   const info=await page.evaluate(()=>{
+    const m=document.querySelector('.app-main');
+    const p=m?.querySelector('.page');
+    return {scroll:m.scrollHeight-m.clientHeight,
+      inner:document.documentElement.scrollWidth-window.innerWidth,
+      last:p?.getBoundingClientRect().bottom};
+   });
+   expect(info.inner,'Sin scroll horizontal en '+entry.route).toBeLessThanOrEqual(3);
+   expect(info.scroll,'Scroll innecesario en '+entry.route+' para '+width+'x'+height+': '+JSON.stringify(info)).toBeLessThanOrEqual(3);
+  }
+ }
+ await page.setViewportSize({width:390,height:750});
+ for(const route of ['/oportunidades/OP-104','/presupuestos/PRE-022','/configuracion/actividad']){
+  await open(page,route);
+  await expect(page.locator('.page h1').first()).toBeVisible();
+ }
+});
+
+test('Agenda: tareas completas alcanzables mediante scroll de la página de portátil',async({page})=>{
+ test.setTimeout(70000);
+ await page.setViewportSize({width:1366,height:600});
+ await open(page,'/agenda');
+ const task=page.locator('.agenda-pro-task-row').last();
+ await expect(task).toBeAttached();
+ const metrics=await page.evaluate(()=>{
+  const root=document.querySelector('.app-main');
+  const pageEl=document.querySelector('.page-agenda.agenda-pro');
+  const rows=document.querySelector('.agenda-pro-task-rows');
+  const tasks=document.querySelector('.agenda-pro-tasks');
+  return {scrollHeight:root.scrollHeight,clientHeight:root.clientHeight,
+   overflow:getComputedStyle(root).overflowY,
+   taskRowsOverflow:getComputedStyle(rows).overflowY,
+   pageOverflow:getComputedStyle(pageEl).overflowY,
+   clipped:getComputedStyle(tasks).overflow};
+ });
+ expect(metrics.scrollHeight,'Debe haber scroll si no cabe todo').toBeGreaterThan(metrics.clientHeight+10);
+ expect(metrics.overflow).toMatch(/auto|scroll/);
+ expect(metrics.taskRowsOverflow).not.toBe('hidden');
+ expect(metrics.clipped).not.toBe('hidden');
+ await task.scrollIntoViewIfNeeded();
+ await expect(task).toBeInViewport();
+ const after=await page.locator('.app-main').evaluate(el=>el.scrollTop);
+ expect(after,'La página permite llegar a las tareas del final').toBeGreaterThan(10);
 });
