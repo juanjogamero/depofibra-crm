@@ -10,7 +10,8 @@
     "check": "tsc -b --pretty false",
     "test:unit": "node --test tests/unit/*.test.mjs",
     "test:e2e": "playwright test",
-    "vps:preflight": "node scripts/vps-preflight.mjs"
+    "vps:preflight": "node scripts/vps-preflight.mjs",
+    "build:secure": "tsc -p tsconfig.json --noEmit && vite build --config vite.secure.config.ts"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
