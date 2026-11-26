@@ -469,6 +469,9 @@ test('Pedido: siguiente paso prioritario, sin hueco inferior en portátil',async
  for(const {width,height} of [{width:1664,height:900},{width:1440,height:900},{width:1366,height:900}]){
   await page.setViewportSize({width,height});
   await open(page,'/pedidos/PED-203');
+  // El router conserva estado entre visitas al mismo pedido; volver al Resumen
+  // después de comprobar que el CTA abre Fabricación en la vuelta anterior.
+  await page.getByRole('button',{name:'Resumen',exact:true}).click();
   const overview=page.locator('.crm-order-overview-grid');
   await expect(overview).toBeVisible();
   for(const name of ['Productos y conceptos incluidos · presupuesto aceptado','Información general','Siguiente paso','Control económico privado']){
