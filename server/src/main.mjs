@@ -6,7 +6,7 @@ const origin = process.env.CRM_ORIGIN;
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Puerto inválido');
 if (!origin || !/^https:\/\/[^/]+$/.test(origin)) throw new Error('CRM_ORIGIN HTTPS requerido');
 
-const store = new Database(process.env.CRM_DATABASE_URL);
+const store = new Database();
 await store.health();
 const server = createApiServer(store, origin);
 

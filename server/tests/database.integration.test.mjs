@@ -9,7 +9,7 @@ test('PostgreSQL real: login, sesión, cierre y RBAC SQL sin modificación del r
   skip: !process.env.TEST_ADMIN_DATABASE_URL || !process.env.CRM_DATABASE_URL
 }, async () => {
   const admin = new pg.Pool({connectionString:process.env.TEST_ADMIN_DATABASE_URL});
-  const store = new Database(process.env.CRM_DATABASE_URL);
+  const store = new Database({ testConnectionString: process.env.CRM_DATABASE_URL });
   const username = 'qa_test_user';
   const password = 'clave-efimera-solo-pruebas-2026';
   const hashed = await hashPassword(password);

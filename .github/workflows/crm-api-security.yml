@@ -37,6 +37,8 @@ jobs:
     env:
       PGPASSWORD: ci_only_not_for_vps
       TEST_ADMIN_DATABASE_URL: postgresql://postgres:ci_only_not_for_vps@127.0.0.1:5432/depofibra_crm_v2
+      NODE_ENV: test
+      CRM_INTEGRATION_TEST: '1'
       CRM_DATABASE_URL: postgresql://depofibra_v2_api:ci_only_not_for_vps@127.0.0.1:5432/depofibra_crm_v2
     steps:
       - uses: actions/checkout@v4

@@ -1,20 +1,35 @@
 import pg from 'pg';
 
+/**
+ * Producción: conexión peer por socket Unix. No acepta URL, usuario o
+ * contraseña configurables; el proceso debe correr como depofibra_v2_api.
+ * Solo GitHub CI usa un DSN explícito en un entorno de prueba restringido.
+ */
 export class Database {
-  constructor(connectionString) {
-    if (!connectionString) throw new Error('Falta CRM_DATABASE_URL');
-    // Defensa contra la confusión de la BD antigua con la del CRM v2.
-    let target;
-    try { target = new URL(connectionString); }
-    catch { throw new Error('CRM_DATABASE_URL inválida'); }
-    if (!['postgres:', 'postgresql:'].includes(target.protocol)
-        || !['127.0.0.1','localhost'].includes(target.hostname)
-        || target.pathname !== '/depofibra_crm_v2'
-        || decodeURIComponent(target.username) !== 'depofibra_v2_api') {
-      throw new Error('La API solo puede conectar a depofibra_crm_v2 como depofibra_v2_api en localhost');
+  constructor({ testConnectionString } = {}) {
+    let connection = {
+      host: '/var/run/postgresql',
+      port: 5432,
+      database: 'depofibra_crm_v2',
+      user: 'depofibra_v2_api'
+    };
+    if (testConnectionString !== undefined) {
+      if (process.env.NODE_ENV !== 'test' || process.env.CRM_INTEGRATION_TEST !== '1') {
+        throw new Error('Solo las pruebas CI pueden utilizar cadena de conexión');
+      }
+      let url;
+      try { url = new URL(testConnectionString); }
+      catch { throw new Error('Cadena de conexión de pruebas inválida'); }
+      if (!['postgres:', 'postgresql:'].includes(url.protocol)
+        || !['127.0.0.1','localhost'].includes(url.hostname)
+        || url.pathname !== '/depofibra_crm_v2'
+        || decodeURIComponent(url.username) !== 'depofibra_v2_api') {
+        throw new Error('Destino PostgreSQL de pruebas incorrecto');
+      }
+      connection = { connectionString: testConnectionString };
     }
     this.pool = new pg.Pool({
-      connectionString,
+      ...connection,
       max: 4,
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
