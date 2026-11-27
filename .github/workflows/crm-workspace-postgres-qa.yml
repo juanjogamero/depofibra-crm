@@ -1,0 +1,70 @@
+name: CRM v2 - PostgreSQL real workspace QA
+
+on:
+  push:
+    branches:
+      - release/crm-v2-preparacion-operativa-20261127
+  pull_request:
+    branches:
+      - feat/crm-original-ui-persistencia-real-20261127
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace-postgres18:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: depofibra_crm_v2
+          POSTGRES_PASSWORD: ci_ephemeral_only_not_vps
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d depofibra_crm_v2"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      PGPASSWORD: ci_ephemeral_only_not_vps
+      NODE_ENV: test
+      CRM_INTEGRATION_TEST: '1'
+      TEST_ADMIN_DATABASE_URL: postgresql://postgres:ci_ephemeral_only_not_vps@127.0.0.1:5432/depofibra_crm_v2
+      CRM_DATABASE_URL: postgresql://depofibra_v2_api:ci_ephemeral_only_not_vps@127.0.0.1:5432/depofibra_crm_v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar cliente PostgreSQL
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Instalar dependencias de API
+        run: npm install --prefix server --no-audit --no-fund
+      - name: Crear esquema aislado y migraciones 001-004
+        run: |
+          psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -c "CREATE ROLE depofibra_v2_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE"
+          psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -c "ALTER DATABASE depofibra_crm_v2 OWNER TO depofibra_v2_owner"
+          psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -c "CREATE ROLE depofibra_v2_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'ci_ephemeral_only_not_vps'"
+          for migration in 001_auth.sql 002_runtime_grants.sql 003_opportunities.sql 004_business_workspace.sql; do
+            psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -f "server/sql/$migration"
+          done
+          psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -c "SELECT current_database(),to_regclass('crm.business_workspace'),to_regclass('crm.business_workspace_events')"
+      - name: Test API PostgreSQL real y controles de rol
+        run: |
+          node --test server/tests/database.integration.test.mjs
+          node --test server/tests/opportunities.integration.test.mjs
+          node --test server/tests/workspace.pg.integration.test.mjs
+      - name: Verificar estado vacío después de las pruebas
+        run: |
+          psql -X -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -d depofibra_crm_v2 -c "
+          DO \$\$
+          BEGIN
+            IF (SELECT count(*) FROM crm.business_workspace) <> 0
+               OR (SELECT count(*) FROM crm.business_workspace_events) <> 0
+            THEN RAISE EXCEPTION 'Test dejó datos comerciales'; END IF;
+          END
+          \$\$;
+          "
