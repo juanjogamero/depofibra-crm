@@ -1,0 +1,31 @@
+name: CRM real original UI - integration checks
+
+on:
+  push:
+    branches:
+      - feat/crm-original-ui-persistencia-real-20261127
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install original CRM
+        run: npm ci --no-audit --no-fund
+      - name: Original CRM unit tests
+        run: npm run test:unit
+      - name: Build demo separately
+        run: npm run build
+      - name: Check and build original UI in real mode
+        run: npm run build:real
+      - name: Install backend dependencies
+        run: npm ci --prefix server --no-audit --no-fund
+      - name: Test authenticated backend and workspace validator
+        run: npm test --prefix server
