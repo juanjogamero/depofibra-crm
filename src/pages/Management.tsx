@@ -266,6 +266,7 @@ export function TransportCalculator(){
 }
 
 function TariffsEditor(){
+  const realMode=import.meta.env.VITE_APP_MODE==='real';
   const {data,updateTransport}=useCrm();
   const [edit,setEdit]=useState({...data.transport});
   const [saved,setSaved]=useState(false);
@@ -280,13 +281,14 @@ function TariffsEditor(){
       <Field label="Recargo especial · €"><input type="number" min="0" step="1" value={edit.specialExtra} onChange={e=>{setSaved(false);setEdit({...edit,specialExtra:Number(e.target.value)})}}/></Field>
       <Field label="Límite de kilómetros"><input type="number" min="1" step="1" value={edit.distanceLimit} onChange={e=>{setSaved(false);setEdit({...edit,distanceLimit:Number(e.target.value)})}}/></Field>
     </div>
-    <div className="settings-actions"><Button disabled={!valid} onClick={()=>{updateTransport(edit);setSaved(true)}}><Check size={16}/>Guardar parámetros locales</Button>
+    <div className="settings-actions"><Button disabled={!valid} onClick={()=>{updateTransport(edit);setSaved(true)}}><Check size={16}/>{realMode?'Guardar parámetros en el servidor':'Guardar parámetros locales'}</Button>
       <Link to="/transporte" className="settings-inline-link">Ir a la calculadora <ArrowRight size={15}/></Link></div>
-    {saved&&<p className="settings-success" role="status">Tarifas guardadas localmente. No se ha consultado ni confirmado un transporte real.</p>}
+    {saved&&<p className="settings-success" role="status">{realMode?'Guardado solicitado al servidor. Comprueba el aviso superior de sincronización.':'Tarifas guardadas localmente.'} No se ha consultado ni confirmado un transporte real.</p>}
   </section>;
 }
 
 export function Configuration(){
+  const realMode=import.meta.env.VITE_APP_MODE==='real';
   const {data,role,setRole,resetDemo}=useCrm();
   const location=useLocation();
   const section=location.pathname.split('/')[2]||'perfil';
@@ -300,9 +302,9 @@ export function Configuration(){
     if(!window.confirm('Esta copia contiene datos internos y personales (clientes, pedidos, notas y precios). ¿Descargarla para conservarla en un lugar privado y seguro?'))return;
     try{
       const payload={
-        schema:'depofibra-crm-backup-local-v1',
+        schema:realMode?'depofibra-crm-export-servidor-v1':'depofibra-crm-backup-local-v1',
         exportedAt:new Date().toISOString(),
-        source:'Navegador local; NO es base de datos de producción',
+        source:realMode?'Exportación de la sesión cargada desde PostgreSQL; no sustituye backup del servidor':'Navegador local; NO es base de datos de producción',
         warning:'Archivo confidencial. No compartir, publicar ni subir sin control de accesos.',
         data
       };
@@ -348,7 +350,7 @@ export function Configuration(){
         <h1>Cuenta y configuración</h1>
         <p>Datos de usuario, acceso y parámetros internos de la plataforma.</p>
       </div>
-      <span className="settings-demo-flag">Acceso local · cuentas sin activar</span>
+      <span className="settings-demo-flag">{realMode?'Acceso autenticado · PostgreSQL':'Acceso local · cuentas sin activar'}</span>
     </header>
     <div className="settings-workspace">
       <nav className="settings-sections" aria-label="Secciones de la cuenta y configuración">
@@ -365,7 +367,7 @@ export function Configuration(){
       </section>}
       {allowed&&section==='perfil'&&<section className="settings-panel">
         <div className="settings-panel-head"><h2>Mi perfil</h2>
-          <p>Datos identificativos para la interfaz. En esta versión son solo preferencias guardadas únicamente en este navegador.</p></div>
+          <p>Datos visibles de la interfaz. El nombre y la foto son preferencias locales; no modifican el usuario autenticado en el servidor.</p></div>
         <form className="settings-profile-form" onSubmit={saveProfile}>
           <div className="settings-avatar-editor">
             <span className="settings-avatar-preview" aria-hidden="true">{profile.photo?<img src={profile.photo} alt=""/>:<UserRound size={34}/>}</span>
@@ -414,38 +416,38 @@ export function Configuration(){
               placeholder="Sin configurar" onChange={e=>{setProfile({...profile,email:e.target.value});setSaved(false)}}/></Field>
             <Field label="Cargo o descripción"><input maxLength={90} value={profile.position} autoComplete="off"
               onChange={e=>{setProfile({...profile,position:e.target.value});setSaved(false)}}/></Field>
-            <Field label="Tipo de vista"><input disabled value={admin?'Dirección · administrador (simulado)':'Oficina de Fábrica · colaborador (simulado)'} /></Field>
+            <Field label="Tipo de vista"><input disabled value={realMode?'Dirección · sesión validada por servidor':admin?'Dirección · administrador (simulado)':'Oficina de Fábrica · colaborador (simulado)'} /></Field>
           </div>
           <div className="settings-actions"><Button type="submit"><Check size={16}/>Guardar perfil en este navegador</Button></div>
           {saved&&<p className="settings-success" role="status">Perfil guardado en este navegador. No modifica una cuenta real.</p>}
           {error&&<p className="settings-error" role="alert">{error}</p>}
         </form>
-        <div className="settings-demo-switch">
+        {!realMode&&<div className="settings-demo-switch">
           <div><strong>Probar las dos vistas</strong><p>Este selector es solo de desarrollo. No concede permisos ni inicia sesión.</p></div>
           <select aria-label="Cambiar vista simulada del CRM" value={role}
             onChange={e=>setRole(e.target.value as DemoRole)}>
             <option value="direccion">Dirección / administrador</option>
             <option value="fabrica">Oficina de Fábrica / colaborador</option>
           </select>
-        </div>
+        </div>}
       </section>}
       {allowed&&section==='seguridad'&&<section className="settings-panel">
         <div className="settings-panel-head"><h2>Acceso y seguridad</h2>
-          <p>La recuperación de contraseñas y la gestión de sesiones se habilitarán al conectar un sistema de cuentas seguro.</p></div>
+          <p>{realMode?'El inicio de sesión y su revocación se validan con PostgreSQL. La recuperación de contraseña y gestión de dispositivos siguen pendientes.':'La recuperación de contraseñas y la gestión de sesiones se habilitarán al conectar un sistema de cuentas seguro.'}</p></div>
         <div className="settings-feature-row"><div><strong>Restablecer contraseña</strong>
           <p>Pendiente de autenticación real, verificación de correo y envío seguro del enlace de recuperación.</p></div>
           <button type="button" disabled className="settings-disabled-action">Pendiente de activación</button></div>
         <div className="settings-feature-row"><div><strong>Sesiones y dispositivos</strong>
-          <p>Se requiere gestionar las sesiones desde el servidor para poder cerrarlas o revocarlas.</p></div>
+          <p>{realMode?'El cierre de sesión del CRM revoca la sesión en el servidor. El inventario de dispositivos aún no está disponible.':'Se requiere gestionar las sesiones desde el servidor para poder cerrarlas o revocarlas.'}</p></div>
           <span className="settings-pending-label">Pendiente</span></div>
         <p className="settings-note"><CircleAlert size={17}/>Nunca se pedirán ni guardarán contraseñas en el almacenamiento local del navegador.</p>
       </section>}
       {allowed&&section==='actividad'&&<section className="settings-panel">
         <div className="settings-panel-head"><h2>Registro de actividad · administración</h2>
-          <p>Auditoría prevista para el perfil administrador. Todavía no existe un registro central fiable.</p></div>
+          <p>{realMode?'El servidor registra autenticación y revisiones del espacio de trabajo, pero todavía no dispone de un visor por operación.':'Auditoría prevista para el perfil administrador. Todavía no existe un registro central fiable.'}</p></div>
         <div className="settings-audit-empty">
-          <ClipboardList size={25}/><strong>Sin registros de auditoría del servidor</strong>
-          <p>El CRM actual guarda datos localmente en cada navegador; no puede certificar quién ha realizado cada acción ni detectar manipulaciones.</p>
+          <ClipboardList size={25}/><strong>{realMode?'Historial disponible solo en el servidor':'Sin registros de auditoría del servidor'}</strong>
+          <p>{realMode?'El servidor registra la sesión y las revisiones del conjunto de datos. El detalle de cada campo modificado y la consulta desde pantalla están pendientes.':'El CRM actual guarda datos localmente en cada navegador; no puede certificar quién ha realizado cada acción ni detectar manipulaciones.'}</p>
         </div>
         <h3>Eventos que deberá registrar el sistema definitivo</h3>
         <div className="settings-audit-spec">
@@ -457,20 +459,20 @@ export function Configuration(){
       </section>}
       {allowed&&section==='transporte'&&<TariffsEditor/>}
       {allowed&&section==='datos'&&<section className="settings-panel">
-        <div className="settings-panel-head"><h2>Datos locales y copia de seguridad</h2>
-          <p>Tu CRM aún guarda registros por navegador. Antes de migrar al VPS necesitas una copia completa, privada y verificable.</p></div>
+        <div className="settings-panel-head"><h2>{realMode?'Datos del servidor y exportación':'Datos locales y copia de seguridad'}</h2>
+          <p>{realMode?'Los datos comerciales residen en PostgreSQL. Esta descarga es una exportación confidencial para consulta; no sustituye las copias verificadas del VPS.':'Tu CRM aún guarda registros por navegador. Antes de migrar al VPS necesitas una copia completa, privada y verificable.'}</p></div>
         <div className="settings-feature-row"><div><strong>Descargar copia íntegra del CRM</strong>
           <p>Incluye oportunidades, presupuestos y partidas, clientes, pedidos, pagos anotados, comisiones, tareas, notas, catálogo, tarifas y avisos locales. No incluye contraseñas, fotos de perfil ni claves de Google Maps.</p></div>
           <Button onClick={exportFullBackup}><Download size={16}/>Descargar copia JSON</Button></div>
         {backupSaved&&<p className="settings-success" role="status">Descarga iniciada. Guarda este archivo confidencial fuera de ubicaciones públicas y verifica su contenido antes de migrar.</p>}
         {error&&<p className="settings-error" role="alert">{error}</p>}
-        <p className="settings-note"><CircleAlert size={17}/>No existe todavía importación al VPS ni copia en servidor. La descarga no garantiza recuperación hasta comprobarla. El archivo contiene datos personales y precios privados.</p>
-        <div className="settings-feature-row"><div><strong>Reiniciar datos locales</strong>
+        <p className="settings-note"><CircleAlert size={17}/>{realMode?'Esta exportación contiene datos privados. No es una copia de recuperación; las restauraciones usan el respaldo PostgreSQL del servidor.':'No existe todavía importación al VPS ni copia en servidor. La descarga no garantiza recuperación hasta comprobarla. El archivo contiene datos personales y precios privados.'}</p>
+        {!realMode&&<div className="settings-feature-row"><div><strong>Reiniciar datos locales</strong>
           <p>Elimina los registros modificados de este navegador y vuelve a cargar ejemplos. Haz antes una copia: no se podrá deshacer.</p></div>
           <Button variant="outline" onClick={()=>{
              const confirm=window.prompt('Esta acción es irreversible. Escribe REINICIAR para continuar.');
              if(confirm==='REINICIAR')resetDemo();
-          }}>Reiniciar datos locales</Button></div>
+          }}>Reiniciar datos locales</Button></div>}
       </section>}
       </div>
     </div>
