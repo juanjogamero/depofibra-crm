@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install original CRM
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Original CRM unit tests
         run: npm run test:unit
       - name: Build demo separately
@@ -26,6 +26,6 @@ jobs:
       - name: Check and build original UI in real mode
         run: npm run build:real
       - name: Install backend dependencies
-        run: npm ci --prefix server --no-audit --no-fund
+        run: npm install --prefix server --no-audit --no-fund
       - name: Test authenticated backend and workspace validator
         run: npm test --prefix server
