@@ -1,0 +1,401 @@
+/* DEPOFIBRA CRM · Sistema visual de lectura transversal · 27/11/2026
+   Referencia de Dirección: jerarquía clara, texto legible, controles cómodos,
+   poco ruido y tablas que se recorren de un vistazo.
+   Se aplica DESPUÉS de los estilos históricos. No cambia datos, rutas,
+   lógica de negocio, indicadores ni accesos. Mantiene Inter/Jakarta y marca.
+   Valores en px para respetar zoom del navegador y evitar compactaciones. */
+
+:root {
+  --crm-read-ink:#19324b;
+  --crm-read-body:#314b64;
+  --crm-read-secondary:#526c82;
+  --crm-read-line:#dde8f0;
+  --crm-read-surface:#fff;
+  --crm-read-soft:#f2f7fb;
+  --crm-read-focus:#1767a9;
+  --crm-read-radius:10px;
+  --crm-read-body-size:14px;
+  --crm-read-caption-size:12px;
+  --sidebar-width:244px;
+}
+
+/* 01 · Base visual y estructura, igual en todas las rutas. */
+.app-root {
+  font-family:var(--crm-font-body,Inter,Arial,sans-serif);
+  font-size:var(--crm-read-body-size);
+  line-height:1.5;
+  color:var(--crm-read-body);
+}
+.app-root :is(button,input,select,textarea) {
+  font-family:var(--crm-font-body,Inter,Arial,sans-serif);
+}
+.app-root :is(h1,h2,h3,h4) {
+  text-wrap:pretty;
+}
+.app-body .app-main,
+.app-body.is-dashboard .app-main {
+  background:#f3f7fb;
+  background-image:none;
+}
+.app-main .page {
+  color:var(--crm-read-body);
+  line-height:1.52;
+}
+.app-main .page :is(p,li,dd) {overflow-wrap:break-word;}
+.app-main .page :is(.panel,.focus-card,.focus-calendar,.settings-panel,.fin-panel) {
+  border-color:var(--crm-read-line);
+  box-shadow:none;
+}
+.app-main .page :is(.panel,.focus-card,.catalog3-workspace,.catalog3-sidebar,.fin-panel) {
+  border-radius:var(--crm-read-radius);
+}
+.app-main .page :is(.muted,.panel-sub,.cell-note,.settings-note,.hint-row) {
+  color:var(--crm-read-secondary);
+  line-height:1.55;
+}
+.app-main .page :is(.empty-state,.focus-empty) {
+  color:var(--crm-read-secondary);
+  line-height:1.55;
+}
+
+/* 02 · Navegación lateral: contraste, superficie estable, área clicable. */
+.sidebar.sidebar-reference:not(.is-collapsed) {
+  width:var(--sidebar-width);
+  flex-basis:var(--sidebar-width);
+}
+.sidebar-reference:not(.is-collapsed) .sidebar-top {
+  min-height:96px;
+  padding:27px 18px 15px;
+}
+.sidebar-reference .nav-caption {
+  color:#b7cee3;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.045em;
+  line-height:1.4;
+}
+.sidebar-reference .nav-link,
+.sidebar-reference .ri-sidebar-sublink {
+  min-height:43px;
+  font-size:13.4px;
+  font-weight:600;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.sidebar-reference .nav-link span:not(.nav-count) {min-width:0;}
+.sidebar-reference .nav-count {font-size:11px;font-weight:750;}
+.sidebar-reference .sidebar-account-name strong {font-size:12.7px;line-height:1.4;}
+.sidebar-reference .sidebar-account-name small {font-size:11.4px;line-height:1.4;}
+.bottom-bar a {font-size:11.8px;line-height:1.35;}
+
+/* 03 · Títulos, ayudas, botones y campos del CRM completo. */
+.app-main .page :is(.op-heading-copy h1,.page-header h1,.record-hero h1) {
+  font-family:var(--crm-font-display,"Plus Jakarta Sans",Inter,sans-serif);
+  font-size:clamp(22px,1.9vw,27px);
+  line-height:1.24;
+  font-weight:780;
+  letter-spacing:-.028em;
+  color:var(--crm-read-ink);
+}
+.app-main .page :is(.op-heading-copy p,.page-header p,.record-hero p) {
+  font-size:13.2px;
+  line-height:1.5;
+  color:var(--crm-read-secondary);
+}
+.app-main .page :is(.panel-head h3,.minor-title,.settings-panel h3) {
+  font-size:15px;
+  font-weight:750;
+  line-height:1.36;
+  letter-spacing:-.015em;
+  color:var(--crm-read-ink);
+}
+.app-main .page :is(.btn,.op-new-button,.op-export-button,.op-filter-toggle,.op-reset-filters,.crm-office-link) {
+  font-size:12.8px;
+  line-height:1.3;
+  font-weight:700;
+  min-height:39px;
+}
+.app-main .page :is(.form-field input,.form-field select,.form-field textarea,.op-search input) {
+  min-height:42px;
+  font-size:13.5px;
+  line-height:1.5;
+}
+.app-main .page .form-field textarea {height:auto;min-height:90px;}
+.app-main .page .form-field .field-label {
+  font-size:12.5px;
+  font-weight:700;
+  color:#405a72;
+  line-height:1.45;
+}
+.app-main .page :is(.form-field small,.info-item>span,.record-meta,.timeline-event span) {
+  font-size:12px;
+  line-height:1.5;
+  color:var(--crm-read-secondary);
+}
+.app-main .page :is(.info-item strong,.timeline-event strong) {
+  font-size:13.3px;
+  line-height:1.45;
+}
+.app-main .page :is(.pill,.op-status-pill,.orders-status,.commission-state) {
+  font-size:11.6px;
+  font-weight:700;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.app-main .page :is(.detail-tabs button,.catalog-phase-tabs button) {
+  min-height:40px;
+  font-size:12.7px;
+  line-height:1.4;
+}
+
+/* 04 · Oportunidades, presupuestos, clientes, pedidos y comisiones:
+   misma escala, sin tocar visibilidad de columnas ni distribución responsiva. */
+.app-main .page-opportunities .op-screen-heading {gap:14px;}
+.app-main .page-opportunities .op-heading-copy {min-width:0;}
+.app-main .page-opportunities .op-phase-tab {
+  min-height:40px;
+  font-size:12.4px;
+  line-height:1.35;
+  padding-top:8px;
+  padding-bottom:8px;
+  font-weight:700;
+}
+.app-main .page-opportunities .op-phase-tab strong {
+  font-size:11.5px;
+  min-width:23px;
+  height:23px;
+}
+.app-main .page-opportunities .op-search input,
+.app-main .page-opportunities .op-advanced-filters :is(input,select) {
+  font-size:13px;
+  line-height:1.45;
+}
+.app-body .app-main .page-opportunities .op-data-table thead th {
+  background:#f6f9fc;
+  background-image:none;
+  box-shadow:none;
+  color:#506980;
+  font-size:11.3px;
+  font-weight:750;
+  letter-spacing:.035em;
+  line-height:1.4;
+  padding:10px 8px;
+  vertical-align:middle;
+  border-bottom:1px solid var(--crm-read-line);
+}
+.app-body .app-main .page-opportunities .op-data-table tbody td {
+  font-size:12.9px;
+  line-height:1.5;
+  padding:10px 8px;
+  vertical-align:middle;
+  color:var(--crm-read-body);
+}
+.app-main .page-opportunities .op-data-table tbody tr:hover {background:#f5f9fd;}
+.app-main .page-opportunities .op-data-table .op-client-name,
+.app-main .page-opportunities .op-data-table .commission-client-link {
+  font-size:13px;
+  font-weight:750;
+  line-height:1.4;
+  color:var(--crm-read-ink);
+}
+.app-main .page-opportunities .op-data-table :is(.op-client-sub,.op-product-sub) {
+  font-size:11.9px;
+  line-height:1.45;
+  color:var(--crm-read-secondary);
+}
+.app-main .page-opportunities .op-data-table :is(.op-product,.op-location,.op-reference,.quote-amount,.commission-amount) {
+  font-size:12.7px;
+  line-height:1.48;
+}
+.app-main .page-opportunities .op-data-table time {font-size:12px;line-height:1.45;}
+.app-body .app-main .page-opportunities .op-table-footer {
+  background:#f8fbfd;
+  background-image:none;
+  box-shadow:none;
+  color:var(--crm-read-secondary);
+  font-size:11.8px;
+  line-height:1.5;
+}
+.page-commissions .commission-banner-caption,
+.page-commissions .commission-toolbar-meta {font-size:12.3px;line-height:1.5;}
+.page-commissions .commission-banner-value {line-height:1.15;}
+
+/* 05 · Inicio: encabezados, solicitudes, calendarios y estados.
+   Conservar el scroll interno y la altura de la composición aprobada. */
+.dashboard-focus .focus-welcome h1,
+.dashboard-focus .focus-greeting h1 {
+  font-size:clamp(21px,1.75vw,25px);
+  font-weight:800;
+  line-height:1.26;
+  color:var(--crm-read-ink);
+}
+.dashboard-focus .focus-welcome p,
+.dashboard-focus .focus-greeting p,
+.dashboard-focus .focus-card-heading p {
+  font-size:12.6px;
+  line-height:1.5;
+  color:var(--crm-read-secondary);
+}
+.dashboard-focus .focus-card-heading h2,
+.dashboard-focus .hr-panel-heading h2 {
+  font-size:15.5px;
+  font-weight:800;
+  line-height:1.35;
+}
+.dashboard-focus .focus-request-detail strong {
+  font-size:13.3px;
+  font-weight:750;
+  line-height:1.4;
+}
+.dashboard-focus .focus-request-detail small,
+.dashboard-focus .focus-agenda-main small {
+  font-size:12px;
+  line-height:1.45;
+  color:var(--crm-read-secondary);
+}
+.dashboard-focus .focus-inline-link,
+.dashboard-focus .hr-calendar-footer,
+.dashboard-focus .focus-switch button {
+  font-size:12.4px;
+  line-height:1.4;
+}
+.dashboard-focus .focus-request-row {min-height:48px;}
+.dashboard-focus .focus-requests-list {min-height:0;overflow-y:auto;}
+
+/* 06 · Fichas y formularios: espaciado de lectura, no ocultar pasos. */
+.page-crm-record .detail-grid,
+.page-crm-record .crm-quote-detail-grid,
+.page-crm-record .crm-order-overview-grid {row-gap:13px;}
+.page-crm-record .record-meta {color:var(--crm-read-secondary);}
+.page-crm-record .detail-tabs button {font-size:12.3px;}
+.page-crm-record .info-grid {row-gap:11px;}
+.page-crm-record .note-area,
+.page-crm-form .message-editor {font-size:13.2px;line-height:1.6;}
+.page-crm-form .form-grid {row-gap:15px;}
+.page-crm-record :is(.crm-quote-summary,.crm-office-flow,.crm-order-overview-grid) {
+  min-width:0;
+}
+.modal .modal-head h2 {font-size:21px;line-height:1.3;}
+.modal .modal-head p {font-size:13px;line-height:1.5;}
+.modal .modal-content {line-height:1.55;}
+
+/* 07 · Agenda: mantener el calendario deliberadamente compacto,
+   pero recuperar lectura cómoda en notas, tareas y controles. */
+.page-agenda.agenda-pro .agenda-pro-heading h2 {font-size:15px;line-height:1.35;}
+.page-agenda.agenda-pro .agenda-pro-heading p {font-size:12.5px;line-height:1.5;}
+.page-agenda.agenda-pro .agenda-pro-note h3 {font-size:13.8px;line-height:1.45;}
+.page-agenda.agenda-pro .agenda-pro-note p {font-size:12.8px;line-height:1.55;}
+.page-agenda.agenda-pro .agenda-pro-task-text strong {font-size:13.5px;line-height:1.45;}
+.page-agenda.agenda-pro .agenda-pro-task-text small,
+.page-agenda.agenda-pro .agenda-pro-task-row time {font-size:12.2px;line-height:1.45;}
+.page-agenda.agenda-pro .agenda-pro-pills button {font-size:12.4px;min-height:35px;}
+.page-agenda.agenda-pro :is(.agenda-pro-notes-search input,.agenda-pro-task-search input) {
+  font-size:13.2px;min-height:40px;
+}
+
+/* 08 · Nueve informes de Resultados, incluidos tablas, filtros y mapa. */
+.page-results-insights.ri-gsc .ri-header h1 {
+  font-size:clamp(22px,1.9vw,27px);
+  line-height:1.24;
+  color:var(--crm-read-ink);
+}
+.page-results-insights.ri-gsc .ri-header p {font-size:13.2px;line-height:1.5;}
+.page-results-insights.ri-gsc .ri-reports-nav-item {font-size:12.6px;line-height:1.4;}
+.page-results-insights.ri-gsc :is(.ri-period-pills button,.ri-export-button,.ri-report-context-nav button) {
+  font-size:12.5px;line-height:1.4;min-height:36px;
+}
+.page-results-insights.ri-gsc :is(.ri-focus-head h2,.ri-panel-head h2,.ri-study-head h2,.ri-rich-head h3,.ri-activity-head h2) {
+  font-size:15.5px;line-height:1.35;
+}
+.page-results-insights.ri-gsc :is(.ri-focus-head p,.ri-panel-head p,.ri-study-head p,.ri-rich-head p,.ri-activity-head p) {
+  font-size:12.8px;line-height:1.5;
+}
+.page-results-insights.ri-gsc .ri-study-table :is(th,td) {font-size:12.8px;line-height:1.5;}
+.page-results-insights.ri-gsc .ri-study-table th {font-size:12px;}
+.page-results-insights.ri-gsc :is(.ri-study-search input,.ri-study-sort select,.ri-map-filter input) {
+  min-height:40px;font-size:13px;
+}
+.page-results-insights.ri-gsc .ri-map-selection p {font-size:12.8px;}
+.page-results-insights.ri-gsc .ri-map-zones-table>button {font-size:12.5px;}
+.page-results-insights.ri-gsc .ri-map-zones-table>button small {font-size:12px;}
+
+/* 09 · Finanzas y comisiones: cifras destacadas, contexto legible.
+   Evitar que las tarjetas o gráficas pierdan acceso a contenido. */
+.page-finance.finance-analytics .fin-heading h1 {font-size:clamp(22px,1.9vw,27px);}
+.page-finance.finance-analytics .fin-heading p {font-size:13.1px;line-height:1.5;}
+.page-finance.finance-analytics .fin-metric-head {font-size:12.8px;line-height:1.4;}
+.page-finance.finance-analytics .fin-metric>strong {line-height:1.18;}
+.page-finance.finance-analytics .fin-metric>small {font-size:12px;line-height:1.5;}
+.page-finance.finance-analytics :is(.fin-period-tabs button,.fin-export,.fin-period-utilities label) {
+  font-size:12.7px;line-height:1.4;
+}
+.page-finance.finance-analytics .fin-panel :is(h2,h3) {font-size:15.5px;line-height:1.35;}
+.page-finance.finance-analytics .fin-panel :is(p,small) {line-height:1.5;}
+.page-finance.finance-analytics .fin-chart-scroll {max-width:100%;}
+
+/* 10 · Catálogo y navegación entre familias, productos y atributos. */
+.page-catalog.catalog3 .catalog3-tabs button {font-size:13.1px;line-height:1.4;}
+.page-catalog.catalog3 .catalog3-path button {font-size:12.6px;line-height:1.4;}
+.page-catalog.catalog3 .catalog3-overview-row {min-height:58px;}
+.page-catalog.catalog3 .catalog3-overview-name strong {font-size:13.5px;line-height:1.4;}
+.page-catalog.catalog3 .catalog3-overview-name small {font-size:12px;line-height:1.45;}
+.page-catalog.catalog3 .catalog3-overview-count {font-size:12.4px;}
+.page-catalog.catalog3 .catalog3-attribute-summary span {font-size:12px;line-height:1.45;}
+.page-catalog.catalog3 .catalog3-attribute-summary strong {font-size:13px;line-height:1.4;}
+.page-catalog.catalog3 :is(.catalog3-table,.catalog3-table-scroll) {min-width:0;}
+.page-catalog.catalog3 .catalog3-workspace :is(input,select) {font-size:13.2px;}
+
+/* 11 · Transporte, configuración y vista de Fábrica. */
+.page-transport .transport-fast-field>span,
+.page-transport .transport-fast-diameter legend {font-size:12.8px;line-height:1.4;}
+.page-transport .transport-fast :is(input[type=text],input[type=password],input[type=number],select) {
+  min-height:43px;font-size:13.7px;line-height:1.45;
+}
+.page-transport .transport-fast-field small {font-size:12px;line-height:1.5;}
+.page-transport .transport-fast-choice button,
+.page-transport .transport-fast-primary,
+.page-transport .transport-fast-copy {font-size:12.9px;line-height:1.4;}
+.page-transport .transport-fast-estimate-header {line-height:1.4;}
+.page-settings .settings-panel :is(p,li,dd) {font-size:13px;line-height:1.56;}
+.page-settings .settings-panel .settings-audit-spec span {font-size:12.8px;line-height:1.5;}
+.page-settings .settings-panel :is(.settings-note,.settings-audit-empty) {font-size:12.5px;line-height:1.55;}
+
+/* 12 · Teclado, zoom, móvil y contraste, sin romper grids de negocio. */
+.app-root :is(button,a,input,select,textarea):focus-visible {
+  outline:2px solid var(--crm-read-focus);
+  outline-offset:2px;
+}
+.app-root :is(button,a):disabled {cursor:not-allowed;}
+@container crm-content (max-width:990px) {
+  .page-opportunities .op-screen-heading {flex-wrap:wrap;}
+  .page-opportunities .op-searchbar {flex-wrap:wrap;}
+  .page-results-insights.ri-gsc .ri-reports-nav {max-width:100%;}
+}
+@media (max-width:840px) {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {background:#f3f7fb;background-image:none;}
+  .sidebar.sidebar-reference.is-open {width:min(282px,88vw);}
+  .app-main .page :is(.op-heading-copy h1,.page-header h1,.record-hero h1) {font-size:22px;}
+  .app-main .page .op-screen-heading {gap:10px;}
+}
+@media (max-width:600px) {
+  .app-root {font-size:14px;}
+  .app-main .page :is(.op-heading-copy p,.page-header p) {font-size:12.7px;}
+  .app-main .page :is(.form-field input,.form-field select,.form-field textarea,.op-search input) {
+    font-size:16px; /* evita zoom forzado en iOS al editar */
+  }
+  .app-main .page :is(.btn,.op-new-button,.op-export-button) {min-height:42px;}
+  .app-main .page .op-data-table thead th {font-size:11px;}
+  .app-main .page .op-data-table tbody td {font-size:12.6px;}
+  .page-results-insights.ri-gsc .ri-header h1 {font-size:22px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-root *, .app-root *::before, .app-root *::after {
+    scroll-behavior:auto!important;
+  }
+}
+@media print {
+  .app-body .app-main,
+  .app-body.is-dashboard .app-main {background:#fff;background-image:none;}
+  .app-main .page :is(.panel,.focus-card) {box-shadow:none;}
+}
