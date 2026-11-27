@@ -22,8 +22,8 @@ test('PostgreSQL 18 real: workspace original, sesión, persistencia, RBAC, CSRF,
   let cookieDirector, cookieOffice;
   try {
     assert.equal((await admin.query("SELECT current_database() AS db")).rows[0].db, 'depofibra_crm_v2');
-    assert.equal((await admin.query("SELECT to_regclass('crm.business_workspace') AS rel")).rows[0].rel,
-      'business_workspace');
+    assert.match(String((await admin.query("SELECT to_regclass('crm.business_workspace') AS rel")).rows[0].rel),
+      /business_workspace$/);
     assert.equal((await admin.query('SELECT count(*)::integer AS n FROM crm.business_workspace')).rows[0].n, 0);
     const hashed = await hashPassword(password);
     const a = await admin.query("INSERT INTO crm.users(username,password_hash,role) VALUES($1,$2,'direccion') RETURNING id",[director,hashed]);
