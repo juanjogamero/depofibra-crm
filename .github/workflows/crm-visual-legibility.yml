@@ -1,0 +1,50 @@
+name: CRM original - visual readability QA
+
+on:
+  push:
+    branches:
+      - ux/legibilidad-global-crm-20261127
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-and-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Business unit tests
+        run: npm run test:unit
+      - name: Build original demo UI
+        run: npm run build
+      - name: Build original real UI
+        run: npm run build:real
+      - name: Verify readability CSS in both builds
+        run: |
+          test -s src/crm-global-legibility-20261127.css
+          grep -q "crm-global-legibility-20261127.css" src/main.tsx
+          test -s dist/index.html
+          test -s dist-real/index.html
+      - name: Install Playwright in test environment
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund @playwright/test@1.55.0
+          google-chrome --version
+      - name: Original CRM functional and visual browser regression
+        run: npm run test:e2e
+      - name: Keep browser test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-legibility-qa
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
