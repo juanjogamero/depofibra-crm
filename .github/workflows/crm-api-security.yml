@@ -59,6 +59,7 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -c "CREATE ROLE depofibra_v2_api LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD 'ci_only_not_for_vps'"
           psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/002_runtime_grants.sql
           psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/003_opportunities.sql
+          psql -h 127.0.0.1 -U postgres -d depofibra_crm_v2 -v ON_ERROR_STOP=1 -f server/sql/004_business_workspace.sql
       - name: Instalar dependencias del servidor
         run: cd server && npm install --no-audit --no-fund
       - name: Pruebas SQL con permisos mínimos y sesiones reales
