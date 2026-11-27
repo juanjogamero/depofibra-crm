@@ -367,7 +367,7 @@ export function CrmProvider({ children, realIdentity }: {
         commissionPayments:[...(d.commissionPayments||[]),{id:uid('COB'),orderId:id,amount:applied,paidAt:date}],
         orders:d.orders.map(o=>o.id===id?{
           ...o,commissionPaid:roundEuros(previous+applied),
-          activity:[{at:date,text:'Pago de comisión registrado: '+applied.toFixed(2)+' € (demo)',by:'Dirección'},...o.activity]
+          activity:[{at:date,text:'Pago de comisión registrado: '+applied.toFixed(2)+' €'+(realIdentity?'':' (demo)'),by:'Dirección'},...o.activity]
         }:o)
       };
     }),
