@@ -207,15 +207,23 @@ function BottomBar() {
   ];
   return <nav className="bottom-bar">{items.map(x=><NavLink to={x.to} end={x.to==='/'} key={x.to} className={({isActive})=>isActive?'bottom-active':''}><x.icon size={20}/><span>{x.label}</span></NavLink>)}</nav>;
 }
-export default function App() {
-  const {storageError}=useCrm();
+export default function App({ onSecureLogout }: { onSecureLogout?: () => Promise<void> } = {}) {
+  const {storageError,savePending}=useCrm();
   // Aviso obligatorio en el artefacto de PRUEBAS para VPS; nunca equivale a login real.
   const vpsPreview=import.meta.env.VITE_APP_MODE==='vps-preview';
   const [open,setOpen]=useState(false);
   const [collapsed,setCollapsed]=useState(false);
   const [viewExited,setViewExited]=useState(()=>{try{return sessionStorage.getItem(PREVIEW_EXIT_KEY)==='1'}catch{return false}});
   const signOut=()=>{
-    // No existen sesiones autenticadas en esta versión. No afirmar su revocación.
+    if (onSecureLogout) {
+      if (savePending || storageError) {
+        window.alert('Hay cambios sin guardar o un problema de sincronización. Revisa el aviso antes de salir.');
+        return;
+      }
+      void onSecureLogout();
+      return;
+    }
+    // La demo original mantiene su comportamiento histórico.
     if(!window.confirm('¿Salir de esta vista del CRM? No hay todavía inicio de sesión real; esta acción solo cierra la vista en este navegador, sin borrar tus datos.'))return;
     try{sessionStorage.setItem(PREVIEW_EXIT_KEY,'1')}catch{/* Almacenamiento de sesión no disponible */}
     setOpen(false);setViewExited(true);
@@ -240,7 +248,7 @@ export default function App() {
   const onTransport = location.pathname === '/transporte';
   const onFactory = location.pathname === '/fabrica';
   const isCompactList = onOpportunities || onQuotesList || onClientsList || onOrdersList || onCommissionsList || onAgendaList || onResultsList || onFinance || onCatalog || onConfiguration || onTransport || onFactory;
-  if(viewExited)return <div className="crm-exit-screen"><main className="crm-exit-card">
+  if(viewExited && !onSecureLogout)return <div className="crm-exit-screen"><main className="crm-exit-card">
     <img className="crm-exit-brand" src="https://depofibra.com/images/depofibra_brand_assets/depofibra-logo-horizontal.png?v=20261113" alt="Depofibra"/>
     <h1>Has salido de esta vista</h1>
     <p>El CRM está oculto en esta pestaña. El cierre seguro de sesiones estará disponible cuando se active el acceso con usuarios y contraseñas.</p>
@@ -251,6 +259,10 @@ export default function App() {
     <div className={'app-body' + (onDashboard ? ' is-dashboard' : '') + (isCompactList ? ' is-opportunities' : '') + (onQuotesList ? ' is-quotes' : '') + (onClientsList ? ' is-clients' : '') + (onOrdersList ? ' is-orders' : '') + (onCommissionsList ? ' is-commissions' : '') + (onAgendaList ? ' is-agenda' : '') + (onResultsList ? ' is-results' : '') + (onFinance ? ' is-finance' : '') + (onCatalog ? ' is-catalog' : '') + (onConfiguration ? ' is-configuration' : '') + (onTransport ? ' is-transport' : '') + (onFactory ? ' is-factory' : '')}>
       <button type="button" className="dashboard-mobile-menu" aria-label="Abrir menú lateral" onClick={()=>setOpen(true)}><Menu size={21}/></button>
       <main className="app-main" id="main-content">
+        {onSecureLogout&&<div className="vps-preview-banner" role="status">
+          <strong>CRM Depofibra · sesión real de Dirección</strong>
+          <span>{savePending?'Guardando cambios en PostgreSQL…':'Los cambios se registran en el servidor. No usar datos de ejemplo.'}</span>
+        </div>}
         {vpsPreview&&<div className="vps-preview-banner" role="status">
           <strong>VPS · entorno de pruebas protegido</strong>
           <span>Sin cuentas reales ni base de datos. Los cambios se guardan solo en este navegador. No introduzcas datos comerciales ni personales.</span>
