@@ -1,10 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import { ApiError } from '../secure/api';
+import { emptyRealState, loadRealWorkspace, saveRealWorkspace, type RealIdentity } from './real-workspace';
 import { type CrmState, type Opportunity, type Quote, type Order, type Task, type Product, type ProductCategory, type TransportSettings, type InternalNote, quoteItemsSubtotal, roundEuros, validQuoteLines, validInitialPayment, commissionOutstanding, mockData, today, uid } from './domain';
 
 type Role = 'direccion' | 'fabrica';
 type ContextValue = {
   data: CrmState;
   storageError:string;
+  savePending:boolean;
   role: Role; setRole: (role: Role) => void;
   addOpportunity: (item: Omit<Opportunity, 'id' | 'createdAt' | 'activity'>) => void;
   updateOpportunity: (id: string, patch: Partial<Opportunity>) => void;
@@ -118,17 +121,100 @@ const localReadFailure=():string=>{
     return 'No se ha podido leer el almacenamiento local. NO se sobrescribirán los datos existentes.';
   }
 };
-export function CrmProvider({ children }: { children: ReactNode }) {
-  const [readError,setReadError]=useState(localReadFailure);
+export function CrmProvider({ children, realIdentity }: {
+  children: ReactNode; realIdentity?: RealIdentity;
+}) {
+  const [readError,setReadError]=useState(() => realIdentity ? '' : localReadFailure());
   const [storageError,setStorageError]=useState(readError);
-  const [data, setData] = useState<CrmState>(initialData);
-  const [role, setRole] = useState<Role>('direccion');
+  const [data,setDataState] = useState<CrmState>(() => realIdentity ? emptyRealState() : initialData());
+  const [role,setRoleState] = useState<Role>('direccion');
+  const [hydrated,setHydrated] = useState(!realIdentity);
+  const [loadError,setLoadError] = useState('');
+  const [savePending,setSavePending] = useState(false);
+  const versionRef = useRef(0);
+  const savedRef = useRef<CrmState | null>(null);
+  const lastQueuedRef = useRef<CrmState | null>(null);
+  const pendingRef = useRef(0);
+  const blockedRef = useRef(false);
+  const hydratedRef = useRef(!realIdentity);
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
+
+  const setRole = (next: Role) => {
+    // Solo el servidor controla los roles del CRM real.
+    if (!realIdentity) setRoleState(next);
+  };
+  const setData: Dispatch<SetStateAction<CrmState>> = update => {
+    if (realIdentity && (!hydratedRef.current || blockedRef.current)) {
+      setStorageError('Sincronización bloqueada. Recarga la página después de revisar el error; no introduzcas más datos.');
+      return;
+    }
+    setDataState(update);
+  };
+
   useEffect(() => {
-    if(readError)return; // No destruir un archivo anterior que esté corrupto o sea ilegible.
+    if (!realIdentity) return;
+    let active = true;
+    loadRealWorkspace().then(({version,state}) => {
+      if (!active) return;
+      versionRef.current = version;
+      savedRef.current = state;
+      lastQueuedRef.current = state;
+      hydratedRef.current = true;
+      setDataState(state);
+      setHydrated(true);
+    }).catch(() => {
+      if (active) setLoadError('No se ha podido cargar el CRM real desde PostgreSQL. No se han cargado datos ficticios.');
+    });
+    return () => { active = false; };
+  }, [realIdentity?.username]);
+
+  useEffect(() => {
+    if (!realIdentity || !hydrated || data === lastQueuedRef.current) return;
+    const snapshot = data;
+    lastQueuedRef.current = snapshot;
+    pendingRef.current++;
+    setSavePending(true);
+    queueRef.current = queueRef.current.then(async () => {
+      if (blockedRef.current) {
+        pendingRef.current--;
+        if (pendingRef.current === 0) setSavePending(false);
+        return;
+      }
+      try {
+        versionRef.current = await saveRealWorkspace(versionRef.current, snapshot);
+        savedRef.current = snapshot;
+        setStorageError('');
+      } catch (error) {
+        blockedRef.current = true;
+        setStorageError(error instanceof ApiError && error.status === 409
+          ? 'Conflicto entre sesiones: no se ha sobrescrito el servidor. Detén el trabajo y revisa los cambios antes de recargar.'
+          : 'No se ha guardado el último cambio en PostgreSQL. Detén el trabajo: revisa la conexión y contacta con soporte.');
+      } finally {
+        pendingRef.current--;
+        if (pendingRef.current === 0) setSavePending(false);
+      }
+    });
+  }, [data,hydrated,realIdentity?.username]);
+
+  useEffect(() => {
+    if (!realIdentity) return;
+    const guard = (event: BeforeUnloadEvent) => {
+      if (pendingRef.current > 0 || blockedRef.current) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload',guard);
+    return () => window.removeEventListener('beforeunload',guard);
+  }, [realIdentity?.username]);
+
+  useEffect(() => {
+    if (realIdentity || readError) return; // La producción nunca escribe en localStorage.
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));setStorageError('');}
     catch{setStorageError('No se han podido guardar los cambios en este navegador. Exporta lo que puedas y revisa el almacenamiento antes de seguir.');}
   }, [data,readError]);
   useEffect(()=>{
+    if (realIdentity) return; // El archivado automático demo no altera la BD real.
     const review=()=>setData(old=>archiveExpiredQuotes(old));
     const timer=window.setInterval(review,3600000);
     window.addEventListener('focus',review);
@@ -325,10 +411,18 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         ?{...c,documentNames:[...c.documentNames,name.trim()]}:c)
     })),
     resetDemo: () => {
+      if (realIdentity) return; // Nunca borrar el espacio real desde un control de demo.
       setReadError('');setStorageError('');
       setData(normalizeCatalog(structuredClone(mockData)));
     },
   }), []);
-  return <Ctx.Provider value={{ data, storageError, role, setRole, ...actions }}>{children}</Ctx.Provider>;
+  if (realIdentity && !hydrated) {
+    return <main role="status" style={{padding:32,fontFamily:'Inter, sans-serif'}}>
+      <h1>Depofibra CRM</h1>
+      <p>{loadError || 'Cargando los datos reales desde el servidor…'}</p>
+      {loadError && <button onClick={()=>window.location.reload()}>Reintentar</button>}
+    </main>;
+  }
+  return <Ctx.Provider value={{ data, storageError, savePending, role, setRole, ...actions }}>{children}</Ctx.Provider>;
 }
 export function useCrm(): ContextValue { const value = useContext(Ctx); if (!value) throw new Error('CrmProvider requerido'); return value; }
