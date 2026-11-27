@@ -84,7 +84,10 @@ export async function loadWorkspace(pool) {
   const result = await pool.query(
     'SELECT version,state FROM crm.business_workspace WHERE workspace_id=1'
   );
-  return result.rows[0] || { version: 0, state: emptyWorkspace() };
+  if (!result.rows[0]) return { version: 0, state: emptyWorkspace() };
+  const version = Number(result.rows[0].version);
+  if (!Number.isSafeInteger(version) || version < 1) throw new Error('versión de estado inválida');
+  return { version, state: result.rows[0].state };
 }
 
 export async function saveWorkspace(pool, actorId, expectedVersion, input) {
