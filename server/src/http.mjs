@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { loadWorkspace, saveWorkspace } from './workspace-store.mjs';
 import { validateOpportunity, validateChange } from './opportunities.mjs';
 import { listOpportunities, createOpportunity, updateOpportunity, isUuid } from './opportunities-store.mjs';
 import { makeSession, verifyPassword, wasteLoginWork, tokenHash, readSessionCookie, sessionCookie, clearSessionCookie, validOrigin, SESSION_SECONDS } from './security.mjs';
@@ -15,7 +16,7 @@ function reply(res, status, value, extra = {}) {
   res.writeHead(status, { ...HEADERS, 'Content-Type': 'application/json; charset=utf-8', ...extra });
   res.end(body);
 }
-async function jsonBody(req) {
+async function jsonBody(req, maxBytes = 8192) {
   if (!/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] || '')) {
     const error = new Error('content-type'); error.status = 415; throw error;
   }
@@ -23,7 +24,7 @@ async function jsonBody(req) {
   let bytes = 0;
   for await (const chunk of req) {
     bytes += chunk.length;
-    if (bytes > 8192) { const error = new Error('body limit'); error.status = 413; throw error; }
+    if (bytes > maxBytes) { const error = new Error('body limit'); error.status = 413; throw error; }
     chunks.push(chunk);
   }
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
@@ -85,6 +86,30 @@ export function createApiServer(store, origin) {
       if (isPost && path === '/api/logout') {
         if (hash) await store.logout(hash);
         return reply(res, 200, { ok: true }, { 'Set-Cookie': clearSessionCookie() });
+      }
+      // El CRM original conserva sus pantallas, pero solo Dirección puede
+      // consultar y modificar su espacio real persistido. No hay datos demo.
+      if (path === '/api/workspace') {
+        if (!hash) return reply(res, 401, { error: 'sin_sesion' });
+        const principal = await store.session(hash);
+        if (!principal) return reply(res, 401, { error: 'sin_sesion' });
+        if (principal.role !== 'direccion') {
+          return reply(res, 403, { error: 'sin_permiso' });
+        }
+        if (req.method === 'GET') {
+          return reply(res, 200, await loadWorkspace(store.pool));
+        }
+        if (req.method === 'PUT') {
+          const payload = await jsonBody(req, 1024 * 1024 + 8192);
+          if (!payload || typeof payload !== 'object' || Array.isArray(payload)
+              || Object.keys(payload).sort().join(',') !== 'state,version') {
+            return reply(res, 400, { error: 'solicitud_invalida' });
+          }
+          const result = await saveWorkspace(store.pool, principal.id, payload.version, payload.state);
+          if (result.error === 'conflicto_version') return reply(res, 409, result);
+          return reply(res, 200, result);
+        }
+        return reply(res, 405, { error: 'metodo_no_permitido' });
       }
       // Los recursos comerciales nunca son públicos. El rol viene de la sesión
       // validada contra PostgreSQL, nunca de una cabecera del navegador.
