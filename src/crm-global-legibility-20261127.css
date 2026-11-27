@@ -34,8 +34,7 @@
 }
 .app-body .app-main,
 .app-body.is-dashboard .app-main {
-  background:#f3f7fb;
-  background-image:none;
+  background-color:#f5f9fd; /* preserva el degradado suave existente */
 }
 .app-main .page {
   color:var(--crm-read-body);
@@ -171,9 +170,8 @@
   line-height:1.45;
 }
 .app-body .app-main .page-opportunities .op-data-table thead th {
-  background:#f6f9fc;
-  background-image:none;
-  box-shadow:none;
+  background-color:#f6f9fc;
+  box-shadow:none; /* mantiene el degradado de cabecera aprobado */
   color:#506980;
   font-size:11.3px;
   font-weight:750;
@@ -189,6 +187,14 @@
   padding:10px 8px;
   vertical-align:middle;
   color:var(--crm-read-body);
+}
+/* Las acciones de la última columna conservan su margen al borde
+   incluso cuando se amplía el texto de otras celdas. */
+.app-body .app-main .page-opportunities .op-data-table tbody td.op-col-open,
+.app-body .app-main .page-opportunities .op-data-table tbody td.commission-col-open {
+  padding-left:3px;
+  padding-right:3px;
+  text-align:center;
 }
 .app-main .page-opportunities .op-data-table tbody tr:hover {background:#f5f9fd;}
 .app-main .page-opportunities .op-data-table .op-client-name,
@@ -209,9 +215,8 @@
 }
 .app-main .page-opportunities .op-data-table time {font-size:12px;line-height:1.45;}
 .app-body .app-main .page-opportunities .op-table-footer {
-  background:#f8fbfd;
-  background-image:none;
-  box-shadow:none;
+  background-color:#f8fbfd;
+  box-shadow:none; /* mantiene el degradado de pie aprobado */
   color:var(--crm-read-secondary);
   font-size:11.8px;
   line-height:1.5;
@@ -282,10 +287,10 @@
 /* 07 · Agenda: mantener el calendario deliberadamente compacto,
    pero recuperar lectura cómoda en notas, tareas y controles. */
 .page-agenda.agenda-pro .agenda-pro-heading h2 {font-size:15px;line-height:1.35;}
-.page-agenda.agenda-pro .agenda-pro-heading p {font-size:12.5px;line-height:1.5;}
+.page-agenda.agenda-pro .agenda-pro-heading p {font-size:13px;line-height:1.5;}
 .page-agenda.agenda-pro .agenda-pro-note h3 {font-size:13.8px;line-height:1.45;}
 .page-agenda.agenda-pro .agenda-pro-note p {font-size:12.8px;line-height:1.55;}
-.page-agenda.agenda-pro .agenda-pro-task-text strong {font-size:13.5px;line-height:1.45;}
+.page-agenda.agenda-pro .agenda-pro-task-text strong {font-size:14px;line-height:1.45;}
 .page-agenda.agenda-pro .agenda-pro-task-text small,
 .page-agenda.agenda-pro .agenda-pro-task-row time {font-size:12.2px;line-height:1.45;}
 .page-agenda.agenda-pro .agenda-pro-pills button {font-size:12.4px;min-height:35px;}
@@ -373,15 +378,22 @@
 }
 @media (max-width:840px) {
   .app-body .app-main,
-  .app-body.is-dashboard .app-main {background:#f3f7fb;background-image:none;}
+  .app-body.is-dashboard .app-main {background-color:#f5f9fd;}
   .sidebar.sidebar-reference.is-open {width:min(282px,88vw);}
   .app-main .page :is(.op-heading-copy h1,.page-header h1,.record-hero h1) {font-size:22px;}
   .app-main .page .op-screen-heading {gap:10px;}
 }
+@container crm-content (max-width:790px) {
+  .app-body .app-main .page-opportunities .op-data-table tbody td {padding-left:4px;padding-right:4px;}
+  .app-body .app-main .page-opportunities .op-data-table tbody td.op-col-open,
+  .app-body .app-main .page-opportunities .op-data-table tbody td.commission-col-open {
+    padding-left:2px;padding-right:2px;
+  }
+}
 @media (max-width:600px) {
   .app-root {font-size:14px;}
   .app-main .page :is(.op-heading-copy p,.page-header p) {font-size:12.7px;}
-  .app-main .page :is(.form-field input,.form-field select,.form-field textarea,.op-search input) {
+  .app-main .page:not(.dashboard-vektora) :is(.form-field input,.form-field select,.form-field textarea,.op-search input) {
     font-size:16px; /* evita zoom forzado en iOS al editar */
   }
   .app-main .page :is(.btn,.op-new-button,.op-export-button) {min-height:42px;}
