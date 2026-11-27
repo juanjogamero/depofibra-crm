@@ -119,7 +119,6 @@
   font-size:13.5px;
   line-height:1.5;
 }
-.app-main .page .form-field textarea {height:auto;min-height:90px;}
 .app-main .page .form-field .field-label {
   font-size:12.5px;
   font-weight:700;
@@ -224,6 +223,15 @@
 .page-commissions .commission-banner-caption,
 .page-commissions .commission-toolbar-meta {font-size:12.3px;line-height:1.5;}
 .page-commissions .commission-banner-value {line-height:1.15;}
+
+/* Desplazamiento VISUAL de las acciones en la última columna.
+   La tabla sigue teniendo las mismas columnas y anchuras. El botón
+   conserva >= 9px de separación lateral en Chrome incluso con letras
+   más legibles, sin cambiar su hit area ni hacer scroll horizontal. */
+.app-body .app-main .page-opportunities .op-data-table tbody td.op-col-open > :is(.op-row-open,.crm-trash-restore),
+.app-body .app-main .page-opportunities .op-data-table tbody td.commission-col-open > .op-row-open {
+  transform:translateX(-10px);
+}
 
 /* 05 · Inicio: encabezados, solicitudes, calendarios y estados.
    Conservar el scroll interno y la altura de la composición aprobada. */
